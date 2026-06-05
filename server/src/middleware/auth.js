@@ -7,7 +7,12 @@ const protect = async (req, res, next) => {
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     req.user = await User.findById(decoded.id).select('-password');
-    if (!req.user || !req.user.isActive) return res.status(401).json({ success: false, message: 'User not found or deactivated' });
+    if (!req.user || !req.user.isActive) {
+      return res.status(401).json({ success: false, message: 'User not found or deactivated' });
+    }
+    if (!req.user.isVerified) {
+      return res.status(403).json({ success: false, message: 'Account not verified' });
+    }
     next();
   } catch {
     res.status(401).json({ success: false, message: 'Invalid or expired token' });

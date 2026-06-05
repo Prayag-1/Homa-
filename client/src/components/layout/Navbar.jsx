@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { useCart } from '../../context/CartContext';
@@ -9,24 +9,26 @@ export default function Navbar() {
   const { user, logout } = useAuth();
   const { itemCount } = useCart();
 
-  window.addEventListener('scroll', () => setScrolled(window.scrollY > 10));
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 10);
+    handleScroll();
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   return (
     <nav className={`sticky top-0 z-50 transition-all ${scrolled ? 'backdrop-blur bg-white/80 border-b border-gray-200' : 'bg-transparent'}`}>
       <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-        {/* Logo */}
         <Link to="/" className="text-3xl font-display font-semibold text-black">HOMA</Link>
 
-        {/* Desktop Nav */}
         <div className="hidden md:flex gap-8">
-          <Link to="/" className="text-black hover:text-red-500 transition">Home</Link>
+          <Link to="/" className="text-black hover:text-red-500 transition">Auth Test</Link>
           <Link to="/shop" className="text-black hover:text-red-500 transition">Shop</Link>
           <Link to="/blog" className="text-black hover:text-red-500 transition">Blog</Link>
           <Link to="/about" className="text-black hover:text-red-500 transition">About</Link>
           <Link to="/distributors" className="text-black hover:text-red-500 transition">Distributors</Link>
         </div>
 
-        {/* Icons */}
         <div className="hidden md:flex gap-4 items-center">
           <button className="p-2 hover:bg-gray-100 rounded-lg transition">🔍</button>
           <button className="p-2 hover:bg-gray-100 rounded-lg transition">❤️</button>
@@ -44,15 +46,13 @@ export default function Navbar() {
           )}
         </div>
 
-        {/* Mobile Menu */}
         <button className="md:hidden" onClick={() => setIsOpen(!isOpen)}>☰</button>
       </div>
 
-      {/* Mobile Menu Overlay */}
       {isOpen && (
         <div className="fixed inset-0 bg-white z-40 flex flex-col p-4 gap-4 md:hidden">
           <button onClick={() => setIsOpen(false)} className="text-2xl">✕</button>
-          <Link to="/" onClick={() => setIsOpen(false)}>Home</Link>
+          <Link to="/" onClick={() => setIsOpen(false)}>Auth Test</Link>
           <Link to="/shop" onClick={() => setIsOpen(false)}>Shop</Link>
           <Link to="/blog" onClick={() => setIsOpen(false)}>Blog</Link>
           <Link to="/about" onClick={() => setIsOpen(false)}>About</Link>

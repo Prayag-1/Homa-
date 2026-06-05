@@ -17,11 +17,13 @@ export function AuthProvider({ children }) {
           const { data } = await api.post('/auth/refresh');
           localStorage.setItem('accessToken', data.data.accessToken);
           setAccessToken(data.data.accessToken);
-          // Fetch user info here if needed
+          const me = await api.get('/auth/me');
+          setUser(me.data.data.user);
         } catch (err) {
           console.error('Session restore failed:', err);
           localStorage.removeItem('accessToken');
           setAccessToken(null);
+          setUser(null);
         }
       }
       setLoading(false);
@@ -30,19 +32,29 @@ export function AuthProvider({ children }) {
     restoreSession();
   }, []);
 
-  const login = async (email, password) => {
-    const { data } = await api.post('/auth/login', { email, password });
+  const login = async (identifier, password) => {
+    const { data } = await api.post('/auth/login', { identifier, password });
     localStorage.setItem('accessToken', data.data.accessToken);
     setAccessToken(data.data.accessToken);
     setUser(data.data.user);
     return data;
   };
 
-  const register = async (name, email, password) => {
-    const { data } = await api.post('/auth/register', { name, email, password });
+  const register = async (payload) => {
+    const { data } = await api.post('/auth/register', payload);
+    return data;
+  };
+
+  const verifyAccount = async (verificationMethod, target, code) => {
+    const { data } = await api.post('/auth/verify', { verificationMethod, target, code });
     localStorage.setItem('accessToken', data.data.accessToken);
     setAccessToken(data.data.accessToken);
     setUser(data.data.user);
+    return data;
+  };
+
+  const resendVerification = async (verificationMethod, target) => {
+    const { data } = await api.post('/auth/resend-verification', { verificationMethod, target });
     return data;
   };
 
@@ -53,8 +65,26 @@ export function AuthProvider({ children }) {
     setUser(null);
   };
 
+  const refreshUser = async () => {
+    const { data } = await api.get('/auth/me');
+    setUser(data.data.user);
+    return data.data.user;
+  };
+
   return (
-    <AuthContext.Provider value={{ user, accessToken, loading, login, register, logout }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        accessToken,
+        loading,
+        login,
+        register,
+        verifyAccount,
+        resendVerification,
+        refreshUser,
+        logout,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
