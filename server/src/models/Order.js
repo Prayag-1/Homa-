@@ -1,0 +1,39 @@
+const mongoose = require('mongoose');
+
+const orderSchema = new mongoose.Schema(
+  {
+    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    items: [
+      {
+        product: { type: mongoose.Schema.Types.ObjectId, ref: 'Product' },
+        name: String,
+        price: Number,
+        quantity: Number,
+        image: String,
+      },
+    ],
+    subtotal: { type: Number, required: true },
+    discount: { type: Number, default: 0 },
+    taxableAmount: { type: Number, required: true },
+    vatAmount: { type: Number, required: true },
+    deliveryCharge: { type: Number, default: 0 },
+    grandTotal: { type: Number, required: true },
+    vatRate: { type: Number, default: 0.13 },
+    shippingAddress: {
+      street: String,
+      city: String,
+      phone: String,
+    },
+    paymentMethod: { type: String, enum: ['esewa', 'fonepay', 'cod'], required: true },
+    paymentStatus: { type: String, enum: ['pending', 'paid', 'failed', 'pending_collection', 'collected'], default: 'pending' },
+    orderStatus: { type: String, enum: ['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled'], default: 'pending' },
+    paymentRef: String,
+    invoiceNumber: { type: String, unique: true, sparse: true },
+    invoiceUrl: String,
+    notes: String,
+    couponCode: String,
+  },
+  { timestamps: true }
+);
+
+module.exports = mongoose.model('Order', orderSchema);
