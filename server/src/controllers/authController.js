@@ -74,6 +74,14 @@ const register = async (req, res, next) => {
     const { name, email, phoneNumber, password, birthday, address, verificationMethod } = req.body;
     const normalizedEmail = normalizeEmail(email);
     const normalizedPhone = normalizePhoneNumber(phoneNumber);
+
+    if (!normalizedPhone) {
+      return res.status(400).json({
+        success: false,
+        message: 'A valid phone number is required',
+      });
+    }
+
     const method = resolveVerificationMethod(
       verificationMethod,
       normalizedEmail,
@@ -109,14 +117,15 @@ const register = async (req, res, next) => {
       existingUser.password = password;
       existingUser.birthday = birthday;
       existingUser.address = address;
+      existingUser.phoneNumber = normalizedPhone;
       existingUser.verificationMethod = method;
       existingUser.verification = verification;
       user = await existingUser.save();
     } else {
       user = await User.create({
         name,
-        email: method === 'email' ? target : undefined,
-        phoneNumber: method === 'phone' ? target : undefined,
+        email: method === 'email' ? target : normalizedEmail || undefined,
+        phoneNumber: normalizedPhone,
         password,
         birthday,
         address,
@@ -127,7 +136,7 @@ const register = async (req, res, next) => {
     }
 
     await sendVerificationCode({
-      method: verificationMethod,
+      method,
       target,
       code: verification.code,
     });
@@ -140,9 +149,6 @@ const register = async (req, res, next) => {
         verificationRequired: true,
         verificationMethod: method,
         target,
-        ...(process.env.NODE_ENV !== 'production' && {
-          devVerificationCode: verification.code,
-        }),
       },
     });
   } catch (error) {
@@ -208,11 +214,15 @@ const verifyAccount = async (req, res, next) => {
       });
     }
 
+    const normalizedCode = String(code).trim();
+    if (!/^\d{6}$/.test(normalizedCode)) {
+      return res.status(400).json({ success: false, message: 'Invalid verification code' });
+    }
+
     user.verification.attempts += 1;
-    const codeHash = hashVerificationCode(code);
-    const matches =
-      codeHash.length === user.verification.codeHash.length &&
-      crypto.timingSafeEqual(Buffer.from(codeHash, 'hex'), Buffer.from(user.verification.codeHash, 'hex'));
+    const codeHash = hashVerificationCode(normalizedCode);
+    const storedHash = String(user.verification.codeHash || '');
+    const matches = codeHash === storedHash;
 
     if (!matches) {
       await user.save();
@@ -287,11 +297,7 @@ const resendVerificationCode = async (req, res, next) => {
     res.status(200).json({
       success: true,
       message: 'Verification code resent',
-      data: {
-        ...(process.env.NODE_ENV !== 'production' && {
-          devVerificationCode: verification.code,
-        }),
-      },
+      data: {},
     });
   } catch (error) {
     next(error);

@@ -4,6 +4,7 @@ import toast from 'react-hot-toast';
 import { useAuth } from '../hooks/useAuth';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
+import { Navigate } from 'react-router-dom';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -22,7 +23,7 @@ export default function Login() {
     try {
       await login(form.identifier, form.password);
       toast.success('Logged in successfully');
-      navigate('/');
+      navigate('/user/dashboard');
     } catch (error) {
       toast.error(error.response?.data?.message || 'Login failed');
     } finally {
@@ -53,7 +54,7 @@ export default function Login() {
             onChange={onChange}
             placeholder="Your password"
           />
-          <Button type="submit" variant="primary" size="lg" loading={loading} className="w-full">
+          <Button type="submit" variant="primary" size="lg" loading={loading} className="w-full"  >
             Login
           </Button>
         </form>

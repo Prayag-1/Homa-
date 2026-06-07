@@ -44,7 +44,6 @@ export default function AuthTester() {
   const [registerData, setRegisterData] = useState(initialRegister);
   const [loginData, setLoginData] = useState(initialLogin);
   const [verifyData, setVerifyData] = useState(initialVerify);
-  const [devCode, setDevCode] = useState('');
   const [busy, setBusy] = useState(null);
   const [meData, setMeData] = useState(null);
 
@@ -75,7 +74,6 @@ export default function AuthTester() {
   const handleRegister = async (event) => {
     event.preventDefault();
     setBusy('register');
-    setDevCode('');
 
     try {
       const payload = {
@@ -95,9 +93,6 @@ export default function AuthTester() {
 
       const { data } = await api.post('/auth/register', payload);
       setVerifyData((current) => ({ ...current, phoneNumber: registerData.phoneNumber }));
-      if (data?.data?.devVerificationCode) {
-        setDevCode(data.data.devVerificationCode);
-      }
       toast.success('Registration created. Check the OTP panel.');
     } catch (error) {
       toast.error(error.response?.data?.message || 'Registration failed');
@@ -130,9 +125,6 @@ export default function AuthTester() {
       const { data } = await api.post('/auth/resend-verification', {
         phoneNumber: verifyData.phoneNumber,
       });
-      if (data?.data?.devVerificationCode) {
-        setDevCode(data.data.devVerificationCode);
-      }
       toast.success('Verification code resent');
     } catch (error) {
       toast.error(error.response?.data?.message || 'Resend failed');
@@ -236,11 +228,6 @@ export default function AuthTester() {
                   Resend OTP
                 </Button>
               </div>
-              {devCode && (
-                <div className="rounded-2xl border border-dashed border-black/20 bg-black/5 px-4 py-3 text-sm">
-                  Dev OTP: <span className="font-semibold">{devCode}</span>
-                </div>
-              )}
             </FieldGroup>
 
             <FieldGroup title="3. Login">

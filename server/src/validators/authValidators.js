@@ -29,7 +29,10 @@ const registerSchema = Joi.object({
   name: Joi.string().trim().min(2).max(100).required(),
   verificationMethod: contactMethod.optional(),
   email: email.optional().allow('', null),
-  phoneNumber: phoneNumber.optional().allow('', null),
+  phoneNumber: phoneNumber.required().messages({
+    'any.required': 'Phone number is required',
+    'string.empty': 'Phone number is required',
+  }),
   password,
   birthday: Joi.date().max('now').required().messages({
     'date.max': 'Birthday must be a past date',

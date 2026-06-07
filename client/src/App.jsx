@@ -7,6 +7,7 @@ import { CartProvider } from './context/CartContext';
 import Navbar from './components/layout/Navbar';
 import Footer from './components/layout/Footer';
 import Home from './pages/Home';
+import Dashboard from './pages/Dashboard';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import NotFound from './pages/NotFound';
@@ -23,6 +24,7 @@ export default function App() {
               <Navbar />
               <Routes>
                 <Route path="/"          element={<Home />} />
+                <Route path="/user/dashboard" element={<Dashboard />} />
                 <Route path="/login"     element={<Login />} />
                 <Route path="/register"  element={<Register />} />
                 <Route path="*"          element={<NotFound />} />

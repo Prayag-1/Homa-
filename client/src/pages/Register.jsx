@@ -30,7 +30,6 @@ export default function Register() {
   });
   const [step, setStep] = useState('register');
   const [busy, setBusy] = useState(false);
-  const [devCode, setDevCode] = useState('');
 
   const targetValue = useMemo(
     () => (verificationMethod === 'email' ? form.email : form.phoneNumber),
@@ -45,13 +44,12 @@ export default function Register() {
   const onRegister = async (event) => {
     event.preventDefault();
     setBusy(true);
-    setDevCode('');
     try {
       const payload = {
         verificationMethod,
         name: form.name,
-        email: verificationMethod === 'email' ? form.email : '',
-        phoneNumber: verificationMethod === 'phone' ? form.phoneNumber : '',
+        email: form.email,
+        phoneNumber: form.phoneNumber,
         password: form.password,
         birthday: form.birthday,
         address: {
@@ -65,12 +63,9 @@ export default function Register() {
       };
       const response = await register(payload);
       setVerification({
-        target: response.data?.data?.target || targetValue,
+        target: response.data?.target || targetValue,
         code: '',
       });
-      if (response.data?.data?.devVerificationCode) {
-        setDevCode(response.data.data.devVerificationCode);
-      }
       setStep('verify');
       toast.success(`Verification code sent to your ${verificationMethod}`);
     } catch (error) {
@@ -86,7 +81,7 @@ export default function Register() {
     try {
       await verifyAccount(verificationMethod, verification.target, verification.code);
       toast.success('Account verified');
-      navigate('/');
+      navigate('/user/dashboard');
     } catch (error) {
       toast.error(error.response?.data?.message || 'Verification failed');
     } finally {
@@ -98,9 +93,6 @@ export default function Register() {
     setBusy(true);
     try {
       const response = await resendVerification(verificationMethod, verification.target || targetValue);
-      if (response.data?.devVerificationCode) {
-        setDevCode(response.data.devVerificationCode);
-      }
       toast.success('Verification code resent');
     } catch (error) {
       toast.error(error.response?.data?.message || 'Could not resend code');
@@ -122,6 +114,7 @@ export default function Register() {
           <form onSubmit={onRegister} className="mt-8 space-y-5">
             <div className="grid gap-5 md:grid-cols-2">
               <Input label="Name" name="name" value={form.name} onChange={onChange} placeholder="John Doe" />
+              <Input label="Phone number" name="phoneNumber" value={form.phoneNumber} onChange={onChange} placeholder="+9779812345678" required />
               <Input label="Password" name="password" type="password" value={form.password} onChange={onChange} placeholder="At least 8 characters" />
               <Input label="Birthday" name="birthday" type="date" value={form.birthday} onChange={onChange} />
               <Input label="Country" name="country" value={form.country} onChange={onChange} />
@@ -157,7 +150,7 @@ export default function Register() {
                 </label>
               </div>
               <div className="mt-4">
-                {verificationMethod === 'email' ? (
+                {verificationMethod === 'email' && (
                   <Input
                     label="Email"
                     name="email"
@@ -165,14 +158,6 @@ export default function Register() {
                     value={form.email}
                     onChange={onChange}
                     placeholder="name@email.com"
-                  />
-                ) : (
-                  <Input
-                    label="Phone number"
-                    name="phoneNumber"
-                    value={form.phoneNumber}
-                    onChange={onChange}
-                    placeholder="+9779812345678"
                   />
                 )}
               </div>
@@ -194,11 +179,6 @@ export default function Register() {
               onChange={(event) => setVerification((current) => ({ ...current, code: event.target.value }))}
               placeholder="6-digit code"
             />
-            {devCode && (
-              <div className="rounded-2xl border border-dashed border-black/20 bg-black/5 px-4 py-3 text-sm">
-                Dev code: <span className="font-semibold">{devCode}</span>
-              </div>
-            )}
             <div className="flex flex-col gap-3 md:flex-row">
               <Button type="submit" variant="primary" size="lg" loading={busy} className="w-full">
                 Verify account
