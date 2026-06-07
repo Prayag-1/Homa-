@@ -10,23 +10,23 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     const restoreSession = async () => {
-      const token = localStorage.getItem('accessToken');
-      if (token) {
-        try {
+      try {
+        const token = localStorage.getItem('accessToken');
+        if (token) {
           setAccessToken(token);
           const { data } = await api.post('/auth/refresh');
           localStorage.setItem('accessToken', data.data.accessToken);
           setAccessToken(data.data.accessToken);
           const me = await api.get('/auth/me');
           setUser(me.data.data.user);
-        } catch (err) {
-          console.error('Session restore failed:', err);
-          localStorage.removeItem('accessToken');
-          setAccessToken(null);
-          setUser(null);
         }
+      } catch {
+        localStorage.removeItem('accessToken');
+        setAccessToken(null);
+        setUser(null);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
 
     restoreSession();
@@ -59,10 +59,13 @@ export function AuthProvider({ children }) {
   };
 
   const logout = async () => {
-    await api.post('/auth/logout');
-    localStorage.removeItem('accessToken');
-    setAccessToken(null);
-    setUser(null);
+    try {
+      await api.post('/auth/logout');
+    } finally {
+      localStorage.removeItem('accessToken');
+      setAccessToken(null);
+      setUser(null);
+    }
   };
 
   const refreshUser = async () => {

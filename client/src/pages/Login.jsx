@@ -1,16 +1,17 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { useAuth } from '../hooks/useAuth';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
-import { Navigate } from 'react-router-dom';
 
 export default function Login() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { login } = useAuth();
   const [form, setForm] = useState({ identifier: '', password: '' });
   const [loading, setLoading] = useState(false);
+  const redirectTo = location.state?.from?.pathname || '/user/dashboard';
 
   const onChange = (event) => {
     const { name, value } = event.target;
@@ -23,7 +24,7 @@ export default function Login() {
     try {
       await login(form.identifier, form.password);
       toast.success('Logged in successfully');
-      navigate('/user/dashboard');
+      navigate(redirectTo, { replace: true });
     } catch (error) {
       toast.error(error.response?.data?.message || 'Login failed');
     } finally {
@@ -54,7 +55,7 @@ export default function Login() {
             onChange={onChange}
             placeholder="Your password"
           />
-          <Button type="submit" variant="primary" size="lg" loading={loading} className="w-full"  >
+          <Button type="submit" variant="primary" size="lg" loading={loading} className="w-full">
             Login
           </Button>
         </form>

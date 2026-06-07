@@ -3,6 +3,7 @@ import { createContext, useState, useEffect, useContext } from 'react';
 export const CartContext = createContext();
 
 const VAT_RATE = 0.13;
+const getProductId = (product) => product?._id || product?.id;
 
 export function CartProvider({ children }) {
   const [items, setItems] = useState(() => {
@@ -15,24 +16,29 @@ export function CartProvider({ children }) {
   }, [items]);
 
   const addItem = (product, qty) => {
+    const productId = getProductId(product);
+
     setItems(prev => {
-      const existing = prev.find(i => i.id === product.id);
+      const existing = prev.find(i => getProductId(i) === productId);
       if (existing) {
-        return prev.map(i => i.id === product.id ? { ...i, quantity: i.quantity + qty } : i);
+        return prev.map(i => getProductId(i) === productId ? { ...i, quantity: i.quantity + qty } : i);
       }
-      return [...prev, { ...product, quantity: qty }];
+      // NOTE: Cart prices are display-only. The backend recalculates
+      // all prices from the database when the order is created.
+      // Never trust frontend prices for payment amounts.
+      return [...prev, { ...product, id: productId, quantity: qty }];
     });
   };
 
   const removeItem = (productId) => {
-    setItems(prev => prev.filter(i => i.id !== productId));
+    setItems(prev => prev.filter(i => getProductId(i) !== productId));
   };
 
   const updateQty = (productId, qty) => {
     if (qty <= 0) {
       removeItem(productId);
     } else {
-      setItems(prev => prev.map(i => i.id === productId ? { ...i, quantity: qty } : i));
+      setItems(prev => prev.map(i => getProductId(i) === productId ? { ...i, quantity: qty } : i));
     }
   };
 

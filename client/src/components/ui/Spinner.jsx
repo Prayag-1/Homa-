@@ -24,3 +24,5 @@ export function Spinner({ size = 'md', color = 'currentColor' }) {
     </svg>
   );
 }
+
+export default Spinner;

@@ -19,7 +19,7 @@ connectDB();
 app.use(helmet());
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || "http://localhost:5173",
+    origin: process.env.CLIENT_URL,
     credentials: true,
   }),
 );
@@ -36,8 +36,8 @@ const authLimiter = rateLimit({
 app.use("/api/v1/auth", authLimiter);
 
 // Body parsing
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: "10kb" }));
+app.use(express.urlencoded({ extended: true, limit: "10kb" }));
 app.use(cookieParser());
 
 // Logging
@@ -50,7 +50,7 @@ app.use("/api/v1", routes);
 app.get("/", (req, res) => {
   res.json({
     success: true,
-    message: "Prayag Gay",
+    message: "HOMA API is running",
     status: "ok",
   });
 });

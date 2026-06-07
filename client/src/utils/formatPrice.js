@@ -1,6 +1,2 @@
-export const formatPrice = (price) => {
-  return new Intl.NumberFormat('en-NP', {
-    style: 'currency',
-    currency: 'NPR',
-  }).format(price);
-};
+export const formatPrice = (amount) =>
+  `NPR ${Number(amount).toLocaleString('en-NP')}`;

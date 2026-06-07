@@ -1,21 +1,37 @@
 const router = require('express').Router();
+const rateLimit = require('express-rate-limit');
 const { protect, adminOnly } = require('../middleware/auth');
+const {
+  getProducts,
+  getProduct,
+  getNewArrivals,
+  getBestSellers,
+  searchSuggestions,
+} = require('../controllers/productController');
+const {
+  getProductReviews,
+  submitReview,
+} = require('../controllers/reviewController');
 
-// Placeholder controllers for now
-const getProducts = (req, res) => res.json({ success: true, data: [] });
-const getNewArrivals = (req, res) => res.json({ success: true, data: [] });
-const getBestSellers = (req, res) => res.json({ success: true, data: [] });
-const getProduct = (req, res) => res.json({ success: true, data: {} });
-const createProduct = (req, res) => res.json({ success: true, message: 'Product created' });
-const updateProduct = (req, res) => res.json({ success: true, message: 'Product updated' });
-const deleteProduct = (req, res) => res.json({ success: true, message: 'Product deleted' });
+// Rate limiter for review submission
+const reviewLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 5,
+  keyGenerator: (req) => req.user?._id?.toString() || req.ip,
+  message: {
+    success: false,
+    message: 'Too many review submissions. Try again later.',
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 router.get('/', getProducts);
 router.get('/new-arrivals', getNewArrivals);
 router.get('/best-sellers', getBestSellers);
+router.get('/search', searchSuggestions);
+router.get('/:productId/reviews', getProductReviews);
+router.post('/:productId/reviews', protect, reviewLimiter, submitReview);
 router.get('/:id', getProduct);
-router.post('/', protect, adminOnly, createProduct);
-router.put('/:id', protect, adminOnly, updateProduct);
-router.delete('/:id', protect, adminOnly, deleteProduct);
 
 module.exports = router;
