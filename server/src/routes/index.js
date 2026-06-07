@@ -1,6 +1,7 @@
 const router = require('express').Router();
 
 router.use('/auth',           require('./authRoutes'));
+router.use('/admin/products', require('./adminProductRoutes'));
 router.use('/products',       require('./productRoutes'));
 router.use('/user/wishlist',  require('./wishlistRoutes'));
 router.use('/orders',         require('./orderRoutes'));
