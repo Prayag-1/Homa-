@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const Product = require('../models/Product');
 const ApiError = require('../utils/ApiError');
 
-const ALLOWED_SORTS = new Set(['-createdAt', 'createdAt', 'price', '-price', '-ratings.average']);
+const ALLOWED_SORTS = ['-createdAt', 'createdAt', 'price', '-price', '-ratings.average', 'ratings.average'];
 const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 exports.getProducts = async (req, res, next) => {
@@ -32,24 +32,27 @@ exports.getProducts = async (req, res, next) => {
       if (Object.keys(filter.price).length === 0) delete filter.price;
     }
 
-    if (search) {
-      const safeSearch = escapeRegex(String(search));
-      filter.$or = [
-        { name: { $regex: safeSearch, $options: 'i' } },
-        { brand: { $regex: safeSearch, $options: 'i' } },
-        { description: { $regex: safeSearch, $options: 'i' } },
-      ];
+    const hasTextSearch = Boolean(search && search.trim().length >= 2);
+
+    if (hasTextSearch) {
+      filter.$text = { $search: search.trim() };
     }
 
     const pageNum = Math.max(Math.floor(Number(page) || 1), 1);
     const safeLimit = Math.max(Math.floor(Math.min(Number(limit) || 12, 50)), 1);
     const skip = (pageNum - 1) * safeLimit;
 
-    const safeSort = ALLOWED_SORTS.has(sort) ? sort : '-createdAt';
+    const safeSort = ALLOWED_SORTS.includes(sort) ? sort : '-createdAt';
+    const sortByRelevance = hasTextSearch && (!sort || sort === '-createdAt');
 
-    const products = await Product.find(filter)
-      .select('-__v -createdAt')
-      .sort(safeSort)
+    let query = Product.find(filter)
+      .select(sortByRelevance ? { __v: 0, createdAt: 0, score: { $meta: 'textScore' } } : '-__v -createdAt');
+
+    query = sortByRelevance
+      ? query.sort({ score: { $meta: 'textScore' } })
+      : query.sort(safeSort);
+
+    const products = await query
       .skip(skip)
       .limit(safeLimit);
 
@@ -97,6 +100,7 @@ exports.getProduct = async (req, res, next) => {
 exports.getNewArrivals = async (req, res, next) => {
   try {
     const products = await Product.find({ isNewArrival: true, isActive: true })
+      .select('-__v')
       .limit(8)
       .sort({ createdAt: -1 });
 
@@ -112,6 +116,7 @@ exports.getNewArrivals = async (req, res, next) => {
 exports.getBestSellers = async (req, res, next) => {
   try {
     const products = await Product.find({ isBestSeller: true, isActive: true })
+      .select('-__v')
       .limit(8)
       .sort({ createdAt: -1 });
 

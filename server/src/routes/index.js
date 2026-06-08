@@ -4,6 +4,8 @@ router.use('/auth',           require('./authRoutes'));
 router.use('/blogs',          require('./blogRoutes'));
 router.use('/admin/blogs',    require('./adminBlogRoutes'));
 router.use('/admin/products', require('./adminProductRoutes'));
+router.use('/brands',         require('./brandRoutes'));
+router.use('/categories',     require('./categoryRoutes'));
 router.use('/products',       require('./productRoutes'));
 router.use('/user/wishlist',  require('./wishlistRoutes'));
 router.use('/orders',         require('./orderRoutes'));

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { Menu, ChevronLeft, ChevronRight } from 'lucide-react';
 import FilterSidebar from '../components/product/FilterSidebar';
 import ProductCard from '../components/product/ProductCard';
@@ -63,8 +64,26 @@ const Catalog = () => {
   const startProduct = (currentPage - 1) * 12 + 1;
   const endProduct = Math.min(currentPage * 12, total);
 
+  // Generate dynamic SEO title and description
+  const categoryParam = searchParams.get('category');
+  const brandParam = searchParams.get('brand');
+  const seoTitle = categoryParam
+    ? `${categoryParam} — Shop HOMA Beauty`
+    : brandParam
+    ? `${brandParam} Products — HOMA Beauty`
+    : 'Shop All Products — HOMA Beauty';
+
+  const seoDescription = categoryParam
+    ? `Shop authentic Japanese ${categoryParam} products in Nepal. Certified, direct-import skincare from HOMA Beauty.`
+    : 'Browse authentic Japanese skincare products in Nepal. Hydrators, serums, toners, sunscreens and more. Direct import from Japan.';
+
   return (
     <div className="min-h-screen bg-white">
+      <Helmet>
+        <title>{seoTitle}</title>
+        <meta name="description" content={seoDescription} />
+        <link rel="canonical" href={`${window.location.origin}/shop`} />
+      </Helmet>
       {/* Page Header */}
       <div className="border-b border-gray-200 mb-8">
         <div className="max-w-7xl mx-auto px-4 py-10">

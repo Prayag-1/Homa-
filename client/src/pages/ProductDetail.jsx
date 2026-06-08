@@ -175,10 +175,83 @@ const ProductDetail = () => {
   return (
     <>
       <Helmet>
-        <title>{product.name} — HOMA</title>
-        <meta name="description" content={metaDescription} />
-        <meta property="og:title" content={product.name} />
+        <title>
+          {product.seo?.metaTitle || `${product.name} — HOMA Beauty`}
+        </title>
+        <meta
+          name="description"
+          content={
+            product.seo?.metaDescription ||
+            product.description?.slice(0, 155) + '...'
+          }
+        />
+        {product.seo?.focusKeyword && (
+          <meta
+            name="keywords"
+            content={[
+              product.seo.focusKeyword,
+              ...(product.seo.keywords || []),
+            ].join(', ')}
+          />
+        )}
+        {product.seo?.canonicalUrl ? (
+          <link rel="canonical" href={product.seo.canonicalUrl} />
+        ) : (
+          <link
+            rel="canonical"
+            href={`${window.location.origin}/products/${product._id}`}
+          />
+        )}
+        <meta property="og:type" content="product" />
+        <meta
+          property="og:title"
+          content={product.seo?.metaTitle || product.name}
+        />
+        <meta
+          property="og:description"
+          content={
+            product.seo?.metaDescription || product.description?.slice(0, 155)
+          }
+        />
         <meta property="og:image" content={product.images?.[0]?.url} />
+        <meta
+          property="og:url"
+          content={`${window.location.origin}/products/${product._id}`}
+        />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta
+          name="twitter:title"
+          content={product.seo?.metaTitle || product.name}
+        />
+        <meta name="twitter:image" content={product.images?.[0]?.url} />
+        <script type="application/ld+json">
+          {JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'Product',
+            name: product.name,
+            image: product.images?.map((i) => i.url),
+            description: product.description,
+            brand: { '@type': 'Brand', name: product.brand },
+            offers: {
+              '@type': 'Offer',
+              priceCurrency: 'NPR',
+              price: product.price,
+              availability:
+                product.stock > 0
+                  ? 'https://schema.org/InStock'
+                  : 'https://schema.org/OutOfStock',
+              seller: { '@type': 'Organization', name: 'HOMA Beauty' },
+            },
+            aggregateRating:
+              product.ratings?.count > 0
+                ? {
+                    '@type': 'AggregateRating',
+                    ratingValue: product.ratings.average,
+                    reviewCount: product.ratings.count,
+                  }
+                : undefined,
+          })}
+        </script>
       </Helmet>
 
       <div className="min-h-screen bg-white">

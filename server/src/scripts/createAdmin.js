@@ -8,7 +8,7 @@ const createAdmin = async () => {
   const existing = await User.findOne({ email: 'admin@homabeauty.com' });
 
   if (existing) {
-    console.log('Admin already exists:', existing.email);
+    process.stdout.write(`Admin already exists: ${existing.email}\n`);
     process.exit(0);
   }
 
@@ -29,9 +29,9 @@ const createAdmin = async () => {
     verificationMethod: 'email',
   });
 
-  console.log('Admin created:', admin.email);
-  console.log('Password: Admin@Homa2025!');
-  console.log('CHANGE THIS PASSWORD IMMEDIATELY AFTER FIRST LOGIN');
+  process.stdout.write(`Admin created: ${admin.email}\n`);
+  process.stdout.write('Password: Admin@Homa2025!\n');
+  process.stdout.write('CHANGE THIS PASSWORD IMMEDIATELY AFTER FIRST LOGIN\n');
   process.exit(0);
 };
 

@@ -19,8 +19,7 @@ import {
   useToggleFeatured,
   useUpdateStock,
 } from '../../hooks/useAdminProducts';
-
-const CATEGORIES = ['', 'Moisturiser', 'Serum', 'Toner', 'Sunscreen', 'Cleanser', 'Eye Care', 'Mask', 'Essence'];
+import { usePublicCategories } from '../../hooks/useAdminBrandsCategories';
 
 const formatCurrency = (value) =>
   new Intl.NumberFormat('en-NP', {
@@ -94,11 +93,18 @@ export default function AdminProducts() {
   }, [searchInput]);
 
   const { data, isLoading } = useAdminProducts(filters);
+  const { data: categories = [], isLoading: categoriesLoading } = usePublicCategories();
   const toggleActive = useToggleActive();
   const toggleFeatured = useToggleFeatured();
   const updateStock = useUpdateStock();
   const products = data?.items || [];
   const modalCopy = getModalCopy(confirmModal);
+  const activeCategories = useMemo(
+    () => categories
+      .filter((category) => category.isActive !== false)
+      .sort((a, b) => (a.sortOrder ?? 9999) - (b.sortOrder ?? 9999)),
+    [categories],
+  );
 
   const updateFilter = (key, value) => {
     setFilters((current) => ({ ...current, [key]: value, page: 1 }));
@@ -260,8 +266,9 @@ export default function AdminProducts() {
           placeholder="Search products, brand, SKU"
         />
         <select className="admin-select" value={filters.category} onChange={(event) => updateFilter('category', event.target.value)}>
-          {CATEGORIES.map((category) => (
-            <option key={category || 'all'} value={category}>{category || 'All categories'}</option>
+          <option value="">{categoriesLoading ? 'Loading categories...' : 'All categories'}</option>
+          {activeCategories.map((category) => (
+            <option key={category._id || category.slug || category.name} value={category.name}>{category.name}</option>
           ))}
         </select>
         <select className="admin-select" value={filters.isActive} onChange={(event) => updateFilter('isActive', event.target.value)}>

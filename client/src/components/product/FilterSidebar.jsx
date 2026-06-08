@@ -1,22 +1,26 @@
 import { useSearchParams } from 'react-router-dom';
 import { X } from 'lucide-react';
 import { useState } from 'react';
+import { usePublicBrands, usePublicCategories } from '../../hooks/useAdminBrandsCategories';
 
 const FilterSidebar = ({ isOpen = true, onClose }) => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [priceMin, setPriceMin] = useState(searchParams.get('minPrice') || '');
   const [priceMax, setPriceMax] = useState(searchParams.get('maxPrice') || '');
 
+  // Dynamic data from API
+  const { data: brands = [], isLoading: brandsLoading } = usePublicBrands();
+  const { data: categories = [], isLoading: catsLoading } = usePublicCategories();
+
+  const activeBrands = brands
+    .filter((b) => b.isActive !== false)
+    .sort((a, b) => (a.sortOrder ?? 9999) - (b.sortOrder ?? 9999));
+
+  const activeCategories = categories
+    .filter((c) => c.isActive !== false)
+    .sort((a, b) => (a.sortOrder ?? 9999) - (b.sortOrder ?? 9999));
+
   const skinTypes = ['Oily', 'Dry', 'Combination', 'Sensitive', 'Acne-Prone'];
-  const categories = [
-    'Moisturiser',
-    'Serum',
-    'Toner',
-    'Sunscreen',
-    'Cleanser',
-    'Eye Care',
-  ];
-  const brands = ['Hada Labo', 'SK-II', 'Shiseido', 'Cosrx', 'Biore', 'Kose'];
   const sortOptions = [
     { value: '-createdAt', label: 'Newest' },
     { value: 'price', label: 'Price: Low to High' },
@@ -170,19 +174,32 @@ const FilterSidebar = ({ isOpen = true, onClose }) => {
             Category
           </h3>
           <div className="space-y-2">
-            {categories.map((cat) => (
-              <label key={cat} className="flex items-center gap-3 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={searchParams.get('category') === cat}
-                  onChange={(e) =>
-                    handleCheckboxChange('category', cat, e.target.checked)
-                  }
-                  className="w-4 h-4 border border-gray-300"
-                />
-                <span className="font-body text-sm text-gray-700">{cat}</span>
-              </label>
-            ))}
+            {catsLoading ? (
+              Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="h-4 w-24 bg-gray-300 animate-pulse rounded" />
+              ))
+            ) : activeCategories.length > 0 ? (
+              activeCategories.map((cat) => (
+                <label
+                  key={cat._id}
+                  className="flex items-center gap-3 cursor-pointer"
+                >
+                  <input
+                    type="checkbox"
+                    checked={searchParams.get('category') === cat.name}
+                    onChange={(e) =>
+                      handleCheckboxChange('category', cat.name, e.target.checked)
+                    }
+                    className="w-4 h-4 border border-gray-300"
+                  />
+                  <span className="font-body text-sm text-gray-700">{cat.name}</span>
+                </label>
+              ))
+            ) : (
+              <p className="font-body text-xs text-gray-500">
+                No categories available
+              </p>
+            )}
           </div>
         </div>
 
@@ -192,19 +209,32 @@ const FilterSidebar = ({ isOpen = true, onClose }) => {
             Brand
           </h3>
           <div className="space-y-2">
-            {brands.map((brand) => (
-              <label key={brand} className="flex items-center gap-3 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={searchParams.get('brand') === brand}
-                  onChange={(e) =>
-                    handleCheckboxChange('brand', brand, e.target.checked)
-                  }
-                  className="w-4 h-4 border border-gray-300"
-                />
-                <span className="font-body text-sm text-gray-700">{brand}</span>
-              </label>
-            ))}
+            {brandsLoading ? (
+              Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="h-4 w-28 bg-gray-300 animate-pulse rounded" />
+              ))
+            ) : activeBrands.length > 0 ? (
+              activeBrands.map((brand) => (
+                <label
+                  key={brand._id}
+                  className="flex items-center gap-3 cursor-pointer"
+                >
+                  <input
+                    type="checkbox"
+                    checked={searchParams.get('brand') === brand.name}
+                    onChange={(e) =>
+                      handleCheckboxChange('brand', brand.name, e.target.checked)
+                    }
+                    className="w-4 h-4 border border-gray-300"
+                  />
+                  <span className="font-body text-sm text-gray-700">{brand.name}</span>
+                </label>
+              ))
+            ) : (
+              <p className="font-body text-xs text-gray-500">
+                No brands available
+              </p>
+            )}
           </div>
         </div>
 

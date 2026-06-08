@@ -21,6 +21,8 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import NotFound from './pages/NotFound';
 import AdminLogin from './pages/admin/AdminLogin';
+import AdminBrands from './pages/admin/AdminBrands';
+import AdminCategories from './pages/admin/AdminCategories';
 import AdminProducts from './pages/admin/AdminProducts';
 import AdminProductForm from './pages/admin/AdminProductForm';
 import BlogListPage from './pages/admin/blogs/BlogListPage';
@@ -98,6 +100,22 @@ function AppRoutes() {
           element={(
             <AdminRoute>
               <AdminProducts />
+            </AdminRoute>
+          )}
+        />
+        <Route
+          path="/admin/brands"
+          element={(
+            <AdminRoute>
+              <AdminBrands />
+            </AdminRoute>
+          )}
+        />
+        <Route
+          path="/admin/categories"
+          element={(
+            <AdminRoute>
+              <AdminCategories />
             </AdminRoute>
           )}
         />

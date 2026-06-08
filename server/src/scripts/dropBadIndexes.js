@@ -10,13 +10,13 @@ const mongoose = require('mongoose');
 const dropIndexes = async () => {
   try {
     await mongoose.connect(process.env.MONGO_URI);
-    console.log('Connected to MongoDB');
+    process.stdout.write('Connected to MongoDB\n');
 
     const db = mongoose.connection;
     const collection = db.collection('users');
     const indexes = await collection.indexes();
 
-    console.log('Current indexes:', indexes.map(i => i.name));
+    process.stdout.write(`Current indexes: ${indexes.map((i) => i.name).join(', ')}\n`);
 
     const indexesToDrop = ['phoneNumber_1', 'phone_1'];
 
@@ -24,13 +24,13 @@ const dropIndexes = async () => {
       const exists = indexes.find(i => i.name === indexName);
       if (exists) {
         await collection.dropIndex(indexName);
-        console.log(`Dropped index: ${indexName}`);
+        process.stdout.write(`Dropped index: ${indexName}\n`);
       } else {
-        console.log(`Index not found (skipping): ${indexName}`);
+        process.stdout.write(`Index not found (skipping): ${indexName}\n`);
       }
     }
 
-    console.log('Done. Run createAdmin.js now.');
+    process.stdout.write('Done. Run createAdmin.js now.\n');
     process.exit(0);
   } catch (err) {
     console.error('Error:', err.message);

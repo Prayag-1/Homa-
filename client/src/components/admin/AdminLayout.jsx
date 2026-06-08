@@ -1,10 +1,12 @@
 import {
   BarChart3,
   FileText,
+  Grid3X3,
   LayoutDashboard,
   LogOut,
   Package,
   ShoppingCart,
+  Tag,
   Users,
 } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
@@ -13,6 +15,8 @@ import { useAuth } from '../../hooks/useAuth';
 const navItems = [
   { label: 'Dashboard', to: '/admin', icon: LayoutDashboard },
   { label: 'Products', to: '/admin/products', icon: Package },
+  { label: 'Brands', to: '/admin/brands', icon: Tag },
+  { label: 'Categories', to: '/admin/categories', icon: Grid3X3 },
   { label: 'Orders', to: '/admin/orders', icon: ShoppingCart },
   { label: 'Customers', to: '/admin/customers', icon: Users },
   { label: 'Blogs', to: '/admin/blogs', icon: FileText },

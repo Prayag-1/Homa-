@@ -21,6 +21,70 @@ const parseField = (field, fallback = []) => {
   }
 };
 
+const parseBoolean = (value, fallback = false) => {
+  if (typeof value === 'boolean') return value;
+  if (typeof value === 'undefined') return fallback;
+  return value === 'true';
+};
+
+const parseOptionalNumber = (value) => {
+  if (value === '' || typeof value === 'undefined') return undefined;
+  return Number(value);
+};
+
+const parseTextList = (value) => {
+  if (Array.isArray(value)) return value;
+  if (typeof value === 'undefined' || value === '') return [];
+  return String(value)
+    .split(/\r?\n|,/)
+    .map((item) => item.trim())
+    .filter(Boolean);
+};
+
+const parseSeoField = (value) => {
+  if (typeof value === 'undefined') return undefined;
+  if (typeof value === 'object' && value !== null) return value;
+
+  try {
+    return JSON.parse(value);
+  } catch {
+    return {};
+  }
+};
+
+const parseProductPayload = (body, currentProduct = {}) => {
+  const payload = {};
+
+  if (typeof body.name !== 'undefined') payload.name = body.name;
+  if (typeof body.sku !== 'undefined') payload.sku = body.sku.toUpperCase();
+  if (typeof body.brand !== 'undefined') payload.brand = body.brand;
+  if (typeof body.category !== 'undefined') payload.category = body.category;
+  if (typeof body.description !== 'undefined') payload.description = body.description;
+  if (typeof body.ingredients !== 'undefined') payload.ingredients = parseTextList(body.ingredients);
+  if (typeof body.howToUse !== 'undefined') payload.howToUse = body.howToUse;
+  if (typeof body.price !== 'undefined') payload.price = Number(body.price);
+  if (typeof body.comparePrice !== 'undefined') {
+    const comparePrice = parseOptionalNumber(body.comparePrice);
+    if (typeof comparePrice !== 'undefined') payload.comparePrice = comparePrice;
+  }
+  if (typeof body.stock !== 'undefined') payload.stock = Number(body.stock);
+  if (typeof body.isActive !== 'undefined') {
+    payload.isActive = parseBoolean(body.isActive, currentProduct.isActive);
+  }
+  if (typeof body.isNewArrival !== 'undefined') {
+    payload.isNewArrival = parseBoolean(body.isNewArrival, currentProduct.isNewArrival);
+  }
+  if (typeof body.isBestSeller !== 'undefined') {
+    payload.isBestSeller = parseBoolean(body.isBestSeller, currentProduct.isBestSeller);
+  }
+  if (typeof body.seo !== 'undefined') payload.seo = parseSeoField(body.seo);
+  if (typeof body.benefits !== 'undefined') payload.benefits = parseField(body.benefits);
+  if (typeof body.skinTypes !== 'undefined') payload.skinTypes = parseField(body.skinTypes);
+  if (typeof body.certifications !== 'undefined') payload.certifications = parseField(body.certifications);
+
+  return payload;
+};
+
 const uploadProductFiles = async (files = []) => {
   const uploadedImages = [];
 
@@ -113,6 +177,10 @@ exports.adminGetProduct = async (req, res, next) => {
 
 exports.adminCreateProduct = async (req, res, next) => {
   try {
+    if (!req.body.sku) {
+      return next(new ApiError(400, 'SKU is required'));
+    }
+
     const sku = req.body.sku.toUpperCase();
     const skuExists = await Product.findOne({ sku });
 
@@ -124,13 +192,10 @@ exports.adminCreateProduct = async (req, res, next) => {
     const slug = await generateUniqueSlug(req.body.name, Product);
 
     const product = await Product.create({
-      ...req.body,
+      ...parseProductPayload(req.body),
       slug,
       sku,
       images: uploadedImages,
-      benefits: parseField(req.body.benefits),
-      skinTypes: parseField(req.body.skinTypes),
-      certifications: parseField(req.body.certifications),
     });
 
     return res.status(201).json({
@@ -155,7 +220,7 @@ exports.adminUpdateProduct = async (req, res, next) => {
       return next(new ApiError(404, 'Product not found'));
     }
 
-    const updateData = { ...req.body };
+    const updateData = parseProductPayload(req.body, product);
 
     if (updateData.sku && updateData.sku.toUpperCase() !== product.sku) {
       const skuExists = await Product.findOne({
@@ -174,16 +239,6 @@ exports.adminUpdateProduct = async (req, res, next) => {
       updateData.slug = await generateUniqueSlug(updateData.name, Product, product._id);
     }
 
-    if (typeof updateData.benefits !== 'undefined') {
-      updateData.benefits = parseField(updateData.benefits);
-    }
-    if (typeof updateData.skinTypes !== 'undefined') {
-      updateData.skinTypes = parseField(updateData.skinTypes);
-    }
-    if (typeof updateData.certifications !== 'undefined') {
-      updateData.certifications = parseField(updateData.certifications);
-    }
-
     const keepImagesProvided = Object.prototype.hasOwnProperty.call(req.body, 'keepImages');
     const keepImages = keepImagesProvided
       ? parseField(req.body.keepImages)
@@ -199,10 +254,26 @@ exports.adminUpdateProduct = async (req, res, next) => {
     const uploadedImages = await uploadProductFiles(req.files);
 
     if (keepImagesProvided || uploadedImages.length > 0) {
-      updateData.images = [...keptImages, ...uploadedImages];
+      const imageOrder = parseField(req.body.imageOrder, []);
+      const orderedImages = imageOrder
+        .map((item) => {
+          if (item?.type === 'existing') {
+            return keptImages.find((image) => image.publicId === item.publicId);
+          }
+          if (item?.type === 'new') {
+            return uploadedImages[item.index];
+          }
+          return null;
+        })
+        .filter(Boolean);
+
+      updateData.images = orderedImages.length > 0
+        ? orderedImages
+        : [...keptImages, ...uploadedImages];
     }
 
     delete updateData.keepImages;
+    delete updateData.imageOrder;
 
     const updatedProduct = await Product.findByIdAndUpdate(product._id, updateData, {
       new: true,
