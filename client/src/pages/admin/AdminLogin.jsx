@@ -29,6 +29,7 @@ export default function AdminLogin() {
   });
 
   const onSubmit = async (values) => {
+    if (submitting) return;
     setSubmitting(true);
     try {
       const data = await login(values.email, values.password);
@@ -42,7 +43,11 @@ export default function AdminLogin() {
 
       navigate(redirectTo, { replace: true });
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Login failed');
+      const message =
+        error.response?.status === 429
+          ? 'Too many login attempts. Please wait a few minutes and try again.'
+          : error.response?.data?.message || 'Login failed';
+      toast.error(message);
     } finally {
       setSubmitting(false);
     }

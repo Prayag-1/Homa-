@@ -15,7 +15,7 @@ const navItems = [
   { label: 'Products', to: '/admin/products', icon: Package },
   { label: 'Orders', to: '/admin/orders', icon: ShoppingCart },
   { label: 'Customers', to: '/admin/customers', icon: Users },
-  { label: 'Content', to: '/admin/content', icon: FileText },
+  { label: 'Blogs', to: '/admin/blogs', icon: FileText },
   { label: 'Reports', to: '/admin/reports', icon: BarChart3 },
 ];
 

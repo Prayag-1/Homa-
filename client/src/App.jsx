@@ -23,6 +23,10 @@ import NotFound from './pages/NotFound';
 import AdminLogin from './pages/admin/AdminLogin';
 import AdminProducts from './pages/admin/AdminProducts';
 import AdminProductForm from './pages/admin/AdminProductForm';
+import BlogListPage from './pages/admin/blogs/BlogListPage';
+import BlogFormPage from './pages/admin/blogs/BlogFormPage';
+import UserBlogListPage from './pages/blog/BlogListPage';
+import UserBlogDetailPage from './pages/blog/BlogDetailPage';
 
 const queryClient = new QueryClient();
 
@@ -51,6 +55,22 @@ function AppRoutes() {
           element={(
             <ErrorBoundary>
               <ProductDetail />
+            </ErrorBoundary>
+          )}
+        />
+        <Route
+          path="/blog"
+          element={(
+            <ErrorBoundary>
+              <UserBlogListPage />
+            </ErrorBoundary>
+          )}
+        />
+        <Route
+          path="/blog/:slug"
+          element={(
+            <ErrorBoundary>
+              <UserBlogDetailPage />
             </ErrorBoundary>
           )}
         />
@@ -94,6 +114,30 @@ function AppRoutes() {
           element={(
             <AdminRoute>
               <AdminProductForm />
+            </AdminRoute>
+          )}
+        />
+        <Route
+          path="/admin/blogs"
+          element={(
+            <AdminRoute>
+              <BlogListPage />
+            </AdminRoute>
+          )}
+        />
+        <Route
+          path="/admin/blogs/new"
+          element={(
+            <AdminRoute>
+              <BlogFormPage />
+            </AdminRoute>
+          )}
+        />
+        <Route
+          path="/admin/blogs/:id/edit"
+          element={(
+            <AdminRoute>
+              <BlogFormPage />
             </AdminRoute>
           )}
         />

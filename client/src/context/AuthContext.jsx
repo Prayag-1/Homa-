@@ -14,9 +14,6 @@ export function AuthProvider({ children }) {
         const token = localStorage.getItem('accessToken');
         if (token) {
           setAccessToken(token);
-          const { data } = await api.post('/auth/refresh');
-          localStorage.setItem('accessToken', data.data.accessToken);
-          setAccessToken(data.data.accessToken);
           const me = await api.get('/auth/me');
           setUser(me.data.data.user);
         }

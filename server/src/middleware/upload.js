@@ -50,6 +50,7 @@ const uploadToCloudinary = (buffer, folder, publicId) =>
   });
 
 const productImagesUpload = multer({ storage, limits, fileFilter }).array('images', 8);
+const blogCoverImageUpload = multer({ storage, limits, fileFilter }).single('coverImageFile');
 
 const uploadProductImages = (req, res, next) => {
   productImagesUpload(req, res, (err) => {
@@ -69,7 +70,26 @@ const uploadProductImages = (req, res, next) => {
   });
 };
 
+const uploadBlogCoverImage = (req, res, next) => {
+  blogCoverImageUpload(req, res, (err) => {
+    if (!err) return next();
+
+    if (err instanceof multer.MulterError) {
+      if (err.code === 'LIMIT_FILE_SIZE') {
+        return next(new ApiError(400, 'The cover image must be 5MB or less'));
+      }
+      if (err.code === 'LIMIT_FILE_COUNT') {
+        return next(new ApiError(400, 'Only one cover image can be uploaded'));
+      }
+      return next(new ApiError(400, err.message));
+    }
+
+    return next(err);
+  });
+};
+
 module.exports = {
   uploadProductImages,
+  uploadBlogCoverImage,
   uploadToCloudinary,
 };

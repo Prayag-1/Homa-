@@ -20,13 +20,18 @@ export default function Login() {
 
   const onSubmit = async (event) => {
     event.preventDefault();
+    if (loading) return;
     setLoading(true);
     try {
       await login(form.identifier, form.password);
       toast.success('Logged in successfully');
       navigate(redirectTo, { replace: true });
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Login failed');
+      const message =
+        error.response?.status === 429
+          ? 'Too many login attempts. Please wait a few minutes and try again.'
+          : error.response?.data?.message || 'Login failed';
+      toast.error(message);
     } finally {
       setLoading(false);
     }
