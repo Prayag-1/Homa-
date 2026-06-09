@@ -28,6 +28,10 @@ import AdminProducts from './pages/admin/AdminProducts';
 import AdminProductForm from './pages/admin/AdminProductForm';
 import About from './pages/About';
 import Distributors from './pages/Distributors';
+import TransformationListPage from './pages/transformations/TransformationListPage';
+import TransformationDetailPage from './pages/transformations/TransformationDetailPage';
+import TransformationStoriesPage from './pages/admin/TransformationStoriesPage';
+import TransformationStoryFormPage from './pages/admin/TransformationStoryFormPage';
 import BlogListPage from './pages/admin/blogs/BlogListPage';
 import BlogFormPage from './pages/admin/blogs/BlogFormPage';
 import UserBlogListPage from './pages/blog/BlogListPage';
@@ -96,6 +100,22 @@ function AppRoutes() {
           )}
         />
         <Route
+          path="/transformations"
+          element={(
+            <ErrorBoundary>
+              <TransformationListPage />
+            </ErrorBoundary>
+          )}
+        />
+        <Route
+          path="/transformations/:slug"
+          element={(
+            <ErrorBoundary>
+              <TransformationDetailPage />
+            </ErrorBoundary>
+          )}
+        />
+        <Route
           path="/wishlist"
           element={(
             <ProtectedRoute>
@@ -143,6 +163,30 @@ function AppRoutes() {
           element={(
             <AdminRoute>
               <AdminDistributors />
+            </AdminRoute>
+          )}
+        />
+        <Route
+          path="/admin/transformations"
+          element={(
+            <AdminRoute>
+              <TransformationStoriesPage />
+            </AdminRoute>
+          )}
+        />
+        <Route
+          path="/admin/transformations/new"
+          element={(
+            <AdminRoute>
+              <TransformationStoryFormPage />
+            </AdminRoute>
+          )}
+        />
+        <Route
+          path="/admin/transformations/:id/edit"
+          element={(
+            <AdminRoute>
+              <TransformationStoryFormPage />
             </AdminRoute>
           )}
         />

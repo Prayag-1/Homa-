@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Heart, Menu, Search, ShoppingBag, X } from 'lucide-react';
+import { ChevronDown, Heart, Menu, Search, ShoppingBag, X } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { useCart } from '../../context/CartContext';
 import api from '../../services/api';
@@ -12,10 +12,12 @@ export default function Navbar({ onCartOpen }) {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
   const [searchLoading, setSearchLoading] = useState(false);
   const searchRef = useRef(null);
+  const moreRef = useRef(null);
   const inputRef = useRef(null);
   const { user, logout } = useAuth();
   const { itemCount } = useCart();
@@ -35,6 +37,9 @@ export default function Navbar({ onCartOpen }) {
     const handleClickOutside = (event) => {
       if (searchRef.current && !searchRef.current.contains(event.target)) {
         closeSearch();
+      }
+      if (moreRef.current && !moreRef.current.contains(event.target)) {
+        setMoreOpen(false);
       }
     };
 
@@ -76,6 +81,10 @@ export default function Navbar({ onCartOpen }) {
     setResults([]);
   };
 
+  const closeMoreMenu = () => {
+    setMoreOpen(false);
+  };
+
   const handleSearchKeyDown = (event) => {
     if (event.key === 'Escape') closeSearch();
   };
@@ -95,8 +104,46 @@ export default function Navbar({ onCartOpen }) {
           <Link to="/shop" className="text-black hover:text-red-500 transition">Shop</Link>
           <Link to="/user/dashboard" className="text-black hover:text-red-500 transition">Dashboard</Link>
           <Link to="/blog" className="text-black hover:text-red-500 transition">Blog</Link>
-          <Link to="/about" className="text-black hover:text-red-500 transition">About</Link>
-          <Link to="/distributors" className="text-black hover:text-red-500 transition">Distributors</Link>
+          <div ref={moreRef} className="relative">
+            <button
+              type="button"
+              onClick={() => setMoreOpen((value) => !value)}
+              className="inline-flex items-center gap-1 text-black hover:text-red-500 transition"
+              aria-expanded={moreOpen}
+              aria-haspopup="menu"
+            >
+              More
+              <ChevronDown size={15} className={`transition-transform ${moreOpen ? 'rotate-180' : ''}`} />
+            </button>
+
+            <AnimatePresence>
+              {moreOpen && (
+                <motion.div
+                  initial={{ opacity: 0, y: -6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -6 }}
+                  className="absolute left-0 top-full mt-3 w-56 overflow-hidden border border-gray-200 bg-white shadow-xl"
+                  role="menu"
+                >
+                  {[
+                    { to: '/about', label: 'About Homa' },
+                    { to: '/distributors', label: 'Authorized Dealers' },
+                    { to: '/transformations', label: 'Transformation Stories' },
+                  ].map((item) => (
+                    <Link
+                      key={item.to}
+                      to={item.to}
+                      onClick={closeMoreMenu}
+                      className="block px-4 py-3 text-sm text-black hover:bg-gray-50 hover:text-red-500 transition"
+                      role="menuitem"
+                    >
+                      {item.label}
+                    </Link>
+                  ))}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
 
         <div className="hidden md:flex gap-4 items-center">
@@ -223,8 +270,12 @@ export default function Navbar({ onCartOpen }) {
           <Link to="/wishlist" onClick={() => setIsOpen(false)}>Wishlist</Link>
           <Link to="/user/dashboard" onClick={() => setIsOpen(false)}>Dashboard</Link>
           <Link to="/blog" onClick={() => setIsOpen(false)}>Blog</Link>
-          <Link to="/about" onClick={() => setIsOpen(false)}>About</Link>
-          <Link to="/distributors" onClick={() => setIsOpen(false)}>Distributors</Link>
+          <div className="space-y-2">
+            <div className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">More</div>
+            <Link to="/about" onClick={() => setIsOpen(false)} className="block pl-3">About Homa</Link>
+            <Link to="/distributors" onClick={() => setIsOpen(false)} className="block pl-3">Authorized Dealers</Link>
+            <Link to="/transformations" onClick={() => setIsOpen(false)} className="block pl-3">Transformation Stories</Link>
+          </div>
           <button
             type="button"
             onClick={() => {

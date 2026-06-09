@@ -5,6 +5,7 @@ import {
   LayoutDashboard,
   LogOut,
   MapPin,
+  Sparkles,
   Package,
   ShoppingCart,
   Tag,
@@ -21,6 +22,7 @@ const navItems = [
   { label: 'Orders', to: '/admin/orders', icon: ShoppingCart },
   { label: 'Customers', to: '/admin/customers', icon: Users },
   { label: 'Blogs', to: '/admin/blogs', icon: FileText },
+  { label: 'Transformation Stories', to: '/admin/transformations', icon: Sparkles },
   { label: 'Distributors', to: '/admin/distributors', icon: MapPin },
   { label: 'Reports', to: '/admin/reports', icon: BarChart3 },
 ];

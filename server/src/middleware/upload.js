@@ -51,6 +51,11 @@ const uploadToCloudinary = (buffer, folder, publicId) =>
 
 const productImagesUpload = multer({ storage, limits, fileFilter }).array('images', 8);
 const blogCoverImageUpload = multer({ storage, limits, fileFilter }).single('coverImageFile');
+const transformationStoryImagesUpload = multer({ storage, limits, fileFilter }).fields([
+  { name: 'coverImageFile', maxCount: 1 },
+  { name: 'beforeImageFile', maxCount: 1 },
+  { name: 'afterImageFile', maxCount: 1 },
+]);
 
 const uploadProductImages = (req, res, next) => {
   productImagesUpload(req, res, (err) => {
@@ -88,8 +93,27 @@ const uploadBlogCoverImage = (req, res, next) => {
   });
 };
 
+const uploadTransformationStoryImages = (req, res, next) => {
+  transformationStoryImagesUpload(req, res, (err) => {
+    if (!err) return next();
+
+    if (err instanceof multer.MulterError) {
+      if (err.code === 'LIMIT_FILE_SIZE') {
+        return next(new ApiError(400, 'Each image must be 5MB or less'));
+      }
+      if (err.code === 'LIMIT_FILE_COUNT') {
+        return next(new ApiError(400, 'Only three images can be uploaded'));
+      }
+      return next(new ApiError(400, err.message));
+    }
+
+    return next(err);
+  });
+};
+
 module.exports = {
   uploadProductImages,
   uploadBlogCoverImage,
+  uploadTransformationStoryImages,
   uploadToCloudinary,
 };

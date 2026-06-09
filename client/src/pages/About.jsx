@@ -1,5 +1,5 @@
 import { Helmet } from 'react-helmet-async';
-import { ArrowRight, BadgeCheck, HeartHandshake, MapPin, ShieldCheck, Sparkles } from 'lucide-react';
+import { ArrowRight, BadgeCheck, HeartHandshake, MapPin, ShieldCheck, Sparkles, Layers3 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const principles = [
@@ -24,6 +24,24 @@ const metrics = [
   { label: 'Routine-first', value: 'Simple' },
   { label: 'Dealer network', value: 'Verified' },
   { label: 'Support style', value: 'Local' },
+];
+
+const storyHighlights = [
+  {
+    icon: Layers3,
+    title: 'Real before-and-after results',
+    description: 'See how simple routines translated into visible improvements for real customers.',
+  },
+  {
+    icon: ShieldCheck,
+    title: 'Verified routines',
+    description: 'Each story is paired with the routine context so the result is useful, not just visual.',
+  },
+  {
+    icon: Sparkles,
+    title: 'Confidence building',
+    description: 'The story page gives shoppers proof, not just promises, before they buy.',
+  },
 ];
 
 export default function About() {
@@ -96,6 +114,24 @@ export default function About() {
                 <ArrowRight size={15} />
               </Link>
             </div>
+
+            <div className="rounded-[2rem] border border-black/10 bg-[linear-gradient(135deg,#f5ede3_0%,#ffffff_100%)] p-6">
+              <div className="flex items-center gap-2 text-sm uppercase tracking-[0.28em] text-black/45">
+                <Sparkles size={16} />
+                Transformation stories
+              </div>
+              <h3 className="mt-3 text-2xl font-semibold text-black">See real skin progress, not just product photos.</h3>
+              <p className="mt-3 text-sm leading-6 text-black/70">
+                The transformation section features before and after stories from customers who saw visible changes with a steady routine.
+              </p>
+              <Link
+                to="/transformations"
+                className="mt-5 inline-flex items-center gap-2 text-sm font-medium text-black underline underline-offset-4 transition-colors hover:text-red-600"
+              >
+                View transformation stories
+                <ArrowRight size={15} />
+              </Link>
+            </div>
           </div>
         </div>
       </section>
@@ -115,6 +151,36 @@ export default function About() {
 
           <div className="mt-6 grid gap-4 md:grid-cols-3">
             {principles.map((item) => {
+              const Icon = item.icon;
+              return (
+                <article key={item.title} className="rounded-[1.5rem] border border-black/10 bg-[linear-gradient(180deg,#fff_0%,#fbf4ef_100%)] p-5">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-full border border-black/10 bg-black/5">
+                    <Icon size={18} className="text-black/70" />
+                  </div>
+                  <h3 className="mt-4 text-xl font-semibold">{item.title}</h3>
+                  <p className="mt-2 text-sm leading-6 text-black/65">{item.description}</p>
+                </article>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-7xl px-4 pb-16">
+        <div className="rounded-[2rem] border border-black/10 bg-white/80 p-8 md:p-10">
+          <div className="flex flex-wrap items-end justify-between gap-4">
+            <div>
+              <p className="text-sm uppercase tracking-[0.3em] text-black/45">Transformation stories</p>
+              <h2 className="mt-2 text-3xl font-semibold">Proof, context, and customer trust in one place.</h2>
+            </div>
+            <Link to="/transformations" className="inline-flex items-center gap-2 text-sm font-medium text-black underline underline-offset-4">
+              Browse stories
+              <Sparkles size={15} />
+            </Link>
+          </div>
+
+          <div className="mt-6 grid gap-4 md:grid-cols-3">
+            {storyHighlights.map((item) => {
               const Icon = item.icon;
               return (
                 <article key={item.title} className="rounded-[1.5rem] border border-black/10 bg-[linear-gradient(180deg,#fff_0%,#fbf4ef_100%)] p-5">
