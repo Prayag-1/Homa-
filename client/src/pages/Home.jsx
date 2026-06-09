@@ -102,6 +102,54 @@ export default function Home() {
       </section>
 
       <section className="mx-auto max-w-7xl px-4 pb-14">
+        <div className="grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
+          <div className="rounded-[2rem] border border-black/10 bg-white/80 p-8 shadow-[0_24px_80px_rgba(26,20,16,0.08)]">
+            <p className="text-sm uppercase tracking-[0.3em] text-black/45">About Homa</p>
+            <h2 className="mt-3 text-3xl font-semibold">Built around a calmer shopping experience.</h2>
+            <p className="mt-4 text-sm leading-6 text-black/70">
+              Homa combines curated skincare, practical routines, and a growing network of trusted
+              partners so customers can buy with confidence across Nepal.
+            </p>
+            <div className="mt-6 flex flex-wrap gap-3">
+              <Link
+                to="/about"
+                className="rounded-full bg-black px-5 py-2.5 text-sm font-medium text-white transition hover:bg-black/85"
+              >
+                Learn more
+              </Link>
+              <Link
+                to="/distributors"
+                className="rounded-full border border-black/15 px-5 py-2.5 text-sm font-medium text-black transition hover:bg-black/5"
+              >
+                Find dealers
+              </Link>
+            </div>
+          </div>
+
+          <div className="rounded-[2rem] border border-black/10 bg-[linear-gradient(135deg,#18120f_0%,#2a1d18_100%)] p-8 text-white shadow-[0_24px_80px_rgba(26,20,16,0.16)]">
+            <p className="text-sm uppercase tracking-[0.3em] text-white/50">Authorized Dealers</p>
+            <h2 className="mt-3 text-3xl font-semibold">Buy from verified distributors.</h2>
+            <p className="mt-4 text-sm leading-6 text-white/75">
+              Discover Homa&apos;s authorized network, regional coverage, and local points of contact
+              for a reliable purchasing experience.
+            </p>
+            <div className="mt-6 grid gap-3 sm:grid-cols-3">
+              {[
+                { label: 'Verified', value: '100%' },
+                { label: 'Support', value: 'Local' },
+                { label: 'Coverage', value: 'Nationwide' },
+              ].map((item) => (
+                <div key={item.label} className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                  <div className="text-xs uppercase tracking-[0.25em] text-white/50">{item.label}</div>
+                  <div className="mt-2 text-xl font-semibold">{item.value}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-7xl px-4 pb-14">
         <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
           <div className="rounded-[2rem] border border-black/10 bg-[#f4ece4] p-8">
             <p className="text-sm uppercase tracking-[0.3em] text-black/45">New arrivals</p>

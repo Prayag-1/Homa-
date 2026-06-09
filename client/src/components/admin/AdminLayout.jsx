@@ -4,6 +4,7 @@ import {
   Grid3X3,
   LayoutDashboard,
   LogOut,
+  MapPin,
   Package,
   ShoppingCart,
   Tag,
@@ -20,6 +21,7 @@ const navItems = [
   { label: 'Orders', to: '/admin/orders', icon: ShoppingCart },
   { label: 'Customers', to: '/admin/customers', icon: Users },
   { label: 'Blogs', to: '/admin/blogs', icon: FileText },
+  { label: 'Distributors', to: '/admin/distributors', icon: MapPin },
   { label: 'Reports', to: '/admin/reports', icon: BarChart3 },
 ];
 

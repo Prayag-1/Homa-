@@ -23,8 +23,11 @@ import NotFound from './pages/NotFound';
 import AdminLogin from './pages/admin/AdminLogin';
 import AdminBrands from './pages/admin/AdminBrands';
 import AdminCategories from './pages/admin/AdminCategories';
+import AdminDistributors from './pages/admin/AdminDistributors';
 import AdminProducts from './pages/admin/AdminProducts';
 import AdminProductForm from './pages/admin/AdminProductForm';
+import About from './pages/About';
+import Distributors from './pages/Distributors';
 import BlogListPage from './pages/admin/blogs/BlogListPage';
 import BlogFormPage from './pages/admin/blogs/BlogFormPage';
 import UserBlogListPage from './pages/blog/BlogListPage';
@@ -77,6 +80,22 @@ function AppRoutes() {
           )}
         />
         <Route
+          path="/about"
+          element={(
+            <ErrorBoundary>
+              <About />
+            </ErrorBoundary>
+          )}
+        />
+        <Route
+          path="/distributors"
+          element={(
+            <ErrorBoundary>
+              <Distributors />
+            </ErrorBoundary>
+          )}
+        />
+        <Route
           path="/wishlist"
           element={(
             <ProtectedRoute>
@@ -116,6 +135,14 @@ function AppRoutes() {
           element={(
             <AdminRoute>
               <AdminCategories />
+            </AdminRoute>
+          )}
+        />
+        <Route
+          path="/admin/distributors"
+          element={(
+            <AdminRoute>
+              <AdminDistributors />
             </AdminRoute>
           )}
         />

@@ -3,6 +3,7 @@ const router = require('express').Router();
 router.use('/auth',           require('./authRoutes'));
 router.use('/blogs',          require('./blogRoutes'));
 router.use('/admin/blogs',    require('./adminBlogRoutes'));
+router.use('/distributors',   require('./distributorRoutes'));
 router.use('/admin/products', require('./adminProductRoutes'));
 router.use('/brands',         require('./brandRoutes'));
 router.use('/categories',     require('./categoryRoutes'));
