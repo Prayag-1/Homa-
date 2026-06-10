@@ -129,6 +129,7 @@ export default function Navbar({ onCartOpen }) {
                     { to: '/about', label: 'About Homa' },
                     { to: '/distributors', label: 'Authorized Dealers' },
                     { to: '/transformations', label: 'Transformation Stories' },
+                    { to: '/contact', label: 'Contact Us' },
                   ].map((item) => (
                     <Link
                       key={item.to}
@@ -275,6 +276,7 @@ export default function Navbar({ onCartOpen }) {
             <Link to="/about" onClick={() => setIsOpen(false)} className="block pl-3">About Homa</Link>
             <Link to="/distributors" onClick={() => setIsOpen(false)} className="block pl-3">Authorized Dealers</Link>
             <Link to="/transformations" onClick={() => setIsOpen(false)} className="block pl-3">Transformation Stories</Link>
+            <Link to="/contact" onClick={() => setIsOpen(false)} className="block pl-3">Contact Us</Link>
           </div>
           <button
             type="button"

@@ -8,6 +8,7 @@ const cookieParser = require("cookie-parser");
 const rateLimit = require("express-rate-limit");
 const connectDB = require("./src/config/db");
 const routes = require("./src/routes/index");
+const contactRouter = require("./src/routes/contactRoute");
 const errorHandler = require("./src/middleware/errorHandler");
 
 const app = express();
@@ -45,6 +46,7 @@ if (process.env.NODE_ENV === "development") app.use(morgan("dev"));
 
 // Routes
 app.use("/api/v1", routes);
+app.use("/api/contact", contactRouter);
 
 // Root confirmation
 app.get("/", (req, res) => {

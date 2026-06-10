@@ -32,6 +32,7 @@ import TransformationListPage from './pages/transformations/TransformationListPa
 import TransformationDetailPage from './pages/transformations/TransformationDetailPage';
 import TransformationStoriesPage from './pages/admin/TransformationStoriesPage';
 import TransformationStoryFormPage from './pages/admin/TransformationStoryFormPage';
+import ContactUsPage from './pages/ContactUs';
 import BlogListPage from './pages/admin/blogs/BlogListPage';
 import BlogFormPage from './pages/admin/blogs/BlogFormPage';
 import UserBlogListPage from './pages/blog/BlogListPage';
@@ -96,6 +97,14 @@ function AppRoutes() {
           element={(
             <ErrorBoundary>
               <Distributors />
+            </ErrorBoundary>
+          )}
+        />
+        <Route
+          path="/contact"
+          element={(
+            <ErrorBoundary>
+              <ContactUsPage />
             </ErrorBoundary>
           )}
         />
