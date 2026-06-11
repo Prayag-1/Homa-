@@ -7,6 +7,7 @@ import AdminLayout from '../../components/admin/AdminLayout';
 import AdminTable from '../../components/admin/ui/AdminTable';
 import ConfirmModal from '../../components/admin/ui/ConfirmModal';
 import InlineModal from '../../components/admin/ui/InlineModal';
+import { AddressMapPicker } from '../../components/shared';
 import Spinner from '../../components/ui/Spinner';
 import {
   useAdminDistributors,
@@ -78,12 +79,16 @@ export default function AdminDistributors() {
     register,
     handleSubmit,
     reset,
+    watch,
+    setValue,
     formState: { errors, isDirty },
   } = useForm({
     resolver: zodResolver(schema),
     defaultValues,
     mode: 'onTouched',
   });
+
+  const addressValue = watch('address');
 
   useEffect(() => {
     const timer = window.setTimeout(() => setSearch(searchInput.trim()), 300);
@@ -313,9 +318,9 @@ export default function AdminDistributors() {
         isOpen={modalOpen}
         onClose={closeModal}
         title={editingItem ? 'Edit Distributor' : 'Add Distributor'}
-        width="760px"
+        width="960px"
       >
-        <form className="space-y-5" onSubmit={handleSubmit(onSubmit)}>
+        <form className="max-w-full space-y-5 overflow-x-hidden" onSubmit={handleSubmit(onSubmit)}>
           <div className="grid gap-4 md:grid-cols-2">
             <div>
               <label className="admin-field-label" htmlFor="distributor-name">Name*</label>
@@ -335,6 +340,15 @@ export default function AdminDistributors() {
             <textarea id="distributor-address" className="admin-textarea" maxLength={255} {...register('address')} />
             <FieldError error={errors.address} />
           </div>
+
+          <AddressMapPicker
+            address={addressValue}
+            title="Distributor location"
+            description="Use Leaflet to preview and refine the distributor address."
+            editable
+            variant="dark"
+            onAddressSelect={(value) => setValue('address', value, { shouldDirty: true, shouldValidate: true })}
+          />
 
           <div className="grid gap-4 md:grid-cols-2">
             <div>

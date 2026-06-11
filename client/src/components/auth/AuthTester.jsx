@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import toast from 'react-hot-toast';
 import api from '../../services/api';
 import { useAuth } from '../../hooks/useAuth';
+import { AddressMapPicker } from '../shared';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 
@@ -65,6 +66,28 @@ export default function AuthTester() {
     if (!token) return 'No access token stored';
     return `${token.slice(0, 18)}...${token.slice(-8)}`;
   }, [accessToken, storedToken]);
+
+  const registerAddressPreview = useMemo(
+    () =>
+      [
+        registerData.line1,
+        registerData.line2,
+        registerData.city,
+        registerData.state,
+        registerData.postalCode,
+        registerData.country,
+      ]
+        .filter(Boolean)
+        .join(', '),
+    [
+      registerData.city,
+      registerData.country,
+      registerData.line1,
+      registerData.line2,
+      registerData.postalCode,
+      registerData.state,
+    ],
+  );
 
   const setField = (setter) => (event) => {
     const { name, value } = event.target;
@@ -210,6 +233,11 @@ export default function AuthTester() {
                 <Input label="Postal Code" name="postalCode" value={registerData.postalCode} onChange={setField(setRegisterData)} />
                 <Input label="Country" name="country" value={registerData.country} onChange={setField(setRegisterData)} />
               </div>
+              <AddressMapPicker
+                address={registerAddressPreview}
+                title="Address preview"
+                description="Leaflet previews the location tied to the address you entered."
+              />
               <Button type="button" variant="primary" size="lg" loading={busy === 'register'} onClick={handleRegister} className="w-full">
                 Register and send OTP
               </Button>

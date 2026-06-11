@@ -15,6 +15,7 @@ import {
   Send,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { AddressMapPicker } from '../components/shared';
 
 /*
 Required .env variables:
@@ -227,6 +228,14 @@ export default function ContactUsPage() {
                 })}
               </div>
             </div>
+
+            <AddressMapPicker
+              address="Kathmandu, Nepal"
+              title="Visit our Kathmandu base"
+              description="Find our main location and get a visual sense of the area we serve from."
+              variant="light"
+              className="shadow-[0_20px_60px_rgba(26,20,16,0.10)]"
+            />
           </div>
 
           <div className="rounded-[2rem] border border-black/10 bg-white/85 p-8 shadow-[0_24px_80px_rgba(26,20,16,0.10)] backdrop-blur md:p-10">

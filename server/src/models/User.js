@@ -26,6 +26,7 @@ const userSchema = new mongoose.Schema(
       trim: true,
     },
     phone: { type: String, sparse: true },
+    phoneNumber: { type: String, sparse: true },
     password: { type: String, required: true, minlength: 8, select: false },
     birthday: { type: Date, required: true },
     address: { type: addressSchema, required: true },
@@ -60,6 +61,10 @@ userSchema.pre('validate', function (next) {
   if (this.phone) {
     const normalized = normalizePhoneNumber(this.phone);
     this.phone = normalized || this.phone;
+  }
+  if (this.phoneNumber) {
+    const normalized = normalizePhoneNumber(this.phoneNumber);
+    this.phoneNumber = normalized || this.phoneNumber;
   }
   next();
 });

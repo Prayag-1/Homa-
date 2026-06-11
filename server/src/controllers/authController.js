@@ -377,6 +377,50 @@ const refreshToken = async (req, res) => {
   }
 };
 
+const updateProfile = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    const { name, birthday, address, skinType, phoneNumber } = req.body;
+
+    if (name) user.name = name;
+    if (birthday) user.birthday = birthday;
+    if (skinType) user.skinType = skinType;
+    
+    if (phoneNumber) {
+      const normalized = normalizePhoneNumber(phoneNumber);
+      user.phoneNumber = normalized || phoneNumber;
+      user.phone = normalized || phoneNumber;
+    }
+
+    if (address) {
+      user.address = {
+        line1: address.line1 !== undefined ? address.line1 : user.address.line1,
+        line2: address.line2 !== undefined ? address.line2 : user.address.line2,
+        city: address.city !== undefined ? address.city : user.address.city,
+        state: address.state !== undefined ? address.state : user.address.state,
+        postalCode: address.postalCode !== undefined ? address.postalCode : user.address.postalCode,
+        country: address.country !== undefined ? address.country : user.address.country,
+      };
+    }
+
+    const updatedUser = await user.save();
+    
+    res.status(200).json({
+      success: true,
+      message: 'Profile updated successfully',
+      data: {
+        user: sanitizeUser(updatedUser),
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   register,
   verifyAccount,
@@ -385,4 +429,5 @@ module.exports = {
   me,
   logout,
   refreshToken,
+  updateProfile,
 };

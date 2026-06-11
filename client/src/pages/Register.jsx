@@ -4,6 +4,7 @@ import toast from 'react-hot-toast';
 import { useAuth } from '../hooks/useAuth';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
+import { AddressMapPicker } from '../components/shared';
 
 const initialForm = {
   name: '',
@@ -34,6 +35,11 @@ export default function Register() {
   const targetValue = useMemo(
     () => (verificationMethod === 'email' ? form.email : form.phoneNumber),
     [verificationMethod, form.email, form.phoneNumber],
+  );
+
+  const addressPreview = useMemo(
+    () => [form.line1, form.line2, form.city, form.state, form.postalCode, form.country].filter(Boolean).join(', '),
+    [form.city, form.country, form.line1, form.line2, form.postalCode, form.state],
   );
 
   const onChange = (event) => {
@@ -124,6 +130,12 @@ export default function Register() {
               <Input label="Address Line 1" name="line1" value={form.line1} onChange={onChange} />
               <Input label="Address Line 2" name="line2" value={form.line2} onChange={onChange} />
             </div>
+
+            <AddressMapPicker
+              address={addressPreview}
+              title="Address preview"
+              description="Leaflet previews the location associated with the address details you entered."
+            />
 
             <div className="rounded-2xl border border-black/10 bg-black/5 p-4">
               <p className="mb-3 text-sm font-medium">Verification method</p>

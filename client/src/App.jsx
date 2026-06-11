@@ -19,6 +19,9 @@ import ProductDetail from './pages/ProductDetail';
 import Wishlist from './pages/Wishlist';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import Checkout from './pages/Checkout';
+import PaymentSuccess from './pages/PaymentSuccess';
+import PaymentFailure from './pages/PaymentFailure';
 import NotFound from './pages/NotFound';
 import AdminLogin from './pages/admin/AdminLogin';
 import AdminBrands from './pages/admin/AdminBrands';
@@ -129,6 +132,30 @@ function AppRoutes() {
           element={(
             <ProtectedRoute>
               <Wishlist />
+            </ProtectedRoute>
+          )}
+        />
+        <Route
+          path="/checkout"
+          element={(
+            <ProtectedRoute>
+              <Checkout />
+            </ProtectedRoute>
+          )}
+        />
+        <Route
+          path="/payment-success"
+          element={(
+            <ProtectedRoute>
+              <PaymentSuccess />
+            </ProtectedRoute>
+          )}
+        />
+        <Route
+          path="/payment-failure"
+          element={(
+            <ProtectedRoute>
+              <PaymentFailure />
             </ProtectedRoute>
           )}
         />

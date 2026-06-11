@@ -71,6 +71,12 @@ export function AuthProvider({ children }) {
     return data.data.user;
   };
 
+  const updateProfile = async (payload) => {
+    const { data } = await api.put('/auth/profile', payload);
+    setUser(data.data.user);
+    return data.data.user;
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -82,6 +88,7 @@ export function AuthProvider({ children }) {
         verifyAccount,
         resendVerification,
         refreshUser,
+        updateProfile,
         logout,
       }}
     >

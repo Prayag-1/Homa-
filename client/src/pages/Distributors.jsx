@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { ArrowRight, Mail, MapPin, Phone, RefreshCw, User } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { SearchBar } from '../components/shared';
+import { AddressMapPicker, SearchBar } from '../components/shared';
 import { useDistributors } from '../hooks/useDistributor';
 
 const formatPhone = (value = '') => value.replace(/\s+/g, '');
@@ -24,6 +24,7 @@ function DistributorSkeleton() {
 
 export default function Distributors() {
   const [search, setSearch] = useState('');
+  const [selectedDistributorId, setSelectedDistributorId] = useState('');
   const { data: distributors = [], isLoading, isError, error, refetch } = useDistributors();
 
   const filteredDistributors = useMemo(() => {
@@ -47,6 +48,15 @@ export default function Distributors() {
   }, [distributors, search]);
 
   const hasFilters = Boolean(search.trim());
+  const selectedDistributor =
+    filteredDistributors.find((item) => item.id === selectedDistributorId) ||
+    filteredDistributors[0] ||
+    null;
+
+  const selectedLocation =
+    selectedDistributor?.address ||
+    selectedDistributor?.coverageArea ||
+    'Kathmandu, Nepal';
 
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_top,#fff8f1_0%,#f7efe7_42%,#fffdf9_100%)]">
@@ -90,6 +100,49 @@ export default function Distributors() {
             {filteredDistributors.length} dealer{filteredDistributors.length === 1 ? '' : 's'} listed
           </div>
         </div>
+
+        {selectedDistributor && (
+          <div className="mb-8 grid gap-6 lg:grid-cols-[0.85fr_1.15fr]">
+            <div className="rounded-[2rem] border border-black/10 bg-white/85 p-6 shadow-sm">
+              <p className="text-xs uppercase tracking-[0.35em] text-black/45">Dealer map</p>
+              <h2 className="mt-3 font-display text-3xl text-black">
+                {selectedDistributor.name}
+              </h2>
+              <p className="mt-3 text-sm leading-7 text-black/65">
+                {selectedDistributor.address || selectedDistributor.coverageArea || 'Location preview based on the dealer area.'}
+              </p>
+
+              <div className="mt-6 space-y-3 text-sm text-black/70">
+                {selectedDistributor.representative && (
+                  <div className="flex items-start gap-2">
+                    <User size={15} className="mt-0.5 shrink-0 text-black/45" />
+                    <span>{selectedDistributor.representative}</span>
+                  </div>
+                )}
+                {selectedDistributor.phone && (
+                  <div className="flex items-start gap-2">
+                    <Phone size={15} className="mt-0.5 shrink-0 text-black/45" />
+                    <span>{selectedDistributor.phone}</span>
+                  </div>
+                )}
+                {selectedDistributor.email && (
+                  <div className="flex items-start gap-2">
+                    <Mail size={15} className="mt-0.5 shrink-0 text-black/45" />
+                    <span className="break-all">{selectedDistributor.email}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <AddressMapPicker
+              address={selectedLocation}
+              title="Map preview"
+              description="Leaflet shows the selected dealer area in a public-friendly map card."
+              variant="light"
+              mapHeightClass="h-72"
+            />
+          </div>
+        )}
 
         {isError && (
           <div className="mb-6 rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-red-900">
@@ -140,7 +193,20 @@ export default function Distributors() {
             {filteredDistributors.map((dealer) => (
               <article
                 key={dealer.id}
-                className="group rounded-[1.75rem] border border-black/10 bg-white/85 p-6 shadow-sm transition-transform duration-300 hover:-translate-y-1 hover:shadow-lg"
+                className={`group rounded-[1.75rem] border bg-white/85 p-6 shadow-sm transition-transform duration-300 hover:-translate-y-1 hover:shadow-lg ${
+                  selectedDistributor?.id === dealer.id
+                    ? 'border-red-300 ring-1 ring-red-200'
+                    : 'border-black/10'
+                }`}
+                role="button"
+                tabIndex={0}
+                onClick={() => setSelectedDistributorId(dealer.id)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    setSelectedDistributorId(dealer.id);
+                  }
+                }}
               >
                 <div className="flex items-start justify-between gap-4">
                   <div>
@@ -200,6 +266,15 @@ export default function Distributors() {
                     <span className="text-sm text-black/55">Contact details not listed.</span>
                   )}
                 </div>
+
+                <button
+                  type="button"
+                  onClick={() => setSelectedDistributorId(dealer.id)}
+                  className="mt-5 inline-flex items-center gap-2 text-sm font-medium text-black underline underline-offset-4 transition-colors hover:text-red-600"
+                >
+                  View on map
+                  <ArrowRight size={15} />
+                </button>
               </article>
             ))}
           </div>

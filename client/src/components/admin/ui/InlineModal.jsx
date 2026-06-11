@@ -38,7 +38,11 @@ export default function InlineModal({
         >
           <motion.div
             className="admin-modal"
-            style={{ maxWidth: width }}
+            style={{
+              maxWidth: width,
+              maxHeight: 'calc(100vh - 48px)',
+              overflow: 'hidden',
+            }}
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
@@ -51,7 +55,7 @@ export default function InlineModal({
                 <X size={16} />
               </button>
             </div>
-            <div className="p-5">{children}</div>
+            <div className="max-h-[calc(100vh-168px)] overflow-y-auto overflow-x-hidden p-5">{children}</div>
           </motion.div>
         </motion.div>
       )}

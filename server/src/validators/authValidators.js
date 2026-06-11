@@ -56,9 +56,25 @@ const resendSchema = Joi.object({
   target: Joi.string().trim().required(),
 });
 
+const updateProfileSchema = Joi.object({
+  name: Joi.string().trim().min(2).max(100).optional(),
+  phoneNumber: phoneNumber.optional(),
+  birthday: Joi.date().max('now').optional(),
+  skinType: Joi.string().valid('Oily', 'Dry', 'Combination', 'Sensitive', 'Acne-Prone').optional(),
+  address: Joi.object({
+    line1: Joi.string().trim().min(3).max(120).optional(),
+    line2: Joi.string().trim().max(120).allow('', null).optional(),
+    city: Joi.string().trim().min(2).max(80).optional(),
+    state: Joi.string().trim().min(2).max(80).optional(),
+    postalCode: Joi.string().trim().min(3).max(20).optional(),
+    country: Joi.string().trim().min(2).max(80).optional(),
+  }).optional(),
+});
+
 module.exports = {
   registerSchema,
   loginSchema,
   verifySchema,
   resendSchema,
+  updateProfileSchema,
 };
