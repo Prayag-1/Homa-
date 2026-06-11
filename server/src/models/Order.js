@@ -32,6 +32,9 @@ const orderSchema = new mongoose.Schema(
     invoiceUrl: String,
     notes: String,
     couponCode: String,
+    loyaltyPointsAwarded: { type: Boolean, default: false },
+    loyaltyPointsAwardedPoints: { type: Number, default: 0 },
+    loyaltyPointsAwardedAt: { type: Date },
   },
   { timestamps: true }
 );

@@ -29,6 +29,7 @@ import AdminCategories from './pages/admin/AdminCategories';
 import AdminDistributors from './pages/admin/AdminDistributors';
 import AdminProducts from './pages/admin/AdminProducts';
 import AdminProductForm from './pages/admin/AdminProductForm';
+import AdminCustomers from './pages/admin/AdminCustomers';
 import About from './pages/About';
 import Distributors from './pages/Distributors';
 import TransformationListPage from './pages/transformations/TransformationListPage';
@@ -191,6 +192,14 @@ function AppRoutes() {
           element={(
             <AdminRoute>
               <AdminCategories />
+            </AdminRoute>
+          )}
+        />
+        <Route
+          path="/admin/customers"
+          element={(
+            <AdminRoute>
+              <AdminCustomers />
             </AdminRoute>
           )}
         />

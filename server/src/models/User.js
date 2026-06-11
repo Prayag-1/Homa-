@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const bcryptjs = require('bcryptjs');
 const { normalizePhoneNumber, normalizeEmail } = require('../utils/verification');
+const { getMembershipTier } = require('../utils/loyalty');
 
 const addressSchema = new mongoose.Schema(
   {
@@ -35,8 +36,8 @@ const userSchema = new mongoose.Schema(
     loyaltyPoints: { type: Number, default: 0 },
     membershipTier: {
       type: String,
-      enum: ['Silver', 'Gold', 'Platinum'],
-      default: 'Silver',
+      enum: ['Bronze', 'Silver', 'Gold', 'Platinum'],
+      default: 'Bronze',
     },
     skinType: String,
     isActive: { type: Boolean, default: true },
@@ -73,6 +74,7 @@ userSchema.pre('save', async function (next) {
   if (this.isModified('password')) {
     this.password = await bcryptjs.hash(this.password, 12);
   }
+  this.membershipTier = getMembershipTier(this.loyaltyPoints);
   next();
 });
 

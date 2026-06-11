@@ -1,11 +1,13 @@
 const crypto = require('crypto');
 const Order = require('../models/Order');
+const User = require('../models/User');
 const Product = require('../models/Product');
 const Coupon = require('../models/Coupon');
 const ApiError = require('../utils/ApiError');
 const { calculateOrderTotals } = require('../utils/tax');
 const { generateInvoicePDF } = require('../utils/invoice');
 const { createOrderSchema } = require('../validators/orderValidators');
+const { calculateLoyaltyPoints } = require('../utils/loyalty');
 
 // Environment variables for eSewa
 const ESEWA_PRODUCT_CODE = process.env.ESEWA_PRODUCT_CODE || 'EPAYTEST';
@@ -29,6 +31,50 @@ function generateEsewaSignature(totalAmount, transactionUuid, productCode, secre
     .createHmac('sha256', secretKey)
     .update(message)
     .digest('base64');
+}
+
+async function awardLoyaltyPointsForOrder(order) {
+  if (!order || order.loyaltyPointsAwarded) {
+    return 0;
+  }
+
+  const points = calculateLoyaltyPoints(order.grandTotal);
+  const previousAwardState = {
+    loyaltyPointsAwarded: order.loyaltyPointsAwarded,
+    loyaltyPointsAwardedPoints: order.loyaltyPointsAwardedPoints,
+    loyaltyPointsAwardedAt: order.loyaltyPointsAwardedAt,
+  };
+
+  order.loyaltyPointsAwarded = true;
+  order.loyaltyPointsAwardedPoints = points;
+  order.loyaltyPointsAwardedAt = new Date();
+  await order.save();
+
+  try {
+    if (points > 0) {
+      const user = await User.findById(order.user);
+      if (!user) {
+        throw new ApiError(404, 'User not found for loyalty award');
+      }
+
+      user.loyaltyPoints = (user.loyaltyPoints || 0) + points;
+      await user.save();
+    }
+
+    return points;
+  } catch (error) {
+    order.loyaltyPointsAwarded = previousAwardState.loyaltyPointsAwarded;
+    order.loyaltyPointsAwardedPoints = previousAwardState.loyaltyPointsAwardedPoints;
+    order.loyaltyPointsAwardedAt = previousAwardState.loyaltyPointsAwardedAt;
+
+    try {
+      await order.save();
+    } catch (rollbackError) {
+      console.error('Failed to roll back loyalty award flag:', rollbackError);
+    }
+
+    throw error;
+  }
 }
 
 /**
@@ -264,6 +310,9 @@ exports.verifyEsewaPayment = async (req, res, next) => {
     }
 
     if (order.paymentStatus === 'paid') {
+      if (!order.loyaltyPointsAwarded) {
+        await awardLoyaltyPointsForOrder(order);
+      }
       return res.json({
         success: true,
         message: 'Payment verified already.',
@@ -319,6 +368,7 @@ exports.verifyEsewaPayment = async (req, res, next) => {
     order.orderStatus = 'confirmed';
     order.invoiceNumber = `INV-${Date.now()}-${Math.floor(1000 + Math.random() * 9000)}`;
     await order.save();
+    await awardLoyaltyPointsForOrder(order);
 
     return res.json({
       success: true,
@@ -444,6 +494,13 @@ exports.adminUpdateOrderStatus = async (req, res, next) => {
 
     await order.save();
 
+    if (
+      ['paid', 'collected'].includes(order.paymentStatus) &&
+      !order.loyaltyPointsAwarded
+    ) {
+      await awardLoyaltyPointsForOrder(order);
+    }
+
     return res.json({
       success: true,
       message: 'Order status updated successfully',
@@ -500,4 +557,3 @@ exports.validateCoupon = async (req, res, next) => {
     next(err);
   }
 };
-

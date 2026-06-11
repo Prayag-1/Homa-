@@ -8,6 +8,7 @@ const {
   hashVerificationCode,
   sendVerificationCode,
 } = require('../utils/verification');
+const { getMembershipTier } = require('../utils/loyalty');
 
 const cookieOptions = {
   httpOnly: true,
@@ -21,10 +22,13 @@ const sanitizeUser = (user) => ({
   id: user._id,
   name: user.name,
   email: user.email,
+  phone: user.phone || user.phoneNumber,
   phoneNumber: user.phoneNumber,
   birthday: user.birthday,
   address: user.address,
   role: user.role,
+  loyaltyPoints: user.loyaltyPoints || 0,
+  membershipTier: getMembershipTier(user.loyaltyPoints || 0),
   verificationMethod: user.verificationMethod,
   isVerified: user.isVerified,
   isActive: user.isActive,
@@ -344,6 +348,55 @@ const me = async (req, res) => {
   });
 };
 
+const adminGetUsers = async (req, res, next) => {
+  try {
+    const {
+      search = '',
+      page = 1,
+      limit = 20,
+      role = 'user',
+    } = req.query;
+
+    const pageNumber = Math.max(parseInt(page, 10) || 1, 1);
+    const pageSize = Math.min(Math.max(parseInt(limit, 10) || 20, 1), 100);
+    const query = {};
+
+    if (role && role !== 'all') {
+      query.role = role;
+    }
+
+    if (search.trim()) {
+      const safeSearch = search.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      query.$or = [
+        { name: { $regex: safeSearch, $options: 'i' } },
+        { email: { $regex: safeSearch, $options: 'i' } },
+        { phoneNumber: { $regex: safeSearch, $options: 'i' } },
+      ];
+    }
+
+    const [items, total] = await Promise.all([
+      User.find(query)
+        .sort({ createdAt: -1 })
+        .skip((pageNumber - 1) * pageSize)
+        .limit(pageSize),
+      User.countDocuments(query),
+    ]);
+
+    res.status(200).json({
+      success: true,
+      data: {
+        items: items.map(sanitizeUser),
+        page: pageNumber,
+        limit: pageSize,
+        total,
+        totalPages: Math.max(1, Math.ceil(total / pageSize)),
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 const logout = async (req, res, next) => {
   try {
     res.clearCookie('refreshToken', { ...cookieOptions, maxAge: undefined });
@@ -430,4 +483,5 @@ module.exports = {
   logout,
   refreshToken,
   updateProfile,
+  adminGetUsers,
 };

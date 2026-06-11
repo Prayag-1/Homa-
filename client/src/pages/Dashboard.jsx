@@ -159,6 +159,8 @@ export default function Dashboard() {
   // Determine membership card theme color
   const getTierTheme = (tier) => {
     switch (tier) {
+      case 'Bronze':
+        return 'from-orange-200 via-amber-400 to-orange-700 text-white border-orange-300';
       case 'Platinum':
         return 'from-gray-700 via-gray-900 to-black text-white border-gray-600';
       case 'Gold':
@@ -221,7 +223,7 @@ export default function Dashboard() {
                     HOMA Membership
                   </span>
                   <h3 className="font-display text-2xl font-bold mt-1">
-                    {user.membershipTier || 'Silver'}
+                    {user.membershipTier || 'Bronze'}
                   </h3>
                 </div>
                 <Award size={36} className="opacity-80" />
