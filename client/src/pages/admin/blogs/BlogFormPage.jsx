@@ -27,7 +27,16 @@ import {
   slugify,
 } from '../../../services/blogApi';
 
-const BLOG_CATEGORIES = ['Technology', 'News', 'Tutorial', 'Guides', 'Product Updates', 'Announcements'];
+const BLOG_CATEGORIES = [
+  'Skincare Tips',
+  'Cleansing',
+  'Serums',
+  'Moisturizers',
+  'Sunscreen',
+  'Acne Care',
+  'Brightening',
+  'Makeup Care',
+];
 const SLUG_PATTERN = /^[-a-z0-9]+(?:-[-a-z0-9]+)*$/;
 
 const isValidUrl = (value) => {

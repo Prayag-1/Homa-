@@ -1,12 +1,14 @@
 import api from './api';
 
 export const BLOG_CATEGORIES = [
-  'Technology',
-  'News',
-  'Tutorial',
-  'Guides',
-  'Product Updates',
-  'Announcements',
+  'Skincare Tips',
+  'Cleansing',
+  'Serums',
+  'Moisturizers',
+  'Sunscreen',
+  'Acne Care',
+  'Brightening',
+  'Makeup Care',
 ] as const;
 
 export type BlogStatus = 'draft' | 'published';

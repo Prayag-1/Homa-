@@ -47,7 +47,7 @@ if (process.env.NODE_ENV === "development") app.use(morgan("dev"));
 
 // Routes
 app.use("/api/v1", routes);
-app.use("/api/contact", contactRouter);
+app.use("/api/v1/contact", contactRouter);
 
 // Root confirmation
 app.get("/", (req, res) => {

@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { AddressMapPicker } from '../components/shared';
+import api from '../services/api';
 
 /*
 Required .env variables:
@@ -123,25 +124,12 @@ export default function ContactUsPage() {
     setFeedback('');
 
     try {
-      const response = await fetch('/api/contact', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          name: form.name.trim(),
-          email: form.email.trim(),
-          subject: form.subject.trim(),
-          message: form.message.trim(),
-        }),
+      const { data } = await api.post('/contact', {
+        name: form.name.trim(),
+        email: form.email.trim(),
+        subject: form.subject.trim(),
+        message: form.message.trim(),
       });
-
-      const data = await response.json().catch(() => ({}));
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to send message.');
-      }
-
       setStatus('success');
       setFeedback(data.message || 'Message sent successfully.');
       setForm(initialForm);

@@ -35,7 +35,11 @@ const AdminOrders = lazy(() => import('./pages/admin/AdminOrders'));
 const AdminProducts = lazy(() => import('./pages/admin/AdminProducts'));
 const AdminProductForm = lazy(() => import('./pages/admin/AdminProductForm'));
 const About = lazy(() => import('./pages/About'));
+const FAQPage = lazy(() => import('./pages/FAQ'));
+const SkinQuizPage = lazy(() => import('./pages/SkinQuiz'));
+const ProductAuthenticityPage = lazy(() => import('./pages/ProductAuthenticity'));
 const Distributors = lazy(() => import('./pages/Distributors'));
+const DistributorMapPage = lazy(() => import('./pages/DistributorMapPage'));
 const ContactUsPage = lazy(() => import('./pages/ContactUs'));
 const TransformationListPage = lazy(() => import('./pages/transformations/TransformationListPage'));
 const TransformationDetailPage = lazy(() => import('./pages/transformations/TransformationDetailPage'));
@@ -102,7 +106,11 @@ function AppRoutes() {
             <Route path="/blog" element={<ErrorBoundary><UserBlogListPage /></ErrorBoundary>} />
             <Route path="/blog/:slug" element={<ErrorBoundary><UserBlogDetailPage /></ErrorBoundary>} />
             <Route path="/about" element={<ErrorBoundary><About /></ErrorBoundary>} />
+            <Route path="/faq" element={<ErrorBoundary><FAQPage /></ErrorBoundary>} />
+            <Route path="/skin-quiz" element={<ErrorBoundary><SkinQuizPage /></ErrorBoundary>} />
+            <Route path="/authenticity" element={<ErrorBoundary><ProductAuthenticityPage /></ErrorBoundary>} />
             <Route path="/distributors" element={<ErrorBoundary><Distributors /></ErrorBoundary>} />
+            <Route path="/distributors/:id/map" element={<ErrorBoundary><DistributorMapPage /></ErrorBoundary>} />
             <Route path="/contact" element={<ErrorBoundary><ContactUsPage /></ErrorBoundary>} />
             <Route path="/transformations" element={<ErrorBoundary><TransformationListPage /></ErrorBoundary>} />
             <Route path="/transformations/:slug" element={<ErrorBoundary><TransformationDetailPage /></ErrorBoundary>} />

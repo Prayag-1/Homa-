@@ -1,4 +1,4 @@
-// In your main Express app: import contactRouter from "./contactRoute.js"; app.use("/api", contactRouter);
+// In your main Express app: import contactRouter from "./contactRoute.js"; app.use("/api/v1/contact", contactRouter);
 
 const express = require('express');
 const nodemailer = require('nodemailer');

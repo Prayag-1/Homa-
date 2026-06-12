@@ -1,22 +1,24 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { ArrowRight, Mail, MapPin, Phone, RefreshCw, User } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { AddressMapPicker, SearchBar } from '../components/shared';
+import { AddressMapPicker, Pagination, SearchBar } from '../components/shared';
 import { useDistributors } from '../hooks/useDistributor';
+import { buildGoogleMapsDirectionsUrl, getDistributorMapQuery } from '../utils/maps';
 
 const formatPhone = (value = '') => value.replace(/\s+/g, '');
+const PAGE_SIZE = 6;
 
 function DistributorSkeleton() {
   return (
-    <article className="rounded-[1.75rem] border border-black/10 bg-white/80 p-6 shadow-sm">
-      <div className="h-5 w-28 animate-pulse bg-black/10" />
-      <div className="mt-4 h-4 w-2/3 animate-pulse bg-black/10" />
-      <div className="mt-3 h-4 w-full animate-pulse bg-black/10" />
-      <div className="mt-2 h-4 w-5/6 animate-pulse bg-black/10" />
-      <div className="mt-5 flex gap-2">
-        <div className="h-9 w-24 animate-pulse rounded-full bg-black/10" />
-        <div className="h-9 w-24 animate-pulse rounded-full bg-black/10" />
+    <article className="rounded-2xl border border-black/10 bg-white/80 p-4 shadow-sm">
+      <div className="h-4 w-28 animate-pulse bg-black/10" />
+      <div className="mt-3 h-3 w-2/3 animate-pulse bg-black/10" />
+      <div className="mt-2 h-3 w-full animate-pulse bg-black/10" />
+      <div className="mt-2 h-3 w-5/6 animate-pulse bg-black/10" />
+      <div className="mt-4 flex gap-2">
+        <div className="h-8 w-20 animate-pulse rounded-full bg-black/10" />
+        <div className="h-8 w-20 animate-pulse rounded-full bg-black/10" />
       </div>
     </article>
   );
@@ -24,6 +26,7 @@ function DistributorSkeleton() {
 
 export default function Distributors() {
   const [search, setSearch] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
   const [selectedDistributorId, setSelectedDistributorId] = useState('');
   const { data: distributors = [], isLoading, isError, error, refetch } = useDistributors();
 
@@ -48,15 +51,38 @@ export default function Distributors() {
   }, [distributors, search]);
 
   const hasFilters = Boolean(search.trim());
+  const totalPages = Math.max(Math.ceil(filteredDistributors.length / PAGE_SIZE), 1);
+  const safePage = Math.min(Math.max(currentPage, 1), totalPages);
+
+  const visibleDistributors = useMemo(() => {
+    const start = (safePage - 1) * PAGE_SIZE;
+    return filteredDistributors.slice(start, start + PAGE_SIZE);
+  }, [filteredDistributors, safePage]);
+
+  useEffect(() => {
+    if (safePage !== currentPage) {
+      setCurrentPage(safePage);
+    }
+  }, [currentPage, safePage]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search]);
+
+  useEffect(() => {
+    if (!visibleDistributors.length) return;
+    if (!visibleDistributors.some((item) => item.id === selectedDistributorId)) {
+      setSelectedDistributorId(visibleDistributors[0].id);
+    }
+  }, [selectedDistributorId, visibleDistributors]);
+
   const selectedDistributor =
-    filteredDistributors.find((item) => item.id === selectedDistributorId) ||
-    filteredDistributors[0] ||
+    visibleDistributors.find((item) => item.id === selectedDistributorId) ||
+    visibleDistributors[0] ||
     null;
 
-  const selectedLocation =
-    selectedDistributor?.address ||
-    selectedDistributor?.coverageArea ||
-    'Kathmandu, Nepal';
+  const selectedLocation = getDistributorMapQuery(selectedDistributor || {});
+  const directionsUrl = buildGoogleMapsDirectionsUrl(selectedLocation);
 
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_top,#fff8f1_0%,#f7efe7_42%,#fffdf9_100%)]">
@@ -69,12 +95,12 @@ export default function Distributors() {
       </Helmet>
 
       <section className="border-b border-black/10 bg-white/70 backdrop-blur">
-        <div className="mx-auto max-w-7xl px-4 py-12 md:py-16">
+        <div className="mx-auto max-w-7xl px-4 py-10 md:py-14">
           <p className="text-xs uppercase tracking-[0.35em] text-black/45">Authorized Dealers</p>
-          <h1 className="mt-4 font-display text-5xl leading-tight text-black md:text-7xl">
+          <h1 className="mt-4 font-display text-4xl leading-tight text-black md:text-6xl">
             Find a trusted distributor near you.
           </h1>
-          <p className="mt-5 max-w-3xl text-base leading-7 text-black/65 md:text-lg">
+          <p className="mt-4 max-w-3xl text-sm leading-7 text-black/65 md:text-base">
             Homa&apos;s authorized dealers help customers buy locally with confidence. Each listing includes
             contact details, coverage, and a named representative where available.
           </p>
@@ -90,57 +116,73 @@ export default function Distributors() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-4 py-10 md:py-12">
-        <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-2 text-sm uppercase tracking-[0.28em] text-black/45">
-            <MapPin size={15} />
-            Verified network
-          </div>
-          <div className="text-sm text-black/55">
-            {filteredDistributors.length} dealer{filteredDistributors.length === 1 ? '' : 's'} listed
-          </div>
-        </div>
+      <section className="mx-auto max-w-7xl px-4 py-8 md:py-10">
+        {!isError && !isLoading && filteredDistributors.length > 0 && (
+          <div className="mb-8 rounded-[1.75rem] border border-black/10 bg-white/85 p-4 shadow-sm md:p-5">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
+              <div className="min-w-0 flex-1">
+                <div className="mb-4 flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.3em] text-black/45">Map preview</p>
+                    <h2 className="mt-2 text-2xl font-semibold text-black">
+                      {selectedDistributor?.name || 'Select a dealer'}
+                    </h2>
+                  </div>
+                  <Link
+                    to={selectedDistributor ? `/distributors/${selectedDistributor.id}/map` : '/distributors'}
+                    className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-white px-4 py-2 text-sm font-medium text-black transition hover:border-black/20 hover:bg-black hover:text-white"
+                  >
+                    Open big map
+                    <ArrowRight size={14} />
+                  </Link>
+                </div>
 
-        {selectedDistributor && (
-          <div className="mb-8 grid gap-6 lg:grid-cols-[0.85fr_1.15fr]">
-            <div className="rounded-[2rem] border border-black/10 bg-white/85 p-6 shadow-sm">
-              <p className="text-xs uppercase tracking-[0.35em] text-black/45">Dealer map</p>
-              <h2 className="mt-3 font-display text-3xl text-black">
-                {selectedDistributor.name}
-              </h2>
-              <p className="mt-3 text-sm leading-7 text-black/65">
-                {selectedDistributor.address || selectedDistributor.coverageArea || 'Location preview based on the dealer area.'}
-              </p>
-
-              <div className="mt-6 space-y-3 text-sm text-black/70">
-                {selectedDistributor.representative && (
-                  <div className="flex items-start gap-2">
-                    <User size={15} className="mt-0.5 shrink-0 text-black/45" />
-                    <span>{selectedDistributor.representative}</span>
-                  </div>
-                )}
-                {selectedDistributor.phone && (
-                  <div className="flex items-start gap-2">
-                    <Phone size={15} className="mt-0.5 shrink-0 text-black/45" />
-                    <span>{selectedDistributor.phone}</span>
-                  </div>
-                )}
-                {selectedDistributor.email && (
-                  <div className="flex items-start gap-2">
-                    <Mail size={15} className="mt-0.5 shrink-0 text-black/45" />
-                    <span className="break-all">{selectedDistributor.email}</span>
-                  </div>
-                )}
+                <AddressMapPicker
+                  address={selectedLocation}
+                  title="Selected dealer map"
+                  description="Choose a dealer from the list below to update this map."
+                  variant="light"
+                  mapHeightClass="h-[18rem]"
+                  className="shadow-none"
+                />
               </div>
-            </div>
 
-            <AddressMapPicker
-              address={selectedLocation}
-              title="Map preview"
-              description="Leaflet shows the selected dealer area in a public-friendly map card."
-              variant="light"
-              mapHeightClass="h-72"
-            />
+              {selectedDistributor && (
+                <div className="w-full max-w-sm rounded-[1.5rem] border border-black/10 bg-black/5 p-4">
+                  <p className="text-xs uppercase tracking-[0.28em] text-black/45">Dealer details</p>
+                  <h3 className="mt-2 text-lg font-semibold text-black">{selectedDistributor.name}</h3>
+                  <div className="mt-3 space-y-2 text-sm text-black/70">
+                    {selectedDistributor.representative && (
+                      <div className="flex items-start gap-2">
+                        <User size={14} className="mt-0.5 shrink-0 text-black/45" />
+                        <span>{selectedDistributor.representative}</span>
+                      </div>
+                    )}
+                    {selectedDistributor.phone && (
+                      <div className="flex items-start gap-2">
+                        <Phone size={14} className="mt-0.5 shrink-0 text-black/45" />
+                        <span>{selectedDistributor.phone}</span>
+                      </div>
+                    )}
+                    {selectedDistributor.email && (
+                      <div className="flex items-start gap-2">
+                        <Mail size={14} className="mt-0.5 shrink-0 text-black/45" />
+                        <span className="break-all">{selectedDistributor.email}</span>
+                      </div>
+                    )}
+                  </div>
+                  <a
+                    href={directionsUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="mt-4 inline-flex items-center gap-2 rounded-full bg-black px-4 py-2 text-sm font-medium text-white transition hover:bg-black/85"
+                  >
+                    Get directions
+                    <ArrowRight size={14} />
+                  </a>
+                </div>
+              )}
+            </div>
           </div>
         )}
 
@@ -189,116 +231,97 @@ export default function Distributors() {
         )}
 
         {!isError && filteredDistributors.length > 0 && (
-          <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-            {filteredDistributors.map((dealer) => (
-              <article
-                key={dealer.id}
-                className={`group rounded-[1.75rem] border bg-white/85 p-6 shadow-sm transition-transform duration-300 hover:-translate-y-1 hover:shadow-lg ${
-                  selectedDistributor?.id === dealer.id
-                    ? 'border-red-300 ring-1 ring-red-200'
-                    : 'border-black/10'
-                }`}
-                role="button"
-                tabIndex={0}
-                onClick={() => setSelectedDistributorId(dealer.id)}
-                onKeyDown={(event) => {
-                  if (event.key === 'Enter' || event.key === ' ') {
-                    event.preventDefault();
-                    setSelectedDistributorId(dealer.id);
-                  }
-                }}
-              >
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <span className="inline-flex rounded-full border border-black/10 bg-black/5 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-black/60">
-                      Authorized dealer
-                    </span>
-                    <h2 className="mt-4 font-display text-2xl leading-tight text-black transition-colors group-hover:text-red-600">
-                      {dealer.name}
-                    </h2>
-                  </div>
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full border border-black/10 bg-black/5">
-                    <User size={18} className="text-black/60" />
-                  </div>
-                </div>
+          <div className="space-y-4">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-xs uppercase tracking-[0.22em] text-black/45">Dealers</p>
+                <p className="text-xs text-black/55">
+                  Page {safePage} of {totalPages}
+                </p>
+              </div>
 
-                <div className="mt-5 space-y-3 text-sm text-black/70">
-                  {dealer.coverageArea && (
-                    <div className="flex items-start gap-2">
-                      <MapPin size={15} className="mt-0.5 shrink-0 text-black/45" />
-                      <span>{dealer.coverageArea}</span>
+              <div className="grid gap-3">
+                {visibleDistributors.map((dealer) => (
+                  <article
+                    key={dealer.id}
+                    className={`group rounded-2xl border bg-white/85 p-4 shadow-sm transition-transform duration-300 hover:-translate-y-0.5 hover:shadow-md ${
+                      selectedDistributor?.id === dealer.id
+                        ? 'border-red-300 ring-1 ring-red-200'
+                        : 'border-black/10'
+                    }`}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => setSelectedDistributorId(dealer.id)}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault();
+                        setSelectedDistributorId(dealer.id);
+                      }
+                    }}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <h2 className="truncate text-lg font-semibold leading-tight text-black transition-colors group-hover:text-red-600">
+                          {dealer.name}
+                        </h2>
+                        <p className="mt-1 text-sm text-black/60">
+                          {dealer.coverageArea || dealer.address || 'Location not listed'}
+                        </p>
+                      </div>
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-black/10 bg-black/5">
+                        <User size={16} className="text-black/60" />
+                      </div>
                     </div>
-                  )}
-                  {dealer.address && (
-                    <div className="flex items-start gap-2">
-                      <MapPin size={15} className="mt-0.5 shrink-0 text-black/45" />
-                      <span>{dealer.address}</span>
-                    </div>
-                  )}
-                  {dealer.representative && (
-                    <div className="flex items-start gap-2">
-                      <User size={15} className="mt-0.5 shrink-0 text-black/45" />
-                      <span>{dealer.representative}</span>
-                    </div>
-                  )}
-                </div>
 
-                <div className="mt-6 grid gap-3 border-t border-black/10 pt-5 text-sm">
-                  {dealer.phone && (
-                    <a
-                      href={`tel:${formatPhone(dealer.phone)}`}
-                      className="inline-flex items-center gap-2 rounded-full border border-black/15 px-4 py-2 font-medium text-black transition hover:bg-black hover:text-white"
-                    >
-                      <Phone size={15} />
-                      {dealer.phone}
-                    </a>
-                  )}
-                  {dealer.email && (
-                    <a
-                      href={`mailto:${dealer.email}`}
-                      className="inline-flex items-center gap-2 rounded-full border border-black/15 px-4 py-2 font-medium text-black transition hover:bg-black hover:text-white"
-                    >
-                      <Mail size={15} />
-                      Email dealer
-                    </a>
-                  )}
-                  {!dealer.phone && !dealer.email && (
-                    <span className="text-sm text-black/55">Contact details not listed.</span>
-                  )}
-                </div>
+                    <div className="mt-3 flex flex-wrap gap-3 text-sm text-black/70">
+                      {dealer.phone && (
+                        <a
+                          href={`tel:${formatPhone(dealer.phone)}`}
+                          className="inline-flex items-center gap-2 rounded-full border border-black/15 px-3 py-1.5 transition hover:bg-black hover:text-white"
+                        >
+                          <Phone size={14} />
+                          Call
+                        </a>
+                      )}
+                      {dealer.email && (
+                        <a
+                          href={`mailto:${dealer.email}`}
+                          className="inline-flex items-center gap-2 rounded-full border border-black/15 px-3 py-1.5 transition hover:bg-black hover:text-white"
+                        >
+                          <Mail size={14} />
+                          Email
+                        </a>
+                      )}
+                      <Link
+                        to={`/distributors/${dealer.id}/map`}
+                        onClick={(event) => event.stopPropagation()}
+                        className="inline-flex items-center gap-2 rounded-full border border-black/15 px-3 py-1.5 transition hover:bg-black hover:text-white"
+                      >
+                        View on map
+                        <ArrowRight size={14} />
+                      </Link>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            </div>
 
-                <button
-                  type="button"
-                  onClick={() => setSelectedDistributorId(dealer.id)}
-                  className="mt-5 inline-flex items-center gap-2 text-sm font-medium text-black underline underline-offset-4 transition-colors hover:text-red-600"
-                >
-                  View on map
-                  <ArrowRight size={15} />
-                </button>
-              </article>
-            ))}
+            {totalPages > 1 && (
+              <div className="pt-2">
+                <Pagination
+                  currentPage={safePage}
+                  totalPages={totalPages}
+                  onPageChange={(nextPage) => {
+                    setCurrentPage(nextPage);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  className="justify-center"
+                  buttonClassName="rounded-full"
+                />
+              </div>
+            )}
           </div>
         )}
-
-        <div className="mt-10 rounded-[2rem] border border-black/10 bg-[linear-gradient(135deg,#18120f_0%,#2b201b_100%)] p-8 text-white">
-          <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-            <div>
-              <p className="text-xs uppercase tracking-[0.35em] text-white/55">Need help</p>
-              <h2 className="mt-3 text-3xl font-semibold">Talk to us if you need the closest stockist.</h2>
-              <p className="mt-3 max-w-2xl text-sm leading-6 text-white/75">
-                We&apos;re happy to point you toward the right dealer based on your location or the type of
-                product you&apos;re looking for.
-              </p>
-            </div>
-            <Link
-              to="/about"
-              className="inline-flex items-center gap-2 rounded-full bg-white px-5 py-3 text-sm font-medium text-black transition hover:bg-white/90"
-            >
-              About Homa
-              <ArrowRight size={15} />
-            </Link>
-          </div>
-        </div>
       </section>
     </main>
   );

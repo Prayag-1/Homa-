@@ -4,6 +4,14 @@ import path from 'path';
 
 export default defineConfig(({ mode }) => {
 const env = loadEnv(mode, process.cwd(), '');
+  const proxyTarget = (() => {
+    const apiUrl = env.VITE_API_URL || 'http://localhost:5000/api/v1';
+    try {
+      return new URL(apiUrl).origin;
+    } catch {
+      return 'http://localhost:5000';
+    }
+  })();
   const chunkGroups = {
     vendor: ['react', 'react-dom', 'react-router-dom'],
     query: ['@tanstack/react-query'],
@@ -36,14 +44,12 @@ const env = loadEnv(mode, process.cwd(), '');
     },
     server: {
       port: 5173,
-      proxy: env.VITE_API_URL
-        ? {
-            '/api': {
-              target: env.VITE_API_URL,
-              changeOrigin: true,
-            },
-          }
-        : undefined,
+      proxy: {
+        '/api': {
+          target: proxyTarget,
+          changeOrigin: true,
+        },
+      },
     },
   };
 });

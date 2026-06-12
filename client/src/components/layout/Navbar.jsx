@@ -15,6 +15,9 @@ const mainLinks = [
 
 const moreLinks = [
   { to: '/about', label: 'About Homa' },
+  { to: '/faq', label: 'FAQ' },
+  { to: '/skin-quiz', label: 'Skin Quiz' },
+  { to: '/authenticity', label: 'Product Authenticity' },
   { to: '/distributors', label: 'Authorized Dealers' },
   { to: '/transformations', label: 'Transformation Stories' },
   { to: '/contact', label: 'Contact Us' },
