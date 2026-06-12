@@ -119,7 +119,7 @@ function ImagePreview({ label, value, fallback = 'No image selected yet.' }) {
       <div className="border-b border-[var(--admin-border)] px-4 py-2 text-sm font-semibold">{label}</div>
       <div className="flex aspect-[4/3] items-center justify-center">
         {value ? (
-          <img src={value} alt={label} className="h-full w-full object-cover" />
+          <img src={value} alt={label} className="h-full w-full object-cover" loading="lazy" decoding="async" />
         ) : (
           <div className="flex flex-col items-center gap-2 px-6 text-center text-sm text-[var(--admin-muted)]">
             <FileImage size={24} />

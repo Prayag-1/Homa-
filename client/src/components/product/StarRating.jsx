@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { memo, useState } from 'react';
 
 const StarRating = ({ rating = 0, count, size = 'md', interactive = false, onRate }) => {
   const [hoverRating, setHoverRating] = useState(0);
@@ -87,4 +87,4 @@ const StarRating = ({ rating = 0, count, size = 'md', interactive = false, onRat
   );
 };
 
-export default StarRating;
+export default memo(StarRating);

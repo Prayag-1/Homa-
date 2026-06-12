@@ -4,13 +4,23 @@ const { generateUniqueSlug } = require('../utils/slugify');
 
 const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
+const getPagination = (query, defaultLimit = 50) => {
+  const safePage = Math.max(Number(query.page) || 1, 1);
+  const safeLimit = Math.min(Number(query.limit) || defaultLimit, 50);
+  return { safePage, safeLimit, skip: (safePage - 1) * safeLimit };
+};
+
 exports.getPublicBrands = async (req, res, next) => {
   try {
+    const { safeLimit, skip } = getPagination(req.query);
     const brands = await Brand.find({ isActive: true })
       .select('name slug description logo sortOrder')
-      .sort({ sortOrder: 1, name: 1 });
+      .sort({ sortOrder: 1, name: 1 })
+      .skip(skip)
+      .limit(safeLimit)
+      .lean();
 
-    res.set('Cache-Control', 'public, max-age=300');
+    res.set('Cache-Control', 'public, max-age=300, stale-while-revalidate=60');
     return res.json({ success: true, data: brands });
   } catch (err) {
     next(err);
@@ -20,6 +30,7 @@ exports.getPublicBrands = async (req, res, next) => {
 exports.adminGetBrands = async (req, res, next) => {
   try {
     const { search, isActive } = req.query;
+    const { safeLimit, skip } = getPagination(req.query);
     const filter = {};
 
     if (search) {
@@ -29,7 +40,11 @@ exports.adminGetBrands = async (req, res, next) => {
       filter.isActive = isActive === 'true';
     }
 
-    const brands = await Brand.find(filter).sort({ sortOrder: 1, name: 1 });
+    const brands = await Brand.find(filter)
+      .sort({ sortOrder: 1, name: 1 })
+      .skip(skip)
+      .limit(safeLimit)
+      .lean();
     return res.json({ success: true, data: brands });
   } catch (err) {
     next(err);

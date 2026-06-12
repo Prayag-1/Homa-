@@ -103,7 +103,13 @@ function BlogMeta({ blog }) {
       <div className="flex items-center gap-2">
         <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-black/5 text-xs font-semibold text-black">
           {blog.author?.avatar ? (
-            <img src={blog.author.avatar} alt={blog.author.name} className="h-full w-full object-cover" />
+            <img
+              src={blog.author.avatar}
+              alt={blog.author.name}
+              className="h-full w-full object-cover"
+              loading="lazy"
+              decoding="async"
+            />
           ) : (
             getInitials(blog.author?.name)
           )}
@@ -148,7 +154,13 @@ function RelatedArticles({ currentBlog }) {
           >
             <div className="aspect-[4/3] bg-[linear-gradient(160deg,#f7ede2_0%,#f3e0cf_48%,#faf7f2_100%)]">
               {item.coverImage ? (
-                <img src={item.coverImage} alt={item.title} className="h-full w-full object-cover" />
+                <img
+                  src={item.coverImage}
+                  alt={item.title}
+                  className="h-full w-full object-cover"
+                  loading="lazy"
+                  decoding="async"
+                />
               ) : null}
             </div>
             <div className="space-y-3 p-4">
@@ -228,7 +240,13 @@ export default function BlogDetailPage() {
             <article className="mt-8">
               <div className="aspect-[16/9] overflow-hidden border border-black/10 bg-[linear-gradient(160deg,#f7ede2_0%,#f3e0cf_48%,#faf7f2_100%)]">
                 {blog.coverImage ? (
-                  <img src={blog.coverImage} alt={blog.title} className="h-full w-full object-cover" />
+                  <img
+                    src={blog.coverImage}
+                    alt={blog.title}
+                    className="h-full w-full object-cover"
+                    loading="eager"
+                    decoding="async"
+                  />
                 ) : null}
               </div>
 

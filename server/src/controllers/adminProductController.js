@@ -6,6 +6,7 @@ const { generateUniqueSlug } = require('../utils/slugify');
 const ApiError = require('../utils/ApiError');
 
 const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const ALLOWED_ADMIN_SORTS = ['-createdAt', 'createdAt', 'name', '-name', 'price', '-price', 'stock', '-stock'];
 
 const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
 
@@ -126,7 +127,7 @@ exports.adminGetProducts = async (req, res, next) => {
       ];
     }
 
-    if (category) filter.category = category;
+    if (category && typeof category === 'string') filter.category = category.trim();
     if (brand) filter.brand = { $regex: escapeRegex(String(brand)), $options: 'i' };
     if (isActive === 'true' || isActive === 'false') filter.isActive = isActive === 'true';
     if (isNewArrival === 'true' || isNewArrival === 'false') filter.isNewArrival = isNewArrival === 'true';
@@ -137,7 +138,12 @@ exports.adminGetProducts = async (req, res, next) => {
     const skip = (pageNum - 1) * safeLimit;
 
     const [products, total] = await Promise.all([
-      Product.find(filter).sort(sort).skip(skip).limit(safeLimit),
+      Product.find(filter)
+        .select('name sku slug brand category price comparePrice stock images isActive isNewArrival isBestSeller ratings createdAt')
+        .sort(ALLOWED_ADMIN_SORTS.includes(sort) ? sort : '-createdAt')
+        .skip(skip)
+        .limit(safeLimit)
+        .lean(),
       Product.countDocuments(filter),
     ]);
 

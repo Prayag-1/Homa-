@@ -15,12 +15,12 @@ exports.getProducts = async (req, res, next) => {
       filter.brand = { $regex: escapeRegex(String(brand)), $options: 'i' };
     }
 
-    if (skinType) {
-      filter.skinTypes = { $in: [skinType] };
+    if (skinType && typeof skinType === 'string') {
+      filter.skinTypes = { $in: [skinType.trim()] };
     }
 
-    if (category) {
-      filter.category = category;
+    if (category && typeof category === 'string') {
+      filter.category = category.trim();
     }
 
     if (minPrice || maxPrice) {
@@ -32,10 +32,11 @@ exports.getProducts = async (req, res, next) => {
       if (Object.keys(filter.price).length === 0) delete filter.price;
     }
 
-    const hasTextSearch = Boolean(search && search.trim().length >= 2);
+    const safeSearch = typeof search === 'string' ? search.trim() : '';
+    const hasTextSearch = safeSearch.length >= 2;
 
     if (hasTextSearch) {
-      filter.$text = { $search: search.trim() };
+      filter.$text = { $search: safeSearch };
     }
 
     const pageNum = Math.max(Math.floor(Number(page) || 1), 1);
@@ -46,18 +47,21 @@ exports.getProducts = async (req, res, next) => {
     const sortByRelevance = hasTextSearch && (!sort || sort === '-createdAt');
 
     let query = Product.find(filter)
-      .select(sortByRelevance ? { __v: 0, createdAt: 0, score: { $meta: 'textScore' } } : '-__v -createdAt');
+      .select('name slug brand category price comparePrice stock images skinTypes ratings isNewArrival isBestSeller isActive');
 
     query = sortByRelevance
       ? query.sort({ score: { $meta: 'textScore' } })
       : query.sort(safeSort);
 
-    const products = await query
-      .skip(skip)
-      .limit(safeLimit);
+    const [products, total] = await Promise.all([
+      query
+        .skip(skip)
+        .limit(safeLimit)
+        .lean(),
+      Product.countDocuments(filter),
+    ]);
 
-    const total = await Product.countDocuments(filter);
-
+    res.set('Cache-Control', 'public, max-age=60');
     return res.json({
       success: true,
       data: {
@@ -85,6 +89,7 @@ exports.getProduct = async (req, res, next) => {
       return next(new ApiError(404, 'Product not found'));
     }
 
+    res.set('Cache-Control', 'public, max-age=120');
     return res.json({
       success: true,
       data: product,
@@ -102,8 +107,10 @@ exports.getNewArrivals = async (req, res, next) => {
     const products = await Product.find({ isNewArrival: true, isActive: true })
       .select('-__v')
       .limit(8)
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .lean();
 
+    res.set('Cache-Control', 'public, max-age=120, stale-while-revalidate=30');
     return res.json({
       success: true,
       data: products,
@@ -118,8 +125,10 @@ exports.getBestSellers = async (req, res, next) => {
     const products = await Product.find({ isBestSeller: true, isActive: true })
       .select('-__v')
       .limit(8)
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .lean();
 
+    res.set('Cache-Control', 'public, max-age=120, stale-while-revalidate=30');
     return res.json({
       success: true,
       data: products,
@@ -158,7 +167,9 @@ exports.searchSuggestions = async (req, res, next) => {
         slug: 1,
         images: { $slice: 1 },
       }
-    ).limit(5);
+    )
+      .limit(5)
+      .lean();
 
     return res.json({
       success: true,

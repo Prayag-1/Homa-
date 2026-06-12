@@ -7,6 +7,7 @@ import {
   MapPin,
   Sparkles,
   Package,
+  Settings,
   ShoppingCart,
   Tag,
   Users,
@@ -25,6 +26,7 @@ const navItems = [
   { label: 'Transformation Stories', to: '/admin/transformations', icon: Sparkles },
   { label: 'Distributors', to: '/admin/distributors', icon: MapPin },
   { label: 'Reports', to: '/admin/reports', icon: BarChart3 },
+  { label: 'Settings', to: '/admin/settings', icon: Settings },
 ];
 
 const getInitials = (name = '') =>

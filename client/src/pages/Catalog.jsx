@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { Menu, ChevronLeft, ChevronRight } from 'lucide-react';
@@ -59,6 +59,10 @@ const Catalog = () => {
   const handleClearFilters = () => {
     setSearchParams(new URLSearchParams());
   };
+
+  const renderProduct = useCallback((product) => (
+    <ProductCard key={product._id} product={product} />
+  ), []);
 
   // Calculate product range being shown
   const startProduct = (currentPage - 1) * 12 + 1;
@@ -183,9 +187,7 @@ const Catalog = () => {
             {/* Product Grid */}
             {!isLoading && products.length > 0 && (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {products.map((product) => (
-                  <ProductCard key={product._id} product={product} />
-                ))}
+                {products.map(renderProduct)}
               </div>
             )}
 

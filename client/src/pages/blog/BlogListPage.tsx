@@ -55,6 +55,7 @@ function BlogCard({ blog }) {
               alt={blog.title}
               className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
               loading="lazy"
+              decoding="async"
             />
           ) : (
             <div className="flex h-full flex-col items-center justify-center gap-3 px-6 text-center">
@@ -83,7 +84,13 @@ function BlogCard({ blog }) {
             <div className="flex min-w-0 items-center gap-2">
               <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-black/5 text-xs font-semibold text-black">
                 {blog.author?.avatar ? (
-                  <img src={blog.author.avatar} alt={blog.author.name} className="h-full w-full object-cover" />
+                  <img
+                    src={blog.author.avatar}
+                    alt={blog.author.name}
+                    className="h-full w-full object-cover"
+                    loading="lazy"
+                    decoding="async"
+                  />
                 ) : (
                   getInitials(blog.author?.name)
                 )}

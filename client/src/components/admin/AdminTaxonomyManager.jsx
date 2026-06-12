@@ -9,6 +9,7 @@ import ConfirmModal from './ui/ConfirmModal';
 import InlineModal from './ui/InlineModal';
 import SortOrderInput from './ui/SortOrderInput';
 import Spinner from '../ui/Spinner';
+import { useDebounce } from '../../hooks/useDebounce';
 
 const taxonomySchema = z.object({
   name: z.string().trim().min(1, 'Name is required.').max(100, 'Name must be 100 characters or fewer.'),
@@ -39,6 +40,7 @@ export default function AdminTaxonomyManager({
 }) {
   const [searchInput, setSearchInput] = useState('');
   const [search, setSearch] = useState('');
+  const debouncedSearch = useDebounce(searchInput, 300);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [confirmItem, setConfirmItem] = useState(null);
@@ -61,9 +63,8 @@ export default function AdminTaxonomyManager({
   });
 
   useEffect(() => {
-    const timer = window.setTimeout(() => setSearch(searchInput), 300);
-    return () => window.clearTimeout(timer);
-  }, [searchInput]);
+    setSearch(debouncedSearch);
+  }, [debouncedSearch]);
 
   useEffect(() => {
     if (!modalOpen) return;

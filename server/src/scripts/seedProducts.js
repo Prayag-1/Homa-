@@ -2,8 +2,11 @@ require('dotenv').config();
 const mongoose = require('mongoose');
 const Product = require('../models/Product');
 
-const dbUri = process.env.MONGO_URI || 'mongodb://localhost:27017/homa';
-const writeLine = (message = '') => process.stdout.write(`${message}\n`);
+const dbUri = process.env.MONGO_URI;
+
+if (!dbUri) {
+  throw new Error('MONGO_URI is required');
+}
 
 const products = [
   {
@@ -244,24 +247,11 @@ const seedDatabase = async () => {
       useUnifiedTopology: true,
     });
 
-    writeLine('Connected to MongoDB');
-
     // Clear existing products
     await Product.deleteMany({});
-    writeLine('Cleared existing products');
 
     // Seed products
-    const createdProducts = await Product.insertMany(products);
-    writeLine('');
-    writeLine(`Successfully seeded ${createdProducts.length} products:`);
-    writeLine('');
-
-    createdProducts.forEach((product) => {
-      writeLine(`  - ${product.name} (${product.brand}) - NPR ${product.price}`);
-    });
-
-    writeLine('');
-    writeLine('Seed script completed successfully');
+    await Product.insertMany(products);
     process.exit(0);
   } catch (error) {
     console.error('Error seeding database:', error);

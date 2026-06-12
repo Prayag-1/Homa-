@@ -227,6 +227,10 @@
   100% { background-position: -120% 0; }
 }
 
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
 .admin-badge {
   display: inline-flex;
   align-items: center;

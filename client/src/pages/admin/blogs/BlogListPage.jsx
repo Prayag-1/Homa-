@@ -281,7 +281,7 @@ export default function BlogListPage() {
                     <div className="flex min-w-0 items-center gap-3">
                       <div className="flex h-14 w-20 shrink-0 items-center justify-center overflow-hidden border border-[var(--admin-border)] bg-[#171A25]">
                         {blog.coverImage ? (
-                          <img src={blog.coverImage} alt={blog.title} className="h-full w-full object-cover" />
+                          <img src={blog.coverImage} alt={blog.title} className="h-full w-full object-cover" loading="lazy" decoding="async" />
                         ) : (
                           <FileText size={18} className="text-[var(--admin-muted)]" />
                         )}
@@ -305,7 +305,7 @@ export default function BlogListPage() {
                     <div className="flex items-center gap-3">
                       <div className="flex h-8 w-8 items-center justify-center border border-[var(--admin-border)] bg-[#171A25] text-[10px] font-bold">
                         {blog.author?.avatar ? (
-                          <img src={blog.author.avatar} alt={blog.author.name} className="h-full w-full object-cover" />
+                          <img src={blog.author.avatar} alt={blog.author.name} className="h-full w-full object-cover" loading="lazy" decoding="async" />
                         ) : (
                           getInitials(blog.author?.name)
                         )}

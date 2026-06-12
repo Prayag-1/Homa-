@@ -15,6 +15,7 @@ import {
   useToggleDistributorActive,
   useUpdateDistributor,
 } from '../../hooks/useDistributor';
+import { useDebounce } from '../../hooks/useDebounce';
 
 const statusTabs = [
   { label: 'All', value: 'all' },
@@ -60,6 +61,7 @@ function DistributorStatusBadge({ isActive }) {
 export default function AdminDistributors() {
   const [searchInput, setSearchInput] = useState('');
   const [search, setSearch] = useState('');
+  const debouncedSearch = useDebounce(searchInput, 300);
   const [status, setStatus] = useState('all');
   const [modalOpen, setModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
@@ -91,9 +93,8 @@ export default function AdminDistributors() {
   const addressValue = watch('address');
 
   useEffect(() => {
-    const timer = window.setTimeout(() => setSearch(searchInput.trim()), 300);
-    return () => window.clearTimeout(timer);
-  }, [searchInput]);
+    setSearch(debouncedSearch.trim());
+  }, [debouncedSearch]);
 
   useEffect(() => {
     if (!modalOpen) return;

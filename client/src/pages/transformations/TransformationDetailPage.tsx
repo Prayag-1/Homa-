@@ -59,7 +59,13 @@ function StoryMeta({ story }) {
       <div className="flex items-center gap-2">
         <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-black/5 text-xs font-semibold text-black">
           {story.author?.avatar ? (
-            <img src={story.author.avatar} alt={story.author.name} className="h-full w-full object-cover" />
+            <img
+              src={story.author.avatar}
+              alt={story.author.name}
+              className="h-full w-full object-cover"
+              loading="lazy"
+              decoding="async"
+            />
           ) : (
             getInitials(story.author?.name)
           )}
@@ -114,6 +120,8 @@ function RelatedStories({ currentSlug }: { currentSlug: string }) {
                   src={story.coverImage?.url || story.afterImage?.url || story.beforeImage?.url || ''}
                   alt={story.title}
                   className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
+                  loading="lazy"
+                  decoding="async"
                 />
               ) : null}
             </div>
@@ -199,6 +207,8 @@ export default function TransformationDetailPage() {
                       src={story.coverImage?.url || story.afterImage?.url || story.beforeImage?.url || ''}
                       alt={story.title}
                       className="h-full w-full object-cover"
+                      loading="eager"
+                      decoding="async"
                     />
                   ) : null}
                 </div>
@@ -237,7 +247,13 @@ export default function TransformationDetailPage() {
                 </div>
                 <div className="aspect-[4/5] bg-[linear-gradient(160deg,#f7ede2_0%,#f3e0cf_48%,#faf7f2_100%)]">
                   {story.beforeImage?.url ? (
-                    <img src={story.beforeImage.url} alt={`${story.title} before`} className="h-full w-full object-cover" />
+                    <img
+                      src={story.beforeImage.url}
+                      alt={`${story.title} before`}
+                      className="h-full w-full object-cover"
+                      loading="lazy"
+                      decoding="async"
+                    />
                   ) : null}
                 </div>
               </div>
@@ -251,7 +267,13 @@ export default function TransformationDetailPage() {
                 </div>
                 <div className="aspect-[4/5] bg-[linear-gradient(160deg,#f7ede2_0%,#f3e0cf_48%,#faf7f2_100%)]">
                   {story.afterImage?.url ? (
-                    <img src={story.afterImage.url} alt={`${story.title} after`} className="h-full w-full object-cover" />
+                    <img
+                      src={story.afterImage.url}
+                      alt={`${story.title} after`}
+                      className="h-full w-full object-cover"
+                      loading="lazy"
+                      decoding="async"
+                    />
                   ) : null}
                 </div>
               </div>

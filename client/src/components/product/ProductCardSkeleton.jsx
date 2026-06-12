@@ -1,3 +1,5 @@
+import { memo } from 'react';
+
 const ProductCardSkeleton = () => {
   const shimmerStyle = {
     animation: 'shimmer 2s infinite',
@@ -65,4 +67,4 @@ const ProductCardSkeleton = () => {
   );
 };
 
-export default ProductCardSkeleton;
+export default memo(ProductCardSkeleton);

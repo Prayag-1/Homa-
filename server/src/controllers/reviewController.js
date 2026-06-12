@@ -13,16 +13,34 @@ exports.getProductReviews = async (req, res, next) => {
       return next(new ApiError(404, 'Product not found'));
     }
 
-    const reviews = await Review.find({
+    const safePage = Math.max(Number(req.query.page) || 1, 1);
+    const safeLimit = Math.min(Number(req.query.limit) || 20, 50);
+    const skip = (safePage - 1) * safeLimit;
+    const filter = {
       product: req.params.productId,
       isApproved: true,
-    })
-      .sort({ createdAt: -1 })
-      .populate('user', 'name');
+    };
+
+    const [reviews, total] = await Promise.all([
+      Review.find(filter)
+        .select('product user rating title body createdAt')
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(safeLimit)
+        .populate('user', 'name')
+        .lean(),
+      Review.countDocuments(filter),
+    ]);
 
     return res.json({
       success: true,
       data: reviews,
+      meta: {
+        currentPage: safePage,
+        totalPages: Math.ceil(total / safeLimit) || 1,
+        totalCount: total,
+        limit: safeLimit,
+      },
     });
   } catch (err) {
     next(err);

@@ -20,6 +20,7 @@ import {
   useUpdateStock,
 } from '../../hooks/useAdminProducts';
 import { usePublicCategories } from '../../hooks/useAdminBrandsCategories';
+import { useDebounce } from '../../hooks/useDebounce';
 
 const formatCurrency = (value) =>
   new Intl.NumberFormat('en-NP', {
@@ -74,6 +75,7 @@ export default function AdminProducts() {
     limit: 20,
   });
   const [searchInput, setSearchInput] = useState('');
+  const debouncedSearch = useDebounce(searchInput, 300);
   const [confirmModal, setConfirmModal] = useState({
     open: false,
     product: null,
@@ -86,11 +88,8 @@ export default function AdminProducts() {
   });
 
   useEffect(() => {
-    const timer = window.setTimeout(() => {
-      setFilters((current) => ({ ...current, search: searchInput, page: 1 }));
-    }, 300);
-    return () => window.clearTimeout(timer);
-  }, [searchInput]);
+    setFilters((current) => ({ ...current, search: debouncedSearch, page: 1 }));
+  }, [debouncedSearch]);
 
   const { data, isLoading } = useAdminProducts(filters);
   const { data: categories = [], isLoading: categoriesLoading } = usePublicCategories();
@@ -158,6 +157,8 @@ export default function AdminProducts() {
               src={row.images[0].url}
               alt={row.name}
               className="h-full w-full object-cover"
+              loading="lazy"
+              decoding="async"
             />
           )}
         </div>

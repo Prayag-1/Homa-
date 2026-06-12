@@ -1,8 +1,8 @@
-const path = require("path");
-require("dotenv").config({ path: path.resolve(__dirname, ".env") });
+require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
+const compression = require("compression");
 const morgan = require("morgan");
 const cookieParser = require("cookie-parser");
 const rateLimit = require("express-rate-limit");
@@ -18,6 +18,7 @@ connectDB();
 
 // Security
 app.use(helmet());
+app.use(compression());
 app.use(
   cors({
     origin: process.env.CLIENT_URL,
@@ -28,7 +29,7 @@ app.use(
 // Rate limiting on auth
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 20,
+  max: 10,
   message: {
     success: false,
     message: "Too many attempts, please try again later",
@@ -69,5 +70,5 @@ app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () =>
-  console.log(`🚀 HOMA Server running on http://localhost:${PORT}`),
+  console.log(`HOMA Server running on port ${PORT}`),
 );

@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Eye, EyeOff, Pencil, Plus, RefreshCw, Trash2 } from "lucide-react";
 import AdminLayout from "../../components/admin/AdminLayout";
@@ -10,6 +10,7 @@ import {
   useAdminTransformationStories,
   useTogglePublishTransformationStory,
 } from "../../hooks/useTransformationStory";
+import { useDebounce } from "../../hooks/useDebounce";
 
 const PAGE_SIZE = 10;
 
@@ -41,6 +42,8 @@ export default function TransformationStoriesPage() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [deleteModal, setDeleteModal] = useState({ open: false, story: null });
+  const [searchInput, setSearchInput] = useState(searchParams.get("search") || "");
+  const debouncedSearch = useDebounce(searchInput, 300);
 
   const search = searchParams.get("search") || "";
   const status = searchParams.get("status") || "all";
@@ -80,13 +83,14 @@ export default function TransformationStoriesPage() {
     );
   };
 
-  const handleSearchChange = (value) => {
+  useEffect(() => {
+    if (debouncedSearch === search) return;
     updateParams((next) => {
-      if (value) next.set("search", value);
+      if (debouncedSearch) next.set("search", debouncedSearch);
       else next.delete("search");
       next.set("page", "1");
     });
-  };
+  }, [debouncedSearch, search]);
 
   const handleStatusChange = (value) => {
     updateParams((next) => {
@@ -129,6 +133,8 @@ export default function TransformationStoriesPage() {
                   src={getImageUrl(row)}
                   alt={row.title}
                   className="h-full w-full object-cover"
+                  loading="lazy"
+                  decoding="async"
                 />
               ) : (
                 <div className="flex h-full items-center justify-center text-xs text-[var(--admin-muted)]">
@@ -247,8 +253,8 @@ export default function TransformationStoriesPage() {
         <div className="flex flex-wrap items-center gap-3">
           <input
             className="admin-input w-[260px]"
-            value={search}
-            onChange={(event) => handleSearchChange(event.target.value)}
+            value={searchInput}
+            onChange={(event) => setSearchInput(event.target.value)}
             placeholder="Search stories, customers, categories..."
           />
           <button

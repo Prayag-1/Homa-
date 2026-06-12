@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { BrowserRouter, Navigate, Routes, Route, useLocation } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'react-hot-toast';
@@ -9,275 +9,134 @@ import { CartProvider } from './context/CartContext';
 import Navbar from './components/layout/Navbar';
 import Footer from './components/layout/Footer';
 import CartDrawer from './components/cart/CartDrawer';
+import WhatsAppButton from './components/common/WhatsAppButton';
 import ErrorBoundary from './components/common/ErrorBoundary';
 import ProtectedRoute from './components/common/ProtectedRoute';
 import AdminRoute from './components/admin/AdminRoute';
-import Home from './pages/Home';
-import Dashboard from './pages/Dashboard';
-import Catalog from './pages/Catalog';
-import ProductDetail from './pages/ProductDetail';
-import Wishlist from './pages/Wishlist';
-import Login from './pages/Login';
-import Register from './pages/Register';
-import Checkout from './pages/Checkout';
-import PaymentSuccess from './pages/PaymentSuccess';
-import PaymentFailure from './pages/PaymentFailure';
-import NotFound from './pages/NotFound';
-import AdminLogin from './pages/admin/AdminLogin';
-import AdminBrands from './pages/admin/AdminBrands';
-import AdminCategories from './pages/admin/AdminCategories';
-import AdminDistributors from './pages/admin/AdminDistributors';
-import AdminProducts from './pages/admin/AdminProducts';
-import AdminProductForm from './pages/admin/AdminProductForm';
-import AdminCustomers from './pages/admin/AdminCustomers';
-import About from './pages/About';
-import Distributors from './pages/Distributors';
-import TransformationListPage from './pages/transformations/TransformationListPage';
-import TransformationDetailPage from './pages/transformations/TransformationDetailPage';
-import TransformationStoriesPage from './pages/admin/TransformationStoriesPage';
-import TransformationStoryFormPage from './pages/admin/TransformationStoryFormPage';
-import ContactUsPage from './pages/ContactUs';
-import BlogListPage from './pages/admin/blogs/BlogListPage';
-import BlogFormPage from './pages/admin/blogs/BlogFormPage';
-import UserBlogListPage from './pages/blog/BlogListPage';
-import UserBlogDetailPage from './pages/blog/BlogDetailPage';
+const Home = lazy(() => import('./pages/Home'));
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+const Catalog = lazy(() => import('./pages/Catalog'));
+const ProductDetail = lazy(() => import('./pages/ProductDetail'));
+const Wishlist = lazy(() => import('./pages/Wishlist'));
+const Login = lazy(() => import('./pages/Login'));
+const Register = lazy(() => import('./pages/Register'));
+const Checkout = lazy(() => import('./pages/Checkout'));
+const PaymentSuccess = lazy(() => import('./pages/PaymentSuccess'));
+const PaymentFailure = lazy(() => import('./pages/PaymentFailure'));
+const NotFound = lazy(() => import('./pages/NotFound'));
+const AdminLogin = lazy(() => import('./pages/admin/AdminLogin'));
+const AdminBrands = lazy(() => import('./pages/admin/AdminBrands'));
+const AdminCategories = lazy(() => import('./pages/admin/AdminCategories'));
+const AdminDistributors = lazy(() => import('./pages/admin/AdminDistributors'));
+const AdminReports = lazy(() => import('./pages/admin/AdminReports'));
+const AdminCustomers = lazy(() => import('./pages/admin/AdminCustomers'));
+const AdminSiteSettings = lazy(() => import('./pages/admin/AdminSiteSettings'));
+const AdminOrders = lazy(() => import('./pages/admin/AdminOrders'));
+const AdminProducts = lazy(() => import('./pages/admin/AdminProducts'));
+const AdminProductForm = lazy(() => import('./pages/admin/AdminProductForm'));
+const About = lazy(() => import('./pages/About'));
+const Distributors = lazy(() => import('./pages/Distributors'));
+const ContactUsPage = lazy(() => import('./pages/ContactUs'));
+const TransformationListPage = lazy(() => import('./pages/transformations/TransformationListPage'));
+const TransformationDetailPage = lazy(() => import('./pages/transformations/TransformationDetailPage'));
+const TransformationStoriesPage = lazy(() => import('./pages/admin/TransformationStoriesPage'));
+const TransformationStoryFormPage = lazy(() => import('./pages/admin/TransformationStoryFormPage'));
+const BlogListPage = lazy(() => import('./pages/admin/blogs/BlogListPage'));
+const BlogFormPage = lazy(() => import('./pages/admin/blogs/BlogFormPage'));
+const UserBlogListPage = lazy(() => import('./pages/blog/BlogListPage'));
+const UserBlogDetailPage = lazy(() => import('./pages/blog/BlogDetailPage'));
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 2,
+      gcTime: 1000 * 60 * 10,
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: true,
+      retry: 1,
+      retryDelay: 1000,
+    },
+    mutations: {
+      retry: 0,
+    },
+  },
+});
+
+const routeFallback = (
+  <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '60vh' }}>
+    <div
+      style={{
+        width: 32,
+        height: 32,
+        border: '2px solid #E5E7EB',
+        borderTop: '2px solid #C8432B',
+        borderRadius: '50%',
+        animation: 'spin 0.7s linear infinite',
+      }}
+    />
+  </div>
+);
 
 function AppRoutes() {
   const [cartOpen, setCartOpen] = useState(false);
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith('/admin');
 
+  useEffect(() => {
+    const handleCartOpen = () => setCartOpen(true);
+    window.addEventListener('homa:open-cart', handleCartOpen);
+    return () => window.removeEventListener('homa:open-cart', handleCartOpen);
+  }, []);
+
   return (
     <>
       {!isAdminRoute && <Navbar onCartOpen={() => setCartOpen(true)} />}
-      {!isAdminRoute && <CartDrawer isOpen={cartOpen} onClose={() => setCartOpen(false)} />}
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/user/dashboard" element={<Dashboard />} />
-        <Route
-          path="/shop"
-          element={(
-            <ErrorBoundary>
-              <Catalog />
-            </ErrorBoundary>
-          )}
-        />
-        <Route
-          path="/products/:id"
-          element={(
-            <ErrorBoundary>
-              <ProductDetail />
-            </ErrorBoundary>
-          )}
-        />
-        <Route
-          path="/blog"
-          element={(
-            <ErrorBoundary>
-              <UserBlogListPage />
-            </ErrorBoundary>
-          )}
-        />
-        <Route
-          path="/blog/:slug"
-          element={(
-            <ErrorBoundary>
-              <UserBlogDetailPage />
-            </ErrorBoundary>
-          )}
-        />
-        <Route
-          path="/about"
-          element={(
-            <ErrorBoundary>
-              <About />
-            </ErrorBoundary>
-          )}
-        />
-        <Route
-          path="/distributors"
-          element={(
-            <ErrorBoundary>
-              <Distributors />
-            </ErrorBoundary>
-          )}
-        />
-        <Route
-          path="/contact"
-          element={(
-            <ErrorBoundary>
-              <ContactUsPage />
-            </ErrorBoundary>
-          )}
-        />
-        <Route
-          path="/transformations"
-          element={(
-            <ErrorBoundary>
-              <TransformationListPage />
-            </ErrorBoundary>
-          )}
-        />
-        <Route
-          path="/transformations/:slug"
-          element={(
-            <ErrorBoundary>
-              <TransformationDetailPage />
-            </ErrorBoundary>
-          )}
-        />
-        <Route
-          path="/wishlist"
-          element={(
-            <ProtectedRoute>
-              <Wishlist />
-            </ProtectedRoute>
-          )}
-        />
-        <Route
-          path="/checkout"
-          element={(
-            <ProtectedRoute>
-              <Checkout />
-            </ProtectedRoute>
-          )}
-        />
-        <Route
-          path="/payment-success"
-          element={(
-            <ProtectedRoute>
-              <PaymentSuccess />
-            </ProtectedRoute>
-          )}
-        />
-        <Route
-          path="/payment-failure"
-          element={(
-            <ProtectedRoute>
-              <PaymentFailure />
-            </ProtectedRoute>
-          )}
-        />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/admin/login" element={<AdminLogin />} />
-        <Route
-          path="/admin"
-          element={(
-            <AdminRoute>
-              <Navigate to="/admin/products" replace />
-            </AdminRoute>
-          )}
-        />
-        <Route
-          path="/admin/products"
-          element={(
-            <AdminRoute>
-              <AdminProducts />
-            </AdminRoute>
-          )}
-        />
-        <Route
-          path="/admin/brands"
-          element={(
-            <AdminRoute>
-              <AdminBrands />
-            </AdminRoute>
-          )}
-        />
-        <Route
-          path="/admin/categories"
-          element={(
-            <AdminRoute>
-              <AdminCategories />
-            </AdminRoute>
-          )}
-        />
-        <Route
-          path="/admin/customers"
-          element={(
-            <AdminRoute>
-              <AdminCustomers />
-            </AdminRoute>
-          )}
-        />
-        <Route
-          path="/admin/distributors"
-          element={(
-            <AdminRoute>
-              <AdminDistributors />
-            </AdminRoute>
-          )}
-        />
-        <Route
-          path="/admin/transformations"
-          element={(
-            <AdminRoute>
-              <TransformationStoriesPage />
-            </AdminRoute>
-          )}
-        />
-        <Route
-          path="/admin/transformations/new"
-          element={(
-            <AdminRoute>
-              <TransformationStoryFormPage />
-            </AdminRoute>
-          )}
-        />
-        <Route
-          path="/admin/transformations/:id/edit"
-          element={(
-            <AdminRoute>
-              <TransformationStoryFormPage />
-            </AdminRoute>
-          )}
-        />
-        <Route
-          path="/admin/products/new"
-          element={(
-            <AdminRoute>
-              <AdminProductForm />
-            </AdminRoute>
-          )}
-        />
-        <Route
-          path="/admin/products/:id/edit"
-          element={(
-            <AdminRoute>
-              <AdminProductForm />
-            </AdminRoute>
-          )}
-        />
-        <Route
-          path="/admin/blogs"
-          element={(
-            <AdminRoute>
-              <BlogListPage />
-            </AdminRoute>
-          )}
-        />
-        <Route
-          path="/admin/blogs/new"
-          element={(
-            <AdminRoute>
-              <BlogFormPage />
-            </AdminRoute>
-          )}
-        />
-        <Route
-          path="/admin/blogs/:id/edit"
-          element={(
-            <AdminRoute>
-              <BlogFormPage />
-            </AdminRoute>
-          )}
-        />
-        <Route path="*" element={<NotFound />} />
-      </Routes>
+      {!isAdminRoute && <div style={{ height: '72px' }} aria-hidden="true" />}
+      <main>
+        <Suspense fallback={routeFallback}>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/user/dashboard" element={<Dashboard />} />
+            <Route path="/shop" element={<ErrorBoundary><Catalog /></ErrorBoundary>} />
+            <Route path="/products/:id" element={<ErrorBoundary><ProductDetail /></ErrorBoundary>} />
+            <Route path="/blog" element={<ErrorBoundary><UserBlogListPage /></ErrorBoundary>} />
+            <Route path="/blog/:slug" element={<ErrorBoundary><UserBlogDetailPage /></ErrorBoundary>} />
+            <Route path="/about" element={<ErrorBoundary><About /></ErrorBoundary>} />
+            <Route path="/distributors" element={<ErrorBoundary><Distributors /></ErrorBoundary>} />
+            <Route path="/contact" element={<ErrorBoundary><ContactUsPage /></ErrorBoundary>} />
+            <Route path="/transformations" element={<ErrorBoundary><TransformationListPage /></ErrorBoundary>} />
+            <Route path="/transformations/:slug" element={<ErrorBoundary><TransformationDetailPage /></ErrorBoundary>} />
+            <Route path="/wishlist" element={<ProtectedRoute><Wishlist /></ProtectedRoute>} />
+            <Route path="/checkout" element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
+            <Route path="/payment-success" element={<ProtectedRoute><PaymentSuccess /></ProtectedRoute>} />
+            <Route path="/payment-failure" element={<ProtectedRoute><PaymentFailure /></ProtectedRoute>} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/admin/login" element={<AdminLogin />} />
+            <Route path="/admin" element={<AdminRoute><Navigate to="/admin/products" replace /></AdminRoute>} />
+            <Route path="/admin/products" element={<AdminRoute><AdminProducts /></AdminRoute>} />
+            <Route path="/admin/brands" element={<AdminRoute><AdminBrands /></AdminRoute>} />
+            <Route path="/admin/categories" element={<AdminRoute><AdminCategories /></AdminRoute>} />
+            <Route path="/admin/distributors" element={<AdminRoute><AdminDistributors /></AdminRoute>} />
+            <Route path="/admin/orders" element={<AdminRoute><AdminOrders /></AdminRoute>} />
+            <Route path="/admin/reports" element={<AdminRoute><AdminReports /></AdminRoute>} />
+            <Route path="/admin/customers" element={<AdminRoute><AdminCustomers /></AdminRoute>} />
+            <Route path="/admin/settings" element={<AdminRoute><AdminSiteSettings /></AdminRoute>} />
+            <Route path="/admin/transformations" element={<AdminRoute><TransformationStoriesPage /></AdminRoute>} />
+            <Route path="/admin/transformations/new" element={<AdminRoute><TransformationStoryFormPage /></AdminRoute>} />
+            <Route path="/admin/transformations/:id/edit" element={<AdminRoute><TransformationStoryFormPage /></AdminRoute>} />
+            <Route path="/admin/products/new" element={<AdminRoute><AdminProductForm /></AdminRoute>} />
+            <Route path="/admin/products/:id/edit" element={<AdminRoute><AdminProductForm /></AdminRoute>} />
+            <Route path="/admin/blogs" element={<AdminRoute><BlogListPage /></AdminRoute>} />
+            <Route path="/admin/blogs/new" element={<AdminRoute><BlogFormPage /></AdminRoute>} />
+            <Route path="/admin/blogs/:id/edit" element={<AdminRoute><BlogFormPage /></AdminRoute>} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </Suspense>
+      </main>
       {!isAdminRoute && <Footer />}
+      {!isAdminRoute && <CartDrawer isOpen={cartOpen} onClose={() => setCartOpen(false)} />}
+      <WhatsAppButton />
       <Toaster position="top-right" />
     </>
   );

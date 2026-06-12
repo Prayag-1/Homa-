@@ -131,7 +131,7 @@ export default function ImageUploadZone({ existingImages = [], onChange }) {
             const imageUrl = item.type === 'existing' ? item.image.url : item.preview.url;
             return (
               <div key={item.key} className="admin-image-card">
-                <img src={imageUrl} alt="" className="h-28 w-full object-cover" />
+                <img src={imageUrl} alt="" className="h-28 w-full object-cover" loading="lazy" decoding="async" />
                 <button
                   type="button"
                   className="admin-image-remove"

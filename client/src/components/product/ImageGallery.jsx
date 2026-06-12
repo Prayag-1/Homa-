@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
+import { optimizeImage } from '../../utils/cloudinaryUrl';
 
 const ImageGallery = ({ images = [] }) => {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
 
-  const mainImage = images[selectedIndex]?.url;
+  const mainImage = optimizeImage(images[selectedIndex]?.url, 1000);
 
   const handleThumbnailClick = (index) => {
     setSelectedIndex(index);
@@ -43,6 +44,8 @@ const ImageGallery = ({ images = [] }) => {
               key={selectedIndex}
               src={mainImage}
               alt="Product"
+              loading="eager"
+              decoding="async"
               className="w-full h-full object-cover"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -67,8 +70,10 @@ const ImageGallery = ({ images = [] }) => {
               style={{ aspectRatio: '1/1' }}
             >
               <img
-                src={img.url}
+                src={optimizeImage(img.url, 200)}
                 alt={`Thumbnail ${idx}`}
+                loading="lazy"
+                decoding="async"
                 className="w-full h-full object-cover"
               />
             </button>
@@ -99,6 +104,8 @@ const ImageGallery = ({ images = [] }) => {
             <img
               src={mainImage}
               alt="Fullscreen"
+              loading="eager"
+              decoding="async"
               className="max-w-4xl max-h-screen object-contain"
               onClick={(e) => e.stopPropagation()}
             />

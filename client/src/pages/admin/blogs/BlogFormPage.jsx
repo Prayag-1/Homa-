@@ -584,7 +584,7 @@ export default function BlogFormPage() {
                   <div className="mb-2 text-sm font-semibold">Preview</div>
                   <div className="flex aspect-[4/3] items-center justify-center overflow-hidden border border-[var(--admin-border)] bg-[#171A25]">
                     {coverPreview ? (
-                      <img src={coverPreview} alt="Cover preview" className="h-full w-full object-cover" />
+                      <img src={coverPreview} alt="Cover preview" className="h-full w-full object-cover" loading="lazy" decoding="async" />
                     ) : (
                       <div className="flex flex-col items-center gap-2 px-6 text-center text-sm text-[var(--admin-muted)]">
                         <FileText size={24} />

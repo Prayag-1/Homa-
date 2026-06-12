@@ -4,7 +4,7 @@ const { generateSlug } = require('../utils/slugify');
 const brandSchema = new mongoose.Schema(
   {
     name: { type: String, required: true, trim: true, maxlength: 100 },
-    slug: { type: String, unique: true, lowercase: true },
+    slug: { type: String, lowercase: true },
     description: { type: String, trim: true, maxlength: 500 },
     logo: { url: String, publicId: String },
     isActive: { type: Boolean, default: true },
@@ -20,7 +20,8 @@ brandSchema.pre('save', function (next) {
   next();
 });
 
-brandSchema.index({ slug: 1 });
+// Performance index — added for query optimization
+brandSchema.index({ slug: 1 }, { unique: true });
 brandSchema.index({ isActive: 1, sortOrder: 1 });
 
 module.exports = mongoose.model('Brand', brandSchema);

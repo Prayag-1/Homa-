@@ -1,155 +1,252 @@
+import { Eye, UserCheck, Users, UserX, X } from 'lucide-react';
+import { AnimatePresence, motion } from 'framer-motion';
 import { useEffect, useMemo, useState } from 'react';
-import { BadgeCheck, Calendar, Mail, MapPin, Phone, Search, Sparkles } from 'lucide-react';
 import AdminLayout from '../../components/admin/AdminLayout';
-import AdminTable from '../../components/admin/ui/AdminTable';
 import AdminPagination from '../../components/admin/ui/AdminPagination';
-import api from '../../services/api';
+import AdminTable from '../../components/admin/ui/AdminTable';
+import ConfirmModal from '../../components/admin/ui/ConfirmModal';
+import Spinner from '../../components/ui/Spinner';
+import {
+  useAdminCustomer,
+  useAdminCustomers,
+  useToggleCustomerActive,
+} from '../../hooks/useAdminCustomers';
+import { useDebounce } from '../../hooks/useDebounce';
+import { formatPrice } from '../../utils/formatPrice';
 
-const formatDate = (value) => {
-  if (!value) return '-';
-  return new Date(value).toLocaleDateString();
+const formatDate = (value) => (value ? new Date(value).toLocaleDateString('en-US', {
+  month: 'short',
+  day: 'numeric',
+  year: 'numeric',
+}) : '--');
+
+const tierClass = {
+  silver: 'border-gray-400/40 bg-gray-400/10 text-gray-200',
+  gold: 'border-yellow-400/40 bg-yellow-400/10 text-yellow-200',
+  platinum: 'border-purple-400/40 bg-purple-400/10 text-purple-200',
 };
 
-const formatAddress = (address) => {
-  if (!address?.line1) return '-';
-  const parts = [
-    address.line1,
-    address.line2,
-    address.city,
-    address.state,
-    address.postalCode,
-    address.country,
-  ].filter(Boolean);
-  return parts.join(', ');
+const statusClass = {
+  pending: 'admin-badge-warning',
+  processing: 'admin-badge',
+  shipped: 'admin-badge',
+  delivered: 'admin-badge-success',
+  cancelled: 'admin-badge-error',
 };
 
-const getTierStyle = (tier) => {
-  switch (tier) {
-    case 'Platinum':
-      return 'admin-badge-success';
-    case 'Gold':
-      return 'admin-badge-warning';
-    case 'Silver':
-      return 'admin-badge';
-    default:
-      return 'admin-badge';
-  }
-};
+function TierBadge({ tier }) {
+  const key = (tier || 'silver').toLowerCase();
+  return (
+    <span className={`inline-flex border px-2 py-1 text-xs font-bold uppercase ${tierClass[key] || tierClass.silver}`}>
+      {tier || 'Silver'}
+    </span>
+  );
+}
+
+function CustomerDrawer({ customerId, onClose }) {
+  const { data: customer, isLoading } = useAdminCustomer(customerId);
+  const addresses = Array.isArray(customer?.address)
+    ? customer.address
+    : customer?.address
+      ? [customer.address]
+      : [];
+
+  return (
+    <AnimatePresence>
+      {customerId && (
+        <div className="fixed inset-0 z-50 flex justify-end bg-black/60" onMouseDown={onClose}>
+          <motion.aside
+            className="h-full w-full max-w-[520px] overflow-y-auto border-l p-5"
+            style={{ background: 'var(--admin-card)', borderColor: 'var(--admin-border)' }}
+            initial={{ x: '100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '100%' }}
+            transition={{ duration: 0.2 }}
+            onMouseDown={(event) => event.stopPropagation()}
+          >
+            <div className="mb-5 flex items-start justify-between gap-4">
+              <div>
+                <h3 className="text-xl font-bold">{customer?.name || 'Customer'}</h3>
+                <p className="mt-1 text-sm" style={{ color: 'var(--admin-muted)' }}>
+                  Customer profile
+                </p>
+              </div>
+              <button className="admin-button admin-icon-button" type="button" onClick={onClose} aria-label="Close detail panel">
+                <X size={16} />
+              </button>
+            </div>
+
+            {isLoading ? (
+              <div className="flex h-40 items-center justify-center">
+                <Spinner color="var(--admin-text)" />
+              </div>
+            ) : (
+              <div className="space-y-5">
+                <section className="border p-4" style={{ borderColor: 'var(--admin-border)' }}>
+                  <div className="grid grid-cols-1 gap-3 text-sm">
+                    <div>
+                      <span style={{ color: 'var(--admin-muted)' }}>Email</span>
+                      <div className="mt-1 font-medium">{customer?.email || '--'}</div>
+                    </div>
+                    <div>
+                      <span style={{ color: 'var(--admin-muted)' }}>Phone</span>
+                      <div className="mt-1 font-medium">{customer?.phone || '--'}</div>
+                    </div>
+                    <div>
+                      <span style={{ color: 'var(--admin-muted)' }}>Joined</span>
+                      <div className="mt-1 font-medium">{formatDate(customer?.createdAt)}</div>
+                    </div>
+                  </div>
+                </section>
+
+                <section className="grid grid-cols-2 gap-3">
+                  <div className="border p-4" style={{ borderColor: 'var(--admin-border)' }}>
+                    <div className="text-xs uppercase" style={{ color: 'var(--admin-muted)' }}>Membership</div>
+                    <div className="mt-3"><TierBadge tier={customer?.membershipTier} /></div>
+                  </div>
+                  <div className="border p-4" style={{ borderColor: 'var(--admin-border)' }}>
+                    <div className="text-xs uppercase" style={{ color: 'var(--admin-muted)' }}>Loyalty Points</div>
+                    <div className="mt-2 text-2xl font-black">{Number(customer?.loyaltyPoints || 0).toLocaleString()}</div>
+                  </div>
+                  <div className="border p-4" style={{ borderColor: 'var(--admin-border)' }}>
+                    <div className="text-xs uppercase" style={{ color: 'var(--admin-muted)' }}>Lifetime Orders</div>
+                    <div className="mt-2 text-2xl font-black">{customer?.stats?.totalOrders || 0}</div>
+                  </div>
+                  <div className="border p-4" style={{ borderColor: 'var(--admin-border)' }}>
+                    <div className="text-xs uppercase" style={{ color: 'var(--admin-muted)' }}>Total Spent</div>
+                    <div className="mt-2 text-xl font-black">{formatPrice(customer?.stats?.totalSpent)}</div>
+                  </div>
+                </section>
+
+                <section>
+                  <h4 className="mb-3 font-bold">Addresses</h4>
+                  {addresses.length === 0 ? (
+                    <p className="text-sm" style={{ color: 'var(--admin-muted)' }}>No saved addresses.</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {addresses.map((address, index) => (
+                        <div key={index} className="border p-3 text-sm" style={{ borderColor: 'var(--admin-border)' }}>
+                          {typeof address === 'string'
+                            ? address
+                            : [address.street, address.city, address.state, address.postalCode, address.country].filter(Boolean).join(', ') || JSON.stringify(address)}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </section>
+
+                <section>
+                  <h4 className="mb-3 font-bold">Recent Orders</h4>
+                  <div className="space-y-2">
+                    {(customer?.orders || []).length === 0 && (
+                      <p className="text-sm" style={{ color: 'var(--admin-muted)' }}>No recent orders.</p>
+                    )}
+                    {(customer?.orders || []).map((order) => (
+                      <div key={order._id} className="border p-3" style={{ borderColor: 'var(--admin-border)' }}>
+                        <div className="flex items-center justify-between gap-3">
+                          <div>
+                            <div className="font-semibold">{formatPrice(order.grandTotal)}</div>
+                            <div className="mt-1 text-xs" style={{ color: 'var(--admin-muted)' }}>
+                              {formatDate(order.createdAt)} - {order.paymentMethod || '--'}
+                            </div>
+                          </div>
+                          <span className={`admin-badge ${statusClass[order.orderStatus] || ''}`}>
+                            {order.orderStatus || 'unknown'}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              </div>
+            )}
+          </motion.aside>
+        </div>
+      )}
+    </AnimatePresence>
+  );
+}
 
 export default function AdminCustomers() {
-  const [customers, setCustomers] = useState([]);
-  const [selectedCustomerId, setSelectedCustomerId] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [pagination, setPagination] = useState({
-    page: 1,
-    totalPages: 1,
-    total: 0,
-  });
-  const [searchInput, setSearchInput] = useState('');
   const [filters, setFilters] = useState({
     search: '',
+    membershipTier: '',
+    isActive: 'all',
     page: 1,
     limit: 20,
-    role: 'user',
   });
+  const [searchInput, setSearchInput] = useState('');
+  const debouncedSearch = useDebounce(searchInput, 300);
+  const [selectedCustomerId, setSelectedCustomerId] = useState(null);
+  const [confirmCustomer, setConfirmCustomer] = useState(null);
+  const { data, isLoading } = useAdminCustomers(filters);
+  const toggleCustomer = useToggleCustomerActive();
+  const customers = data?.customers || [];
+  const pagination = data?.pagination || {};
 
   useEffect(() => {
-    const timer = window.setTimeout(() => {
-      setFilters((current) => ({ ...current, search: searchInput, page: 1 }));
-    }, 300);
+    setFilters((current) => ({ ...current, search: debouncedSearch, page: 1 }));
+  }, [debouncedSearch]);
 
-    return () => window.clearTimeout(timer);
-  }, [searchInput]);
-
-  useEffect(() => {
-    const fetchCustomers = async () => {
-      try {
-        setLoading(true);
-        const { data } = await api.get('/admin/customers', { params: filters });
-        const result = data?.data || {};
-        const items = result.items || [];
-        setCustomers(items);
-        setPagination({
-          page: result.page || filters.page,
-          totalPages: result.totalPages || 1,
-          total: result.total || 0,
-        });
-        if (!selectedCustomerId && items.length > 0) {
-          setSelectedCustomerId(items[0].id);
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchCustomers();
-  }, [filters]);
-
-  const selectedCustomer = useMemo(
-    () => customers.find((customer) => customer.id === selectedCustomerId) || customers[0] || null,
-    [customers, selectedCustomerId],
-  );
+  const updateFilter = (key, value) => {
+    setFilters((current) => ({ ...current, [key]: value, page: 1 }));
+  };
 
   const columns = useMemo(() => [
     {
       key: 'name',
-      label: 'Customer',
+      label: 'Name',
+      render: (value, row) => (
+        <button className="font-bold hover:text-[var(--admin-accent)]" type="button" onClick={() => setSelectedCustomerId(row._id)}>
+          {value}
+        </button>
+      ),
+    },
+    { key: 'membershipTier', label: 'Tier', render: (value) => <TierBadge tier={value} /> },
+    { key: 'loyaltyPoints', label: 'Loyalty Points', render: (value) => Number(value || 0).toLocaleString() },
+    {
+      key: 'orderCount',
+      label: 'Orders Count',
+      render: (value) => value > 0
+        ? Number(value).toLocaleString()
+        : <span className="font-semibold text-orange-300">Never purchased</span>,
+    },
+    {
+      key: 'totalSpent',
+      label: 'Total Spent',
+      render: (value) => Number(value || 0) > 0 ? formatPrice(value) : '--',
+    },
+    { key: 'createdAt', label: 'Joined Date', render: formatDate },
+    {
+      key: 'isActive',
+      label: 'Status',
+      render: (value) => (
+        <span className={`admin-badge ${value ? 'admin-badge-success' : 'admin-badge-error'}`}>
+          {value ? 'Active' : 'Inactive'}
+        </span>
+      ),
+    },
+    {
+      key: 'actions',
+      label: 'Actions',
+      width: 120,
       render: (_, row) => (
-        <div>
-          <div className="font-semibold">{row.name}</div>
-          <div className="mt-1 text-xs" style={{ color: 'var(--admin-muted)' }}>
-            {row.email || row.phone || row.phoneNumber || 'No contact set'}
-          </div>
+        <div className="flex items-center gap-1" onClick={(event) => event.stopPropagation()}>
+          <button className="admin-button admin-icon-button" type="button" title="View" onClick={() => setSelectedCustomerId(row._id)}>
+            <Eye size={15} />
+          </button>
+          <button
+            className="admin-button admin-icon-button"
+            type="button"
+            title={row.isActive ? 'Deactivate' : 'Activate'}
+            onClick={() => setConfirmCustomer(row)}
+          >
+            {row.isActive ? <UserX size={15} /> : <UserCheck size={15} />}
+          </button>
         </div>
       ),
     },
-    {
-      key: 'phoneNumber',
-      label: 'Phone',
-      render: (_, row) => row.phone || row.phoneNumber || '-',
-    },
-    {
-      key: 'membershipTier',
-      label: 'Tier',
-      render: (value) => (
-        <span className={getTierStyle(value)}>
-          {value || 'Bronze'}
-        </span>
-      ),
-    },
-    {
-      key: 'loyaltyPoints',
-      label: 'Points',
-      render: (value) => <span className="font-semibold">{Number(value || 0)}</span>,
-    },
-    {
-      key: 'birthday',
-      label: 'Birthday',
-      render: (value) => formatDate(value),
-    },
-    {
-      key: 'address',
-      label: 'Shipping Address',
-      render: (value) => <span className="block max-w-[320px] truncate">{formatAddress(value)}</span>,
-    },
-    {
-      key: 'isVerified',
-      label: 'Verified',
-      render: (value) => (
-        <span className={`admin-badge ${value ? 'admin-badge-success' : 'admin-badge-warning'}`}>
-          {value ? 'Verified' : 'Pending'}
-        </span>
-      ),
-    },
-    {
-      key: 'createdAt',
-      label: 'Joined',
-      render: (value) => formatDate(value),
-    },
   ], []);
-
-  const totalCustomers = customers.length;
-  const totalPoints = customers.reduce((sum, customer) => sum + Number(customer.loyaltyPoints || 0), 0);
 
   return (
     <AdminLayout title="Customers" breadcrumb="Customers">
@@ -157,121 +254,64 @@ export default function AdminCustomers() {
         <div className="flex items-center gap-3">
           <h2 className="text-2xl font-bold">Customers</h2>
           <span className="admin-badge" style={{ background: '#24283A', borderColor: 'var(--admin-border)', color: 'var(--admin-muted)' }}>
-            {totalCustomers} total
+            <Users size={13} />
+            {pagination.total || 0} total
           </span>
-        </div>
-        <div className="flex items-center gap-2 text-sm" style={{ color: 'var(--admin-muted)' }}>
-          <Sparkles size={15} />
-          {totalPoints} loyalty points in view
         </div>
       </div>
 
-      <div className="admin-card mb-4 flex items-center gap-3 p-4">
-        <Search size={16} style={{ color: 'var(--admin-muted)' }} />
+      <div className="admin-card mb-4 grid grid-cols-1 gap-3 p-4 md:grid-cols-[minmax(220px,1fr)_180px_160px]">
         <input
           className="admin-input"
           value={searchInput}
           onChange={(event) => setSearchInput(event.target.value)}
-          placeholder="Search name, email, or phone"
+          placeholder="Search customer names"
         />
+        <select className="admin-select" value={filters.membershipTier} onChange={(event) => updateFilter('membershipTier', event.target.value)}>
+          <option value="">All tiers</option>
+          <option value="Silver">Silver</option>
+          <option value="Gold">Gold</option>
+          <option value="Platinum">Platinum</option>
+        </select>
+        <select className="admin-select" value={filters.isActive} onChange={(event) => updateFilter('isActive', event.target.value)}>
+          <option value="all">All status</option>
+          <option value="true">Active</option>
+          <option value="false">Inactive</option>
+        </select>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 xl:grid-cols-[1fr_360px]">
-        <div>
-          <AdminTable
-            columns={columns}
-            data={customers}
-            loading={loading}
-            emptyMessage="No customers found"
-            onRowClick={(row) => setSelectedCustomerId(row.id)}
-          />
-          <AdminPagination
-            page={pagination.page}
-            totalPages={pagination.totalPages}
-            onPageChange={(page) => setFilters((current) => ({ ...current, page }))}
-          />
-        </div>
+      <AdminTable
+        columns={columns}
+        data={customers}
+        loading={isLoading}
+        emptyMessage="No customers match the current filters"
+        onRowClick={(row) => setSelectedCustomerId(row._id)}
+      />
+      <AdminPagination
+        page={filters.page}
+        totalPages={pagination.pages || 1}
+        onPageChange={(page) => setFilters((current) => ({ ...current, page }))}
+      />
 
-        <aside className="admin-card p-5">
-          {selectedCustomer ? (
-            <div className="space-y-5">
-              <div>
-                <div className="text-xs uppercase tracking-[0.2em]" style={{ color: 'var(--admin-muted)' }}>
-                  Selected customer
-                </div>
-                <h3 className="mt-2 text-2xl font-bold">{selectedCustomer.name}</h3>
-                <p className="mt-1 text-sm" style={{ color: 'var(--admin-muted)' }}>
-                  Customer details and membership summary
-                </p>
-              </div>
+      <CustomerDrawer customerId={selectedCustomerId} onClose={() => setSelectedCustomerId(null)} />
 
-              <div className="space-y-3">
-                <div className="flex items-start gap-3">
-                  <Mail size={16} style={{ color: 'var(--admin-muted)', marginTop: 2 }} />
-                  <div>
-                    <div className="text-xs uppercase tracking-wider" style={{ color: 'var(--admin-muted)' }}>Email</div>
-                    <div className="text-sm font-medium">{selectedCustomer.email || '-'}</div>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <Phone size={16} style={{ color: 'var(--admin-muted)', marginTop: 2 }} />
-                  <div>
-                    <div className="text-xs uppercase tracking-wider" style={{ color: 'var(--admin-muted)' }}>Phone</div>
-                    <div className="text-sm font-medium">{selectedCustomer.phone || selectedCustomer.phoneNumber || '-'}</div>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <MapPin size={16} style={{ color: 'var(--admin-muted)', marginTop: 2 }} />
-                  <div>
-                    <div className="text-xs uppercase tracking-wider" style={{ color: 'var(--admin-muted)' }}>Address</div>
-                    <div className="text-sm font-medium leading-6">{formatAddress(selectedCustomer.address)}</div>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <Calendar size={16} style={{ color: 'var(--admin-muted)', marginTop: 2 }} />
-                  <div>
-                    <div className="text-xs uppercase tracking-wider" style={{ color: 'var(--admin-muted)' }}>Birthday</div>
-                    <div className="text-sm font-medium">{formatDate(selectedCustomer.birthday)}</div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div className="rounded-2xl border p-4" style={{ borderColor: 'var(--admin-border)', background: '#171A25' }}>
-                  <div className="text-xs uppercase tracking-wider" style={{ color: 'var(--admin-muted)' }}>Membership</div>
-                  <div className="mt-2 text-xl font-bold">{selectedCustomer.membershipTier || 'Bronze'}</div>
-                </div>
-                <div className="rounded-2xl border p-4" style={{ borderColor: 'var(--admin-border)', background: '#171A25' }}>
-                  <div className="text-xs uppercase tracking-wider" style={{ color: 'var(--admin-muted)' }}>Loyalty Points</div>
-                  <div className="mt-2 text-xl font-bold">{Number(selectedCustomer.loyaltyPoints || 0)}</div>
-                </div>
-                <div className="rounded-2xl border p-4" style={{ borderColor: 'var(--admin-border)', background: '#171A25' }}>
-                  <div className="text-xs uppercase tracking-wider" style={{ color: 'var(--admin-muted)' }}>Verified</div>
-                  <div className="mt-2 inline-flex items-center gap-2 text-sm font-semibold">
-                    <BadgeCheck size={15} />
-                    {selectedCustomer.isVerified ? 'Yes' : 'No'}
-                  </div>
-                </div>
-                <div className="rounded-2xl border p-4" style={{ borderColor: 'var(--admin-border)', background: '#171A25' }}>
-                  <div className="text-xs uppercase tracking-wider" style={{ color: 'var(--admin-muted)' }}>Joined</div>
-                  <div className="mt-2 text-sm font-semibold">{formatDate(selectedCustomer.createdAt)}</div>
-                </div>
-              </div>
-
-              <div className="rounded-2xl border p-4" style={{ borderColor: 'var(--admin-border)', background: '#171A25' }}>
-                <div className="text-xs uppercase tracking-wider" style={{ color: 'var(--admin-muted)' }}>Membership rule</div>
-                <p className="mt-2 text-sm leading-6" style={{ color: 'var(--admin-muted)' }}>
-                  Bronze up to 100 points, Silver up to 200, Gold up to 300, then Platinum.
-                </p>
-              </div>
-            </div>
-          ) : (
-            <div className="py-10 text-center" style={{ color: 'var(--admin-muted)' }}>
-              Select a customer to see membership details.
-            </div>
-          )}
-        </aside>
-      </div>
+      <ConfirmModal
+        isOpen={Boolean(confirmCustomer)}
+        onClose={() => setConfirmCustomer(null)}
+        onConfirm={async () => {
+          await toggleCustomer.mutateAsync(confirmCustomer._id);
+          setConfirmCustomer(null);
+        }}
+        title={`${confirmCustomer?.isActive ? 'Deactivate' : 'Activate'} customer`}
+        message={
+          confirmCustomer
+            ? `${confirmCustomer.name} will be marked as ${confirmCustomer.isActive ? 'inactive' : 'active'}.`
+            : ''
+        }
+        confirmLabel={confirmCustomer?.isActive ? 'Deactivate' : 'Activate'}
+        danger={confirmCustomer?.isActive}
+        isLoading={toggleCustomer.isPending}
+      />
     </AdminLayout>
   );
 }

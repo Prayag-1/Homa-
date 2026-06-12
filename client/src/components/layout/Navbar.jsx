@@ -1,43 +1,42 @@
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useEffect, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ChevronDown, Heart, Menu, Search, ShoppingBag, X } from 'lucide-react';
-import { useAuth } from '../../hooks/useAuth';
 import { useCart } from '../../context/CartContext';
-import api from '../../services/api';
-import { formatPrice } from '../../utils/formatPrice';
-import Spinner from '../ui/Spinner';
+import { useAuth } from '../../hooks/useAuth';
+import { useScrollDirection } from '../../hooks/useScrollDirection';
+
+const mainLinks = [
+  { to: '/', label: 'Home' },
+  { to: '/shop', label: 'Shop' },
+  { to: '/user/dashboard', label: 'Dashboard' },
+  { to: '/blog', label: 'Blog' },
+];
+
+const moreLinks = [
+  { to: '/about', label: 'About Homa' },
+  { to: '/distributors', label: 'Authorized Dealers' },
+  { to: '/transformations', label: 'Transformation Stories' },
+  { to: '/contact', label: 'Contact Us' },
+];
+
+const navClass = 'font-body text-sm font-medium text-[#1A1410] transition-colors duration-200 hover:text-[#C8432B]';
+const iconClass = 'text-[#1A1410] transition-colors duration-200 hover:text-[#C8432B]';
 
 export default function Navbar({ onCartOpen }) {
-  const [isOpen, setIsOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [searchValue, setSearchValue] = useState('');
+  const [mobileOpen, setMobileOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
-  const [query, setQuery] = useState('');
-  const [results, setResults] = useState([]);
-  const [searchLoading, setSearchLoading] = useState(false);
-  const searchRef = useRef(null);
   const moreRef = useRef(null);
-  const inputRef = useRef(null);
-  const { user, logout } = useAuth();
   const { itemCount } = useCart();
-
-  useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 10);
-    handleScroll();
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  useEffect(() => {
-    if (searchOpen) inputRef.current?.focus();
-  }, [searchOpen]);
+  const { user, logout } = useAuth();
+  const { isTop } = useScrollDirection();
+  const location = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (searchRef.current && !searchRef.current.contains(event.target)) {
-        closeSearch();
-      }
       if (moreRef.current && !moreRef.current.contains(event.target)) {
         setMoreOpen(false);
       }
@@ -47,257 +46,275 @@ export default function Navbar({ onCartOpen }) {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  useEffect(() => {
-    const trimmed = query.trim();
-
-    if (!trimmed) {
-      setResults([]);
-      setSearchLoading(false);
-      return undefined;
-    }
-
-    const timeout = window.setTimeout(async () => {
-      setSearchLoading(true);
-      try {
-        const { data } = await api.get('/products/search', {
-          params: { q: trimmed },
-        });
-        const payload = data?.data;
-        setResults(Array.isArray(payload) ? payload : payload?.items || []);
-      } catch (error) {
-        console.error('Product search failed:', error);
-        setResults([]);
-      } finally {
-        setSearchLoading(false);
-      }
-    }, 300);
-
-    return () => window.clearTimeout(timeout);
-  }, [query]);
+  const isActive = (path) => {
+    if (path === '/') return location.pathname === '/';
+    return location.pathname === path || location.pathname.startsWith(`${path}/`);
+  };
 
   const closeSearch = () => {
     setSearchOpen(false);
-    setQuery('');
-    setResults([]);
+    setSearchValue('');
   };
 
-  const closeMoreMenu = () => {
-    setMoreOpen(false);
+  const submitSearch = () => {
+    const query = searchValue.trim();
+    if (!query) return;
+    navigate(`/shop?search=${encodeURIComponent(query)}`);
+    closeSearch();
   };
 
-  const handleSearchKeyDown = (event) => {
-    if (event.key === 'Escape') closeSearch();
-  };
+  const closeMobile = () => setMobileOpen(false);
 
   const handleLogout = () => {
     logout();
-    setIsOpen(false);
+    closeMobile();
   };
 
+  const cartCount = itemCount > 9 ? '9+' : itemCount;
+
+  const CartButton = ({ mobile = false }) => (
+    <button
+      type="button"
+      className={`relative inline-flex ${iconClass}`}
+      onClick={onCartOpen}
+      aria-label="Open cart"
+    >
+      <ShoppingBag size={mobile ? 22 : 20} />
+      {itemCount > 0 && (
+        <span className="absolute -right-2 -top-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-[#C8432B] px-1 font-body text-[10px] font-bold leading-none text-white">
+          {cartCount}
+        </span>
+      )}
+    </button>
+  );
+
   return (
-    <nav className={`sticky top-0 z-50 transition-all ${scrolled ? 'backdrop-blur bg-white/80 border-b border-gray-200' : 'bg-transparent'}`}>
-      <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-        <Link to="/" className="text-3xl font-display font-semibold text-black">HOMA</Link>
+    <>
+      <motion.header
+        className="fixed left-0 right-0 top-0 z-50 w-full"
+        animate={{
+          backgroundColor: isTop ? 'rgba(253, 250, 247, 0.82)' : 'rgba(253, 250, 247, 0.95)',
+          borderBottomColor: isTop ? 'rgba(26, 20, 16, 0.04)' : 'rgba(26, 20, 16, 0.08)',
+          boxShadow: isTop ? '0 0 0 rgba(26, 20, 16, 0)' : '0 1px 20px rgba(26, 20, 16, 0.06)',
+        }}
+        transition={{ duration: 0.2, ease: 'easeOut' }}
+        style={{
+          borderBottomWidth: 1,
+          borderBottomStyle: 'solid',
+          backdropFilter: isTop ? 'none' : 'blur(12px)',
+        }}
+      >
+        <div className="mx-auto flex h-[72px] max-w-7xl items-center justify-between px-6 md:px-12">
+          <Link to="/" className="font-display text-[28px] font-semibold leading-none text-[#1A1410]">
+            HOMA
+          </Link>
 
-        <div className="hidden md:flex gap-8">
-          <Link to="/" className="text-black hover:text-red-500 transition">Home</Link>
-          <Link to="/shop" className="text-black hover:text-red-500 transition">Shop</Link>
-          <Link to="/user/dashboard" className="text-black hover:text-red-500 transition">Dashboard</Link>
-          <Link to="/blog" className="text-black hover:text-red-500 transition">Blog</Link>
-          <div ref={moreRef} className="relative">
+          <nav className="hidden items-center gap-8 md:flex">
+            {mainLinks.map((link) => (
+              <Link
+                key={link.to}
+                to={link.to}
+                className={`${navClass} ${isActive(link.to) ? 'text-[#C8432B]' : ''}`}
+              >
+                {link.label}
+              </Link>
+            ))}
+
+            <div ref={moreRef} className="relative">
+              <button
+                type="button"
+                className={`inline-flex items-center gap-1 ${navClass} ${
+                  moreLinks.some((link) => isActive(link.to)) ? 'text-[#C8432B]' : ''
+                }`}
+                onClick={() => setMoreOpen((current) => !current)}
+                aria-expanded={moreOpen}
+                aria-haspopup="menu"
+              >
+                More
+                <ChevronDown size={15} className={`transition-transform ${moreOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              <AnimatePresence>
+                {moreOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -6 }}
+                    transition={{ duration: 0.16, ease: 'easeOut' }}
+                    className="absolute left-0 top-full mt-5 w-56 border border-black/5 bg-white py-2 shadow-xl"
+                    role="menu"
+                  >
+                    {moreLinks.map((link) => (
+                      <Link
+                        key={link.to}
+                        to={link.to}
+                        onClick={() => setMoreOpen(false)}
+                        className="block px-4 py-3 font-body text-sm font-medium text-[#1A1410] transition-colors hover:text-[#C8432B]"
+                        role="menuitem"
+                      >
+                        {link.label}
+                      </Link>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          </nav>
+
+          <div className="hidden items-center gap-5 md:flex">
             <button
               type="button"
-              onClick={() => setMoreOpen((value) => !value)}
-              className="inline-flex items-center gap-1 text-black hover:text-red-500 transition"
-              aria-expanded={moreOpen}
-              aria-haspopup="menu"
-            >
-              More
-              <ChevronDown size={15} className={`transition-transform ${moreOpen ? 'rotate-180' : ''}`} />
-            </button>
-
-            <AnimatePresence>
-              {moreOpen && (
-                <motion.div
-                  initial={{ opacity: 0, y: -6 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -6 }}
-                  className="absolute left-0 top-full mt-3 w-56 overflow-hidden border border-gray-200 bg-white shadow-xl"
-                  role="menu"
-                >
-                  {[
-                    { to: '/about', label: 'About Homa' },
-                    { to: '/distributors', label: 'Authorized Dealers' },
-                    { to: '/transformations', label: 'Transformation Stories' },
-                    { to: '/contact', label: 'Contact Us' },
-                  ].map((item) => (
-                    <Link
-                      key={item.to}
-                      to={item.to}
-                      onClick={closeMoreMenu}
-                      className="block px-4 py-3 text-sm text-black hover:bg-gray-50 hover:text-red-500 transition"
-                      role="menuitem"
-                    >
-                      {item.label}
-                    </Link>
-                  ))}
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-        </div>
-
-        <div className="hidden md:flex gap-4 items-center">
-          <div ref={searchRef} className="relative flex items-center">
-            <button
-              type="button"
-              onClick={() => setSearchOpen(true)}
-              className="p-2 hover:bg-gray-100 rounded-lg transition"
+              className={`inline-flex ${iconClass}`}
+              onClick={() => setSearchOpen((current) => !current)}
               aria-label="Search products"
             >
               <Search size={20} />
             </button>
-            <motion.input
-              ref={inputRef}
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              onKeyDown={handleSearchKeyDown}
-              initial={false}
-              animate={{ width: searchOpen ? 240 : 0, opacity: searchOpen ? 1 : 0 }}
-              transition={{ duration: 0.2, ease: 'easeOut' }}
-              className="ml-1 border-b border-gray-300 bg-transparent py-2 font-body text-sm outline-none"
-              placeholder="Search products"
-              aria-label="Search products"
-            />
+            <Link to="/wishlist" className={`inline-flex ${iconClass}`} aria-label="Wishlist">
+              <Heart size={20} />
+            </Link>
+            <CartButton />
 
-            <AnimatePresence>
-              {searchOpen && query.trim() && (
-                <motion.div
-                  initial={{ opacity: 0, y: -6 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -6 }}
-                  className="absolute right-0 top-full mt-3 w-96 overflow-hidden bg-white shadow-xl border border-gray-200"
+            {user ? (
+              <div className="flex items-center gap-3">
+                <span className="font-body text-sm font-medium text-[#1A1410]">
+                  Welcome, {user.name}
+                </span>
+                <Link
+                  to="/user/dashboard"
+                  className="border border-black/10 px-4 py-2 font-body text-sm font-medium text-[#1A1410] transition-colors hover:border-[#C8432B] hover:text-[#C8432B]"
                 >
-                  {searchLoading ? (
-                    <div className="flex items-center gap-2 px-4 py-5 font-body text-sm text-gray-600">
-                      <Spinner size="sm" />
-                      <span>Searching...</span>
-                    </div>
-                  ) : results.length > 0 ? (
-                    <div className="max-h-96 overflow-y-auto">
-                      {results.map((product) => {
-                        const id = product._id || product.id;
-                        const image = product.images?.[0]?.url || product.image || '/placeholder.jpg';
-
-                        return (
-                          <Link
-                            key={id}
-                            to={`/products/${id}`}
-                            onClick={closeSearch}
-                            className="flex gap-3 px-4 py-3 hover:bg-gray-50 transition-colors"
-                          >
-                            <img
-                              src={image}
-                              alt={product.name}
-                              className="h-14 w-14 flex-shrink-0 object-cover bg-gray-100"
-                              loading="lazy"
-                            />
-                            <div className="min-w-0 flex-1">
-                              <p className="truncate font-display text-base text-black">
-                                {product.name}
-                              </p>
-                              <p className="truncate font-body text-xs uppercase tracking-widest text-red-600">
-                                {product.brand}
-                              </p>
-                              <p className="font-body text-sm font-semibold text-black">
-                                {formatPrice(product.price)}
-                              </p>
-                            </div>
-                          </Link>
-                        );
-                      })}
-                    </div>
-                  ) : (
-                    <div className="px-4 py-5 font-body text-sm text-gray-600">
-                      No products found for &apos;{query.trim()}&apos;
-                    </div>
-                  )}
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-
-          <Link to="/wishlist" className="p-2 hover:bg-gray-100 rounded-lg transition" aria-label="Wishlist">
-            <Heart size={20} />
-          </Link>
-          <button
-            type="button"
-            onClick={onCartOpen}
-            className="p-2 hover:bg-gray-100 rounded-lg transition relative"
-            aria-label="Open cart"
-          >
-            <ShoppingBag size={20} />
-            {itemCount > 0 && (
-              <span className="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                {itemCount}
-              </span>
-            )}
-          </button>
-          {user ? (
-            <div className="flex gap-2 items-center">
-              <span className="px-3 py-1 text-sm">Welcome, {user.name}</span>
-              <Link to="/user/dashboard" className="px-3 py-1 text-sm border border-black/10 rounded hover:bg-gray-100 transition">
-                Dashboard
+                  Dashboard
+                </Link>
+                <button
+                  type="button"
+                  className="bg-black px-4 py-2 font-body text-sm font-medium text-white transition-colors hover:bg-[#C8432B]"
+                  onClick={logout}
+                >
+                  Logout
+                </button>
+              </div>
+            ) : (
+              <Link
+                to="/login"
+                className="bg-black px-4 py-2 font-body text-sm font-medium text-white transition-colors hover:bg-[#C8432B]"
+              >
+                Login
               </Link>
-              <button onClick={logout} className="px-3 py-1 text-sm bg-black text-white rounded hover:bg-gray-900">Logout</button>
-            </div>
-          ) : (
-            <Link to="/login" className="px-3 py-1 text-sm bg-black text-white rounded hover:bg-gray-900">Login</Link>
-          )}
-        </div>
-
-        <button className="md:hidden" onClick={() => setIsOpen(!isOpen)} aria-label="Open menu">
-          <Menu size={24} />
-        </button>
-      </div>
-
-      {isOpen && (
-        <div className="fixed inset-0 bg-white z-40 flex flex-col p-4 gap-4 md:hidden">
-          <button onClick={() => setIsOpen(false)} className="self-start p-2" aria-label="Close menu">
-            <X size={24} />
-          </button>
-          <Link to="/" onClick={() => setIsOpen(false)}>Home</Link>
-          <Link to="/shop" onClick={() => setIsOpen(false)}>Shop</Link>
-          <Link to="/wishlist" onClick={() => setIsOpen(false)}>Wishlist</Link>
-          <Link to="/user/dashboard" onClick={() => setIsOpen(false)}>Dashboard</Link>
-          <Link to="/blog" onClick={() => setIsOpen(false)}>Blog</Link>
-          <div className="space-y-2">
-            <div className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">More</div>
-            <Link to="/about" onClick={() => setIsOpen(false)} className="block pl-3">About Homa</Link>
-            <Link to="/distributors" onClick={() => setIsOpen(false)} className="block pl-3">Authorized Dealers</Link>
-            <Link to="/transformations" onClick={() => setIsOpen(false)} className="block pl-3">Transformation Stories</Link>
-            <Link to="/contact" onClick={() => setIsOpen(false)} className="block pl-3">Contact Us</Link>
+            )}
           </div>
-          <button
-            type="button"
-            onClick={() => {
-              setIsOpen(false);
-              onCartOpen?.();
-            }}
-            className="text-left"
-          >
-            Cart ({itemCount})
-          </button>
-          {user ? (
-            <div className="flex flex-col gap-3">
-              <Link to="/user/dashboard" onClick={() => setIsOpen(false)}>Dashboard</Link>
-              <button onClick={handleLogout} className="text-left">Logout</button>
-            </div>
-          ) : (
-            <Link to="/login" onClick={() => setIsOpen(false)}>Login</Link>
-          )}
+
+          <div className="flex items-center gap-5 md:hidden">
+            <button
+              type="button"
+              className={`inline-flex ${iconClass}`}
+              onClick={() => setMobileOpen(true)}
+              aria-label="Open menu"
+            >
+              <Menu size={22} />
+            </button>
+            <CartButton mobile />
+          </div>
         </div>
-      )}
-    </nav>
+
+        <AnimatePresence>
+          {searchOpen && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 56, opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.2, ease: 'easeOut' }}
+              className="overflow-hidden border-b border-[#E5E7EB] bg-white"
+            >
+              <div className="mx-auto flex h-14 max-w-7xl items-center gap-3 px-6 md:px-12">
+                <Search size={20} className="text-[#1A1410]" />
+                <input
+                  autoFocus
+                  className="h-full flex-1 bg-transparent font-body text-sm text-[#1A1410] outline-none placeholder:text-gray-400"
+                  value={searchValue}
+                  onChange={(event) => setSearchValue(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter') submitSearch();
+                    if (event.key === 'Escape') closeSearch();
+                  }}
+                  placeholder="Search products..."
+                  aria-label="Search products"
+                />
+                <button type="button" className={iconClass} onClick={closeSearch} aria-label="Close search">
+                  <X size={20} />
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.header>
+
+      <AnimatePresence>
+        {mobileOpen && (
+          <motion.div
+            className="fixed inset-0 z-[60] flex bg-[#1A1410] md:hidden"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2, ease: 'easeOut' }}
+          >
+            <button
+              type="button"
+              className="absolute right-6 top-6 text-white transition-colors duration-200 hover:text-[#C8432B]"
+              onClick={closeMobile}
+              aria-label="Close menu"
+            >
+              <X size={28} />
+            </button>
+
+            <nav className="m-auto flex flex-col items-center gap-6">
+              {[...mainLinks, ...moreLinks, { to: '/wishlist', label: 'Wishlist' }].map((link, index) => (
+                <motion.div
+                  key={link.to}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.04 * index, duration: 0.22, ease: 'easeOut' }}
+                >
+                  <Link
+                    to={link.to}
+                    className="font-display text-[30px] leading-tight text-white transition-colors duration-200 hover:text-[#C8432B]"
+                    onClick={closeMobile}
+                  >
+                    {link.label}
+                  </Link>
+                </motion.div>
+              ))}
+              <button
+                type="button"
+                className="font-display text-[30px] leading-tight text-white transition-colors duration-200 hover:text-[#C8432B]"
+                onClick={() => {
+                  closeMobile();
+                  setSearchOpen(true);
+                }}
+              >
+                Search
+              </button>
+              {user ? (
+                <button
+                  type="button"
+                  className="font-display text-[30px] leading-tight text-white transition-colors duration-200 hover:text-[#C8432B]"
+                  onClick={handleLogout}
+                >
+                  Logout
+                </button>
+              ) : (
+                <Link
+                  to="/login"
+                  className="font-display text-[30px] leading-tight text-white transition-colors duration-200 hover:text-[#C8432B]"
+                  onClick={closeMobile}
+                >
+                  Login
+                </Link>
+              )}
+            </nav>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
   );
 }

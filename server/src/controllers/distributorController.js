@@ -7,6 +7,12 @@ const normalizeText = (value) => String(value || '').trim();
 
 const normalizeEmail = (value) => normalizeText(value).toLowerCase();
 
+const getPagination = (query, defaultLimit = 50) => {
+  const safePage = Math.max(Number(query.page) || 1, 1);
+  const safeLimit = Math.min(Number(query.limit) || defaultLimit, 50);
+  return { safePage, safeLimit, skip: (safePage - 1) * safeLimit };
+};
+
 const serializeDistributor = (distributor) => ({
   id: String(distributor._id || distributor.id || ''),
   name: distributor.name || '',
@@ -74,9 +80,12 @@ const ensureUniqueName = async (name, excludeId = null) => {
 
 exports.getPublicDistributors = async (req, res, next) => {
   try {
+    const { safeLimit, skip } = getPagination(req.query);
     const distributors = await Distributor.find({ isActive: true })
       .select('name address phone email coverageArea representative isActive createdAt updatedAt')
       .sort({ name: 1 })
+      .skip(skip)
+      .limit(safeLimit)
       .lean();
 
     res.set('Cache-Control', 'public, max-age=300');
@@ -92,6 +101,7 @@ exports.getPublicDistributors = async (req, res, next) => {
 exports.adminGetDistributors = async (req, res, next) => {
   try {
     const { search, isActive } = req.query;
+    const { safeLimit, skip } = getPagination(req.query);
     const filter = buildFilter({
       search,
       isActive: isActive === 'true' ? true : isActive === 'false' ? false : undefined,
@@ -100,6 +110,8 @@ exports.adminGetDistributors = async (req, res, next) => {
     const distributors = await Distributor.find(filter)
       .select('name address phone email coverageArea representative isActive createdAt updatedAt')
       .sort({ isActive: -1, name: 1 })
+      .skip(skip)
+      .limit(safeLimit)
       .lean();
 
     return res.json({

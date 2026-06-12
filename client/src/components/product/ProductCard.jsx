@@ -1,11 +1,12 @@
 import { Link } from 'react-router-dom';
 import { Heart } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { useContext, useState } from 'react';
+import { memo, useContext, useState } from 'react';
 import { CartContext } from '../../context/CartContext';
 import { useWishlist } from '../../hooks/useWishlist';
 import StarRating from './StarRating';
 import { formatPrice } from '../../utils/formatPrice';
+import { optimizeImage } from '../../utils/cloudinaryUrl';
 
 const ProductCard = ({ product, showQuickAdd = true, showRemoveFromWishlist = false }) => {
   const { addItem } = useContext(CartContext);
@@ -52,9 +53,10 @@ const ProductCard = ({ product, showQuickAdd = true, showRemoveFromWishlist = fa
         >
           {/* Main Image */}
           <img
-            src={firstImage || '/placeholder.jpg'}
+            src={optimizeImage(firstImage, 600) || '/placeholder.jpg'}
             alt={product.name}
             loading="lazy"
+            decoding="async"
             className="w-full h-full object-cover transition-transform duration-400 ease-out"
             style={{
               transform: hoverImage && !outOfStock ? 'scale(1.06)' : 'scale(1)',
@@ -166,4 +168,4 @@ const ProductCard = ({ product, showQuickAdd = true, showRemoveFromWishlist = fa
   );
 };
 
-export default ProductCard;
+export default memo(ProductCard);

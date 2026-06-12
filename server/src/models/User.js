@@ -20,9 +20,7 @@ const userSchema = new mongoose.Schema(
     name: { type: String, required: true, trim: true },
     email: {
       type: String,
-      unique: true,
       sparse: true,
-      index: true,
       lowercase: true,
       trim: true,
     },
@@ -81,5 +79,10 @@ userSchema.pre('save', async function (next) {
 userSchema.methods.comparePassword = async function (candidate) {
   return bcryptjs.compare(candidate, this.password);
 };
+
+// Performance index — added for query optimization
+userSchema.index({ email: 1 }, { unique: true, sparse: true });
+userSchema.index({ role: 1, createdAt: -1 });
+userSchema.index({ membershipTier: 1 });
 
 module.exports = mongoose.model('User', userSchema);

@@ -81,6 +81,7 @@ export default function CartDrawer({ isOpen, onClose }) {
                               alt={item.name}
                               className="h-full w-full object-cover"
                               loading="lazy"
+                              decoding="async"
                             />
                           </Link>
 

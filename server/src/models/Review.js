@@ -13,4 +13,8 @@ const reviewSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+// Performance index — added for query optimization
+reviewSchema.index({ product: 1, isApproved: 1 });
+reviewSchema.index({ user: 1, product: 1 }, { unique: true });
+
 module.exports = mongoose.model('Review', reviewSchema);

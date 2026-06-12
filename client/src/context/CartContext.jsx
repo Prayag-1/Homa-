@@ -17,6 +17,7 @@ export function CartProvider({ children }) {
 
   const addItem = (product, qty) => {
     const productId = getProductId(product);
+    if (!productId) return;
 
     setItems(prev => {
       const existing = prev.find(i => getProductId(i) === productId);
@@ -28,6 +29,8 @@ export function CartProvider({ children }) {
       // Never trust frontend prices for payment amounts.
       return [...prev, { ...product, id: productId, quantity: qty }];
     });
+
+    window.dispatchEvent(new Event('homa:open-cart'));
   };
 
   const removeItem = (productId) => {
