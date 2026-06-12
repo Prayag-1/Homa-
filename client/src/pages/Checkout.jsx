@@ -37,7 +37,7 @@ export default function Checkout() {
       setShippingDetails({
         street: user.address?.line1 || '',
         city: user.address?.city || '',
-        phone: user.phone || '',
+        phone: user.phone || user.phoneNumber || '',
       });
     }
   }, [user]);
@@ -350,6 +350,25 @@ export default function Checkout() {
                     </div>
                   </div>
                 </div>
+              </div>
+
+              <div className="mt-6 rounded-2xl border border-gray-100 bg-gray-50/60 p-4">
+                <label htmlFor="paymentPhone" className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                  Phone Number for Payment & Delivery
+                </label>
+                <input
+                  type="tel"
+                  id="paymentPhone"
+                  name="phone"
+                  value={shippingDetails.phone}
+                  onChange={handleInputChange}
+                  placeholder="E.g., 98XXXXXXXX"
+                  className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 focus:border-black transition-all"
+                  required
+                />
+                <p className="mt-2 text-xs text-gray-500 leading-relaxed">
+                  This number is used for delivery updates and payment confirmation.
+                </p>
               </div>
             </div>
           </div>
