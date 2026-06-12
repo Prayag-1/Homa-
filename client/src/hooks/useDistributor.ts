@@ -3,6 +3,7 @@ import toast from 'react-hot-toast';
 import type { DistributorPayload, DistributorQuery } from '../services/distributorService';
 import {
   createDistributor,
+  deleteDistributor,
   fetchAdminDistributors,
   fetchPublicDistributors,
   toggleDistributorActive,
@@ -68,6 +69,22 @@ export const useToggleDistributorActive = () => {
     },
     onError: (err: any) => {
       toast.error(err.response?.data?.message || 'Failed to update distributor status');
+    },
+  });
+};
+
+export const useDeleteDistributor = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) => deleteDistributor(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-distributors'] });
+      queryClient.invalidateQueries({ queryKey: ['distributors'] });
+      toast.success('Distributor deleted successfully');
+    },
+    onError: (err: any) => {
+      toast.error(err.response?.data?.message || 'Failed to delete distributor');
     },
   });
 };

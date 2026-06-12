@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Mail, MapPin, Pencil, Phone, Plus, RefreshCw, Search, User, X } from 'lucide-react';
+import { Mail, MapPin, Pencil, Phone, Plus, RefreshCw, Search, Trash2, User, X } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -12,6 +12,7 @@ import Spinner from '../../components/ui/Spinner';
 import {
   useAdminDistributors,
   useCreateDistributor,
+  useDeleteDistributor,
   useToggleDistributorActive,
   useUpdateDistributor,
 } from '../../hooks/useDistributor';
@@ -66,6 +67,7 @@ export default function AdminDistributors() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [confirmItem, setConfirmItem] = useState(null);
+  const [deleteItem, setDeleteItem] = useState(null);
   const [formError, setFormError] = useState('');
 
   const { data: distributors = [], isLoading, isError, error, refetch } = useAdminDistributors({
@@ -76,6 +78,7 @@ export default function AdminDistributors() {
   const createDistributor = useCreateDistributor();
   const updateDistributor = useUpdateDistributor(editingItem?.id || '');
   const toggleDistributor = useToggleDistributorActive();
+  const deleteDistributor = useDeleteDistributor();
 
   const {
     register,
@@ -137,6 +140,10 @@ export default function AdminDistributors() {
     toggleDistributor.mutate(item.id);
   };
 
+  const openDeleteModal = (item) => {
+    setDeleteItem(item);
+  };
+
   const onSubmit = async (values) => {
     const payload = {
       name: normalize(values.name),
@@ -161,6 +168,12 @@ export default function AdminDistributors() {
     } catch (submitError) {
       setFormError(submitError.response?.data?.message || 'Failed to save distributor');
     }
+  };
+
+  const handleDelete = async () => {
+    if (!deleteItem) return;
+    await deleteDistributor.mutateAsync(deleteItem.id);
+    setDeleteItem(null);
   };
 
   const columns = useMemo(
@@ -238,11 +251,21 @@ export default function AdminDistributors() {
             >
               {row.isActive ? <X size={15} /> : <User size={15} />}
             </button>
+            <button
+              className="admin-button admin-icon-button"
+              type="button"
+              title="Delete"
+              aria-label={`Delete ${row.name}`}
+              onClick={() => openDeleteModal(row)}
+              disabled={deleteDistributor.isPending}
+            >
+              <Trash2 size={15} />
+            </button>
           </div>
         ),
       },
     ],
-    [toggleDistributor.isPending],
+    [deleteDistributor.isPending, toggleDistributor.isPending],
   );
 
   const currentMutationPending = createDistributor.isPending || updateDistributor.isPending;
@@ -408,6 +431,17 @@ export default function AdminDistributors() {
         confirmLabel="Deactivate"
         danger
         isLoading={toggleDistributor.isPending}
+      />
+
+      <ConfirmModal
+        isOpen={Boolean(deleteItem)}
+        onClose={() => setDeleteItem(null)}
+        onConfirm={handleDelete}
+        title={`Delete ${deleteItem?.name || 'distributor'}`}
+        message={deleteItem ? `Are you sure you want to delete ${deleteItem.name}? This cannot be undone.` : ''}
+        confirmLabel="Delete"
+        danger
+        isLoading={deleteDistributor.isPending}
       />
     </AdminLayout>
   );

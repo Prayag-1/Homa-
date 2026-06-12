@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Eye, EyeOff, Pencil, Plus } from 'lucide-react';
+import { Eye, EyeOff, Pencil, Plus, Trash2 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -37,6 +37,7 @@ export default function AdminTaxonomyManager({
   useData,
   mutations,
   deactivateMessage,
+  allowDelete = false,
 }) {
   const [searchInput, setSearchInput] = useState('');
   const [search, setSearch] = useState('');
@@ -44,12 +45,14 @@ export default function AdminTaxonomyManager({
   const [modalOpen, setModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [confirmItem, setConfirmItem] = useState(null);
+  const [deleteItem, setDeleteItem] = useState(null);
   const [formError, setFormError] = useState('');
 
   const { data: items = [], isLoading } = useData({ search });
   const createItem = mutations.useCreate();
   const updateItem = mutations.useUpdate(editingItem?._id);
   const toggleItem = mutations.useToggle();
+  const deleteItemMutation = allowDelete && mutations.useDelete ? mutations.useDelete() : null;
 
   const {
     control,
@@ -93,6 +96,10 @@ export default function AdminTaxonomyManager({
     setModalOpen(true);
   };
 
+  const openDeleteModal = (item) => {
+    setDeleteItem(item);
+  };
+
   const handleToggle = (item) => {
     if (item.isActive) {
       setConfirmItem(item);
@@ -108,6 +115,12 @@ export default function AdminTaxonomyManager({
       onSuccess: closeModal,
       onError: (err) => setFormError(err.response?.data?.message || `Failed to save ${entityLabel.toLowerCase()}`),
     });
+  };
+
+  const handleDelete = async () => {
+    if (!deleteItem || !deleteItemMutation) return;
+    await deleteItemMutation.mutateAsync(deleteItem._id);
+    setDeleteItem(null);
   };
 
   const columns = useMemo(() => [
@@ -154,23 +167,33 @@ export default function AdminTaxonomyManager({
       key: 'actions',
       label: 'Actions',
       width: 120,
-      render: (_, row) => (
-        <div className="flex items-center gap-1" onClick={(event) => event.stopPropagation()}>
-          <button className="admin-button admin-icon-button" type="button" title="Edit" onClick={() => openEditModal(row)}>
-            <Pencil size={15} />
-          </button>
-          <button
-            className="admin-button admin-icon-button"
-            type="button"
-            title={row.isActive ? 'Deactivate' : 'Activate'}
-            onClick={() => handleToggle(row)}
-          >
-            {row.isActive ? <EyeOff size={15} /> : <Eye size={15} />}
-          </button>
-        </div>
-      ),
-    },
-  ], [entityLabel, toggleItem]);
+        render: (_, row) => (
+          <div className="flex items-center gap-1" onClick={(event) => event.stopPropagation()}>
+            <button className="admin-button admin-icon-button" type="button" title="Edit" onClick={() => openEditModal(row)}>
+              <Pencil size={15} />
+            </button>
+            <button
+              className="admin-button admin-icon-button"
+              type="button"
+              title={row.isActive ? 'Deactivate' : 'Activate'}
+              onClick={() => handleToggle(row)}
+            >
+              {row.isActive ? <EyeOff size={15} /> : <Eye size={15} />}
+            </button>
+            {allowDelete && deleteItemMutation && (
+              <button
+                className="admin-button admin-icon-button"
+                type="button"
+                title="Delete"
+                onClick={() => openDeleteModal(row)}
+              >
+                <Trash2 size={15} />
+              </button>
+            )}
+          </div>
+        ),
+      },
+  ], [allowDelete, deleteItemMutation, entityLabel, toggleItem]);
 
   const formSubmitting = createItem.isPending || updateItem.isPending;
 
@@ -217,6 +240,17 @@ export default function AdminTaxonomyManager({
         confirmLabel="Deactivate"
         danger
         isLoading={toggleItem.isPending}
+      />
+
+      <ConfirmModal
+        isOpen={Boolean(deleteItem)}
+        onClose={() => setDeleteItem(null)}
+        onConfirm={handleDelete}
+        title={`Delete ${entityLabel.toLowerCase()}`}
+        message={deleteItem ? `Are you sure you want to delete ${deleteItem.name}? This action cannot be undone.` : ''}
+        confirmLabel="Delete"
+        danger
+        isLoading={deleteItemMutation?.isPending}
       />
 
       <InlineModal

@@ -72,6 +72,19 @@ const makeMutations = (entity, queryKey, publicQueryKey, path) => ({
       onError: () => toast.error('Failed to update status'),
     });
   },
+  useDelete: () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+      mutationFn: (id) => api.delete(`${path}/${id}`).then((res) => res.data),
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: [queryKey] });
+        queryClient.invalidateQueries({ queryKey: [publicQueryKey] });
+        toast.success(`${entity} deleted`);
+      },
+      onError: (err) => toast.error(err.response?.data?.message || `Failed to delete ${entity}`),
+    });
+  },
 });
 
 export const brandMutations = makeMutations('Brand', 'admin-brands', 'brands', '/brands/admin');

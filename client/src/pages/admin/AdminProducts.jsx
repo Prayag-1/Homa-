@@ -6,6 +6,7 @@ import {
   Plus,
   Sparkles,
   Star,
+  Trash2,
 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -15,6 +16,7 @@ import AdminTable from '../../components/admin/ui/AdminTable';
 import ConfirmModal from '../../components/admin/ui/ConfirmModal';
 import {
   useAdminProducts,
+  useDeleteProduct,
   useToggleActive,
   useToggleFeatured,
   useUpdateStock,
@@ -81,6 +83,10 @@ export default function AdminProducts() {
     product: null,
     action: null,
   });
+  const [deleteModal, setDeleteModal] = useState({
+    open: false,
+    product: null,
+  });
   const [stockModal, setStockModal] = useState({
     open: false,
     product: null,
@@ -95,6 +101,7 @@ export default function AdminProducts() {
   const { data: categories = [], isLoading: categoriesLoading } = usePublicCategories();
   const toggleActive = useToggleActive();
   const toggleFeatured = useToggleFeatured();
+  const deleteProduct = useDeleteProduct();
   const updateStock = useUpdateStock();
   const products = data?.items || [];
   const modalCopy = getModalCopy(confirmModal);
@@ -134,6 +141,12 @@ export default function AdminProducts() {
     }
 
     setConfirmModal({ open: false, product: null, action: null });
+  };
+
+  const handleDelete = async () => {
+    if (!deleteModal.product) return;
+    await deleteProduct.mutateAsync(deleteModal.product._id);
+    setDeleteModal({ open: false, product: null });
   };
 
   const saveStock = async () => {
@@ -239,10 +252,19 @@ export default function AdminProducts() {
           <button className="admin-button admin-icon-button" type="button" title={row.isActive ? 'Deactivate' : 'Activate'} onClick={() => setConfirmModal({ open: true, product: row, action: 'toggle-active' })}>
             {row.isActive ? <EyeOff size={15} /> : <Eye size={15} />}
           </button>
+          <button
+            className="admin-button admin-icon-button"
+            type="button"
+            title="Delete"
+            onClick={() => setDeleteModal({ open: true, product: row })}
+            disabled={deleteProduct.isPending}
+          >
+            <Trash2 size={15} />
+          </button>
         </div>
       ),
     },
-  ], [navigate, toggleFeatured]);
+  ], [deleteProduct.isPending, navigate, toggleFeatured]);
 
   return (
     <AdminLayout title="Products" breadcrumb="Products">
@@ -319,6 +341,17 @@ export default function AdminProducts() {
         confirmLabel={modalCopy.confirmLabel}
         danger={modalCopy.danger}
         isLoading={toggleActive.isPending || toggleFeatured.isPending}
+      />
+
+      <ConfirmModal
+        isOpen={deleteModal.open}
+        onClose={() => setDeleteModal({ open: false, product: null })}
+        onConfirm={handleDelete}
+        title={deleteModal.product ? `Delete ${deleteModal.product.name}` : 'Delete product'}
+        message={deleteModal.product ? `Are you sure you want to delete ${deleteModal.product.name}? This cannot be undone.` : ''}
+        confirmLabel="Delete"
+        danger
+        isLoading={deleteProduct.isPending}
       />
 
       {stockModal.open && (

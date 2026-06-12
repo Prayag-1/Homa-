@@ -11,6 +11,7 @@ export default function AdminCategories() {
       entityLabel="Category"
       useData={useAdminCategories}
       mutations={categoryMutations}
+      allowDelete
       deactivateMessage={(name) => `Deactivating ${name} will hide all products in this category from customers. Are you sure?`}
     />
   );

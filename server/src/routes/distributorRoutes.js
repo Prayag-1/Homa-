@@ -11,6 +11,7 @@ router.get('/admin', ctrl.adminGetDistributors);
 router.get('/admin/:id', ctrl.adminGetDistributor);
 router.post('/admin', validate(distributorSchema), ctrl.adminCreateDistributor);
 router.put('/admin/:id', validate(distributorUpdateSchema), ctrl.adminUpdateDistributor);
+router.delete('/admin/:id', ctrl.adminDeleteDistributor);
 router.patch('/admin/:id/toggle', ctrl.adminToggleDistributorActive);
 
 module.exports = router;

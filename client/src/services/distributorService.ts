@@ -99,3 +99,7 @@ export async function toggleDistributorActive(id: string): Promise<Distributor> 
   const response = await api.patch(`${ADMIN_BASE}/${id}/toggle`);
   return normalizeDistributor(unwrap(response));
 }
+
+export async function deleteDistributor(id: string): Promise<void> {
+  await api.delete(`${ADMIN_BASE}/${id}`);
+}

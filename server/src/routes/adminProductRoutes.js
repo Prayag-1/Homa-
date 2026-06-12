@@ -24,6 +24,7 @@ router.put(
   validate(updateProductSchema),
   ctrl.adminUpdateProduct,
 );
+router.delete('/:id', ctrl.adminDeleteProduct);
 router.patch('/:id/toggle-active', ctrl.adminToggleActive);
 router.patch('/:id/stock', ctrl.adminUpdateStock);
 router.patch('/:id/featured', ctrl.adminToggleFeatured);

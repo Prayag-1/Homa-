@@ -387,3 +387,33 @@ exports.adminToggleFeatured = async (req, res, next) => {
     next(err);
   }
 };
+
+exports.adminDeleteProduct = async (req, res, next) => {
+  try {
+    if (!isValidObjectId(req.params.id)) {
+      return next(new ApiError(404, 'Product not found'));
+    }
+
+    const product = await Product.findById(req.params.id);
+
+    if (!product) {
+      return next(new ApiError(404, 'Product not found'));
+    }
+
+    await Promise.all(
+      (product.images || [])
+        .filter((image) => image?.publicId)
+        .map((image) => cloudinary.uploader.destroy(image.publicId)),
+    );
+
+    await Product.deleteOne({ _id: product._id });
+
+    return res.json({
+      success: true,
+      data: null,
+      message: 'Product deleted successfully',
+    });
+  } catch (err) {
+    next(err);
+  }
+};

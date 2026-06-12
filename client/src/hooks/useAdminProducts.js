@@ -95,3 +95,19 @@ export const useToggleFeatured = () => {
     onError: () => toast.error('Failed to update featured status'),
   });
 };
+
+export const useDeleteProduct = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id) => api.delete(`/admin/products/${id}`).then((res) => res.data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-products'] });
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      toast.success('Product deleted successfully');
+    },
+    onError: (err) => {
+      toast.error(err.response?.data?.message || 'Failed to delete product');
+    },
+  });
+};

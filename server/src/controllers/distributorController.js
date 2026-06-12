@@ -217,3 +217,23 @@ exports.adminToggleDistributorActive = async (req, res, next) => {
     next(err);
   }
 };
+
+exports.adminDeleteDistributor = async (req, res, next) => {
+  try {
+    const distributor = await Distributor.findById(req.params.id);
+
+    if (!distributor) {
+      return next(new ApiError(404, 'Distributor not found'));
+    }
+
+    await Distributor.deleteOne({ _id: distributor._id });
+
+    return res.json({
+      success: true,
+      data: null,
+      message: 'Distributor deleted successfully',
+    });
+  } catch (err) {
+    next(err);
+  }
+};

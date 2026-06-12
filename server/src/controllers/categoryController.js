@@ -122,3 +122,20 @@ exports.adminToggleCategoryActive = async (req, res, next) => {
     next(err);
   }
 };
+
+exports.adminDeleteCategory = async (req, res, next) => {
+  try {
+    const category = await Category.findById(req.params.id);
+    if (!category) return next(new ApiError(404, 'Category not found'));
+
+    await Category.deleteOne({ _id: category._id });
+
+    return res.json({
+      success: true,
+      data: null,
+      message: 'Category deleted successfully',
+    });
+  } catch (err) {
+    next(err);
+  }
+};
