@@ -5,6 +5,7 @@ import { useAuth } from '../hooks/useAuth';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { AddressMapPicker } from '../components/shared';
+import HomaLogo from '../components/common/HomaLogo';
 
 const initialForm = {
   name: '',
@@ -108,19 +109,29 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 bg-[radial-gradient(circle_at_top,#f7e9de_0%,#f5f0ea_45%,#fdfaf7_100%)]">
-      <div className="w-full max-w-2xl rounded-3xl border border-black/10 bg-white/85 p-8 shadow-[0_24px_80px_rgba(26,20,16,0.12)] backdrop-blur">
-        <p className="mb-2 text-sm uppercase tracking-[0.35em] text-black/45">Create account</p>
-        <h1 className="font-display text-5xl font-semibold">Sign up</h1>
-        <p className="mt-3 text-sm text-black/65">
-          Choose email or phone verification, then enter the code to finish registration.
+    <div className="grid min-h-screen bg-homa-cream lg:grid-cols-[45%_55%]">
+      <aside className="sakura-pattern flex min-h-[260px] flex-col items-center justify-center bg-homa-red px-6 py-12 text-center text-white lg:min-h-screen">
+        <HomaLogo variant="white" size="lg" />
+        <p className="mt-6 max-w-sm font-heading text-2xl italic leading-snug text-white">
+          Your journey to beautiful skin starts here.
         </p>
+        <p className="mt-10 font-body text-[10px] font-bold uppercase tracking-[0.25em] text-white/50">
+          Japanese Health & Beauty Store
+        </p>
+      </aside>
 
-        {step === 'register' ? (
-          <form onSubmit={onRegister} className="mt-8 space-y-5">
-            <div className="grid gap-5 md:grid-cols-2">
+      <section className="flex items-center justify-center px-5 py-12 md:px-12">
+        <div className="w-full max-w-2xl rounded-[24px] bg-white p-8 shadow-[0_24px_80px_rgba(209,0,0,0.12)] md:p-12">
+          <h1 className="font-heading text-3xl font-semibold text-homa-black">Create Account</h1>
+          <p className="mt-3 font-body text-sm text-homa-grey">
+            Choose email or phone verification, then enter the code to finish registration.
+          </p>
+
+          {step === 'register' ? (
+            <form onSubmit={onRegister} className="mt-8 space-y-5">
+              <div className="grid gap-5 md:grid-cols-2">
               <Input label="Name" name="name" value={form.name} onChange={onChange} placeholder="John Doe" />
-              <Input label="Phone number" name="phoneNumber" value={form.phoneNumber} onChange={onChange} placeholder="+9779812345678" required />
+              <Input label="Phone number" name="phoneNumber" value={form.phoneNumber} onChange={onChange} placeholder="+97798XXXXXXX" required />
               <Input label="Password" name="password" type="password" value={form.password} onChange={onChange} placeholder="At least 8 characters" />
               <Input label="Birthday" name="birthday" type="date" value={form.birthday} onChange={onChange} />
               <Input label="Country" name="country" value={form.country} onChange={onChange} />
@@ -129,34 +140,36 @@ export default function Register() {
               <Input label="Postal Code" name="postalCode" value={form.postalCode} onChange={onChange} />
               <Input label="Address Line 1" name="line1" value={form.line1} onChange={onChange} />
               <Input label="Address Line 2" name="line2" value={form.line2} onChange={onChange} />
-            </div>
+              </div>
 
-            <AddressMapPicker
-              address={addressPreview}
-              title="Address preview"
-              description="Leaflet previews the location associated with the address details you entered."
-            />
+              <AddressMapPicker
+                address={addressPreview}
+                title="Address preview"
+                description="Leaflet previews the location associated with the address details you entered."
+              />
 
-            <div className="rounded-2xl border border-black/10 bg-black/5 p-4">
-              <p className="mb-3 text-sm font-medium">Verification method</p>
-              <div className="flex gap-4">
-                <label className="flex items-center gap-2 text-sm">
+              <div className="rounded-2xl border border-[#F0E8E8] bg-homa-blush/45 p-4">
+                <p className="mb-3 font-body text-sm font-semibold text-homa-black">Verification method</p>
+                <div className="flex gap-4">
+                  <label className="flex items-center gap-2 font-body text-sm text-homa-black">
                   <input
                     type="radio"
                     name="verificationMethod"
                     value="email"
                     checked={verificationMethod === 'email'}
                     onChange={() => setVerificationMethod('email')}
+                    className="accent-homa-red"
                   />
                   Email
                 </label>
-                <label className="flex items-center gap-2 text-sm">
+                <label className="flex items-center gap-2 font-body text-sm text-homa-black">
                   <input
                     type="radio"
                     name="verificationMethod"
                     value="phone"
                     checked={verificationMethod === 'phone'}
                     onChange={() => setVerificationMethod('phone')}
+                    className="accent-homa-red"
                   />
                   Phone
                 </label>
@@ -175,40 +188,41 @@ export default function Register() {
               </div>
             </div>
 
-            <Button type="submit" variant="primary" size="lg" loading={busy} className="w-full">
-              Register and send code
-            </Button>
-          </form>
-        ) : (
-          <form onSubmit={onVerify} className="mt-8 space-y-5">
-            <div className="rounded-2xl border border-black/10 bg-black/5 p-4 text-sm">
-              Code sent to <span className="font-medium">{verification.target || targetValue}</span>
-            </div>
-            <Input
-              label="Verification code"
-              name="code"
-              value={verification.code}
-              onChange={(event) => setVerification((current) => ({ ...current, code: event.target.value }))}
-              placeholder="6-digit code"
-            />
-            <div className="flex flex-col gap-3 md:flex-row">
               <Button type="submit" variant="primary" size="lg" loading={busy} className="w-full">
-                Verify account
+                Register and send code
               </Button>
-              <Button type="button" variant="outline" size="lg" loading={busy} onClick={onResend} className="w-full">
-                Resend code
-              </Button>
-            </div>
-          </form>
-        )}
+            </form>
+          ) : (
+            <form onSubmit={onVerify} className="mt-8 space-y-5">
+              <div className="rounded-2xl border border-[#F0E8E8] bg-homa-blush/45 p-4 font-body text-sm text-homa-black">
+                Code sent to <span className="font-semibold">{verification.target || targetValue}</span>
+              </div>
+              <Input
+                label="Verification code"
+                name="code"
+                value={verification.code}
+                onChange={(event) => setVerification((current) => ({ ...current, code: event.target.value }))}
+                placeholder="6-digit code"
+              />
+              <div className="flex flex-col gap-3 md:flex-row">
+                <Button type="submit" variant="primary" size="lg" loading={busy} className="w-full">
+                  Verify account
+                </Button>
+                <Button type="button" variant="outline" size="lg" loading={busy} onClick={onResend} className="w-full">
+                  Resend code
+                </Button>
+              </div>
+            </form>
+          )}
 
-        <p className="mt-6 text-center text-sm text-black/70">
-          Already have an account?{' '}
-          <Link to="/login" className="font-medium text-black underline underline-offset-4">
-            Login
-          </Link>
-        </p>
-      </div>
+          <p className="mt-6 text-center font-body text-sm text-homa-grey">
+            Already have an account?{' '}
+            <Link to="/login" className="font-semibold text-homa-red hover:underline">
+              Login
+            </Link>
+          </p>
+        </div>
+      </section>
     </div>
   );
 }

@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
+import HomaLogo from '../common/HomaLogo';
 
 const navItems = [
   { label: 'Dashboard', to: '/admin', icon: LayoutDashboard },
@@ -48,8 +49,8 @@ export default function AdminLayout({ title, breadcrumb = title, children }) {
         style={{ background: 'var(--admin-sidebar)', borderColor: 'var(--admin-border)' }}
       >
         <div className="border-b px-5 py-5" style={{ borderColor: 'var(--admin-border)' }}>
-          <div className="text-2xl font-black tracking-[0.18em]">HOMA</div>
-          <div className="mt-2 inline-flex border px-2 py-1 text-[10px] font-bold uppercase tracking-[0.12em]" style={{ borderColor: 'var(--admin-accent)', color: '#FCA5A5' }}>
+          <HomaLogo variant="white" size="sm" />
+          <div className="mt-3 inline-flex rounded-full bg-[var(--admin-accent)] px-2 py-1 font-body text-[10px] font-bold uppercase tracking-[0.12em] text-white">
             Admin
           </div>
         </div>
@@ -64,10 +65,10 @@ export default function AdminLayout({ title, breadcrumb = title, children }) {
                 end={item.to === '/admin'}
                 className={({ isActive }) =>
                   [
-                    'mb-1 flex h-10 items-center gap-3 border-l-4 px-4 text-sm font-semibold transition-colors',
+                    'mx-3 mb-1 flex h-10 items-center gap-3 rounded-lg px-4 font-body text-[13px] font-semibold transition-colors',
                     isActive
-                      ? 'border-[var(--admin-accent)] bg-[#24283A] text-[var(--admin-text)]'
-                      : 'border-transparent text-[var(--admin-muted)] hover:bg-[#222637] hover:text-[var(--admin-text)]',
+                      ? 'bg-[var(--admin-accent)] text-white'
+                      : 'text-[var(--admin-muted)] hover:bg-[rgba(209,0,0,0.1)] hover:text-[var(--admin-text)]',
                   ].join(' ')
                 }
               >
@@ -92,10 +93,10 @@ export default function AdminLayout({ title, breadcrumb = title, children }) {
       <div className="ml-[240px] flex min-h-screen flex-col">
         <header
           className="sticky top-0 z-20 flex h-16 items-center justify-between border-b px-6"
-          style={{ background: 'var(--admin-bg)', borderColor: 'var(--admin-border)' }}
+          style={{ background: 'var(--admin-card)', borderColor: 'var(--admin-border)' }}
         >
           <div>
-            <h1 className="text-xl font-bold">{title}</h1>
+            <h1 className="font-heading text-[22px] font-semibold">{title}</h1>
             <div className="mt-1 text-xs" style={{ color: 'var(--admin-muted)' }}>
               Admin &gt; {breadcrumb}
             </div>
@@ -108,7 +109,7 @@ export default function AdminLayout({ title, breadcrumb = title, children }) {
                 Administrator
               </div>
             </div>
-            <div className="flex h-9 w-9 items-center justify-center bg-[var(--admin-accent)] text-sm font-black">
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[var(--admin-accent)] text-sm font-black text-white">
               {getInitials(user?.name)}
             </div>
           </div>

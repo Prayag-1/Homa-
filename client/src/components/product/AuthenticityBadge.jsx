@@ -7,16 +7,16 @@ const AuthenticityBadge = () => {
   return (
     <div className="relative inline-block">
       <div
-        className="border border-red-600 px-4 py-3 flex items-center gap-3 cursor-help"
+        className="flex cursor-help items-center gap-3 rounded-lg border border-homa-red bg-white px-4 py-3"
         onMouseEnter={() => setShowTooltip(true)}
         onMouseLeave={() => setShowTooltip(false)}
       >
-        <Shield size={16} className="text-red-600 flex-shrink-0" />
+        <Shield size={16} className="flex-shrink-0 text-homa-red" />
         <div>
-          <p className="font-body text-sm font-medium text-black">
+          <p className="font-body text-sm font-semibold text-homa-red">
             Authenticity Verified
           </p>
-          <p className="font-body text-xs text-gray-600">
+          <p className="font-body text-xs text-homa-red/80">
             Direct import from Japan
           </p>
         </div>
@@ -24,10 +24,10 @@ const AuthenticityBadge = () => {
 
       {/* Tooltip */}
       {showTooltip && (
-        <div className="absolute bottom-full mb-2 left-0 bg-black text-white text-xs font-body px-3 py-2 rounded z-10 whitespace-nowrap">
+        <div className="absolute bottom-full left-0 z-10 mb-2 whitespace-nowrap rounded bg-homa-black px-3 py-2 font-body text-xs text-white">
           All HOMA products are sourced directly from certified Japanese
           manufacturers.
-          <div className="absolute top-full left-2 w-2 h-2 bg-black transform rotate-45" />
+          <div className="absolute left-2 top-full h-2 w-2 rotate-45 bg-homa-black" />
         </div>
       )}
     </div>

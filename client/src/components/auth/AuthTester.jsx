@@ -223,7 +223,7 @@ export default function AuthTester() {
             <FieldGroup title="1. Register">
               <div className="grid gap-4 md:grid-cols-2">
                 <Input label="Name" name="name" value={registerData.name} onChange={setField(setRegisterData)} placeholder="John Doe" />
-                <Input label="Phone Number" name="phoneNumber" value={registerData.phoneNumber} onChange={setField(setRegisterData)} placeholder="+9779812345678" />
+                <Input label="Phone Number" name="phoneNumber" value={registerData.phoneNumber} onChange={setField(setRegisterData)} placeholder="+97798XXXXXXX" />
                 <Input label="Password" name="password" type="password" value={registerData.password} onChange={setField(setRegisterData)} placeholder="Minimum 8 characters" />
                 <Input label="Birthday" name="birthday" type="date" value={registerData.birthday} onChange={setField(setRegisterData)} />
                 <Input label="Address Line 1" name="line1" value={registerData.line1} onChange={setField(setRegisterData)} placeholder="Street, house, apartment" />
@@ -245,7 +245,7 @@ export default function AuthTester() {
 
             <FieldGroup title="2. Verify phone">
               <div className="grid gap-4 md:grid-cols-2">
-                <Input label="Phone Number" name="phoneNumber" value={verifyData.phoneNumber} onChange={setField(setVerifyData)} placeholder="+9779812345678" />
+                <Input label="Phone Number" name="phoneNumber" value={verifyData.phoneNumber} onChange={setField(setVerifyData)} placeholder="+97798XXXXXXX" />
                 <Input label="OTP Code" name="code" value={verifyData.code} onChange={setField(setVerifyData)} placeholder="6-digit code" />
               </div>
               <div className="flex flex-col gap-3 md:flex-row">
@@ -260,7 +260,7 @@ export default function AuthTester() {
 
             <FieldGroup title="3. Login">
               <div className="grid gap-4 md:grid-cols-2">
-                <Input label="Phone Number" name="phoneNumber" value={loginData.phoneNumber} onChange={setField(setLoginData)} placeholder="+9779812345678" />
+                <Input label="Phone Number" name="phoneNumber" value={loginData.phoneNumber} onChange={setField(setLoginData)} placeholder="+97798XXXXXXX" />
                 <Input label="Password" name="password" type="password" value={loginData.password} onChange={setField(setLoginData)} placeholder="Your password" />
               </div>
               <Button type="button" variant="primary" size="lg" loading={busy === 'login'} onClick={handleLogin} className="w-full">

@@ -8,6 +8,7 @@ import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
 import Navbar from './components/layout/Navbar';
 import Footer from './components/layout/Footer';
+import AnnouncementBar from './components/layout/AnnouncementBar';
 import CartDrawer from './components/cart/CartDrawer';
 import WhatsAppButton from './components/common/WhatsAppButton';
 import ErrorBoundary from './components/common/ErrorBoundary';
@@ -73,7 +74,7 @@ const routeFallback = (
         width: 32,
         height: 32,
         border: '2px solid #E5E7EB',
-        borderTop: '2px solid #C8432B',
+        borderTop: '2px solid #D10000',
         borderRadius: '50%',
         animation: 'spin 0.7s linear infinite',
       }}
@@ -94,6 +95,7 @@ function AppRoutes() {
 
   return (
     <>
+      {!isAdminRoute && <AnnouncementBar />}
       {!isAdminRoute && <Navbar onCartOpen={() => setCartOpen(true)} />}
       {!isAdminRoute && <div style={{ height: '72px' }} aria-hidden="true" />}
       <main>
@@ -101,6 +103,7 @@ function AppRoutes() {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/user/dashboard" element={<Dashboard />} />
+            <Route path="/account" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/shop" element={<ErrorBoundary><Catalog /></ErrorBoundary>} />
             <Route path="/products/:id" element={<ErrorBoundary><ProductDetail /></ErrorBoundary>} />
             <Route path="/blog" element={<ErrorBoundary><UserBlogListPage /></ErrorBoundary>} />
@@ -108,6 +111,7 @@ function AppRoutes() {
             <Route path="/about" element={<ErrorBoundary><About /></ErrorBoundary>} />
             <Route path="/faq" element={<ErrorBoundary><FAQPage /></ErrorBoundary>} />
             <Route path="/skin-quiz" element={<ErrorBoundary><SkinQuizPage /></ErrorBoundary>} />
+            <Route path="/quiz" element={<ErrorBoundary><SkinQuizPage /></ErrorBoundary>} />
             <Route path="/authenticity" element={<ErrorBoundary><ProductAuthenticityPage /></ErrorBoundary>} />
             <Route path="/distributors" element={<ErrorBoundary><Distributors /></ErrorBoundary>} />
             <Route path="/distributors/:id/map" element={<ErrorBoundary><DistributorMapPage /></ErrorBoundary>} />

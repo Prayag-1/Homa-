@@ -155,14 +155,14 @@ export default function AdminSiteSettings() {
   const updateAnnouncement = useUpdateAnnouncement();
   const updateFooter = useUpdateFooter();
   const [whatsapp, setWhatsapp] = useState({ phoneNumber: '', prefilledMessage: '', isEnabled: false });
-  const [announcement, setAnnouncement] = useState({ text: '', link: '', bgColor: '#C8432B', textColor: '#FFFFFF', isActive: false });
+  const [announcement, setAnnouncement] = useState({ text: '', link: '', bgColor: '#D10000', textColor: '#FFFFFF', isActive: false });
   const [footer, setFooter] = useState(emptyFooter);
   const [initialSnapshot, setInitialSnapshot] = useState('');
 
   useEffect(() => {
     if (!settings) return;
     const nextWhatsApp = settings.whatsapp || { phoneNumber: '', prefilledMessage: '', isEnabled: false };
-    const nextAnnouncement = settings.announcementBar || { text: '', link: '', bgColor: '#C8432B', textColor: '#FFFFFF', isActive: false };
+    const nextAnnouncement = settings.announcementBar || { text: '', link: '', bgColor: '#D10000', textColor: '#FFFFFF', isActive: false };
     const nextFooter = normalizeFooter(settings.footer);
     setWhatsapp(nextWhatsApp);
     setAnnouncement(nextAnnouncement);
@@ -263,7 +263,7 @@ export default function AdminSiteSettings() {
                 className="admin-button admin-button-primary"
                 type="button"
                 disabled={updateWhatsApp.isPending || (whatsapp.isEnabled && !whatsapp.phoneNumber)}
-                onClick={() => updateWhatsApp.mutate({ ...whatsapp, phoneNumber: whatsapp.phoneNumber || '+9779800000000' })}
+                onClick={() => updateWhatsApp.mutate({ ...whatsapp, phoneNumber: whatsapp.phoneNumber })}
               >
                 {updateWhatsApp.isPending ? <Spinner size="sm" color="currentColor" /> : <Save size={16} />}
                 Save

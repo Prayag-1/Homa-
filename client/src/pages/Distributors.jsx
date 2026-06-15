@@ -174,7 +174,7 @@ export default function Distributors() {
                   <a
                     href={directionsUrl}
                     target="_blank"
-                    rel="noreferrer"
+                    rel="noopener noreferrer"
                     className="mt-4 inline-flex items-center gap-2 rounded-full bg-black px-4 py-2 text-sm font-medium text-white transition hover:bg-black/85"
                   >
                     Get directions

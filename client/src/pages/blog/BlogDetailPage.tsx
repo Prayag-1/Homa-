@@ -275,6 +275,7 @@ export default function BlogDetailPage() {
                   {isHtmlContent(blog.content) ? (
                     <div
                       className="space-y-5 text-[17px] leading-8 text-black/78"
+                      // Admin-authored CMS HTML content.
                       dangerouslySetInnerHTML={{ __html: blog.content }}
                     />
                   ) : (

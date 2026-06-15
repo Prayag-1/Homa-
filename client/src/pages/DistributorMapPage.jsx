@@ -99,7 +99,7 @@ export default function DistributorMapPage() {
                     <a
                       href={directionsUrl}
                       target="_blank"
-                      rel="noreferrer"
+                      rel="noopener noreferrer"
                       className="inline-flex items-center gap-2 rounded-full bg-black px-5 py-3 text-sm font-medium text-white transition hover:bg-black/85"
                     >
                       Get directions
@@ -108,7 +108,7 @@ export default function DistributorMapPage() {
                     <a
                       href={searchUrl}
                       target="_blank"
-                      rel="noreferrer"
+                      rel="noopener noreferrer"
                       className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-white px-5 py-3 text-sm font-medium text-black transition hover:border-black/20 hover:bg-black hover:text-white"
                     >
                       Open in Maps

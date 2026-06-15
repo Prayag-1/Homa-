@@ -284,6 +284,7 @@ export default function TransformationDetailPage() {
                 {isHtmlContent(story.content) ? (
                   <div
                     className="prose prose-lg max-w-none prose-headings:text-black prose-p:text-black/75 prose-a:text-black"
+                    // Admin-authored CMS HTML content.
                     dangerouslySetInnerHTML={{ __html: story.content }}
                   />
                 ) : (

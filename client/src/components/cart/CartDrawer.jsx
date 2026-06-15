@@ -1,9 +1,8 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
-import { X } from 'lucide-react';
+import { ShoppingBag, X } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 import QuantitySelector from '../product/QuantitySelector';
-import EmptyState from '../common/EmptyState';
 import { formatPrice } from '../../utils/formatPrice';
 
 export default function CartDrawer({ isOpen, onClose }) {
@@ -31,21 +30,26 @@ export default function CartDrawer({ isOpen, onClose }) {
           />
 
           <motion.aside
-            className="fixed right-0 top-0 z-[80] flex h-full w-full max-w-md flex-col bg-white shadow-2xl"
+            className="fixed right-0 top-0 z-[80] flex h-full w-full flex-col bg-white shadow-[-4px_0_32px_rgba(0,0,0,0.1)] sm:max-w-[420px]"
             initial={{ x: '100%' }}
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ type: 'tween', duration: 0.28, ease: 'easeOut' }}
             aria-label="Cart drawer"
           >
-            <header className="flex items-center justify-between border-b border-gray-200 px-5 py-4">
-              <h2 className="font-display text-2xl text-black">
-                Your Cart ({itemCount} {itemCount === 1 ? 'item' : 'items'})
-              </h2>
+            <header className="flex items-center justify-between bg-homa-red px-6 py-5">
+              <div className="flex items-center gap-3">
+                <h2 className="font-body text-[13px] font-bold uppercase tracking-[0.16em] text-white">
+                  Your Cart
+                </h2>
+                <span className="rounded-pill bg-white px-2.5 py-1 font-body text-xs font-bold text-homa-red">
+                  {itemCount} {itemCount === 1 ? 'item' : 'items'}
+                </span>
+              </div>
               <button
                 type="button"
                 onClick={onClose}
-                className="p-2 hover:bg-gray-100 transition-colors"
+                className="p-2 text-white transition-opacity hover:opacity-70"
                 aria-label="Close cart"
               >
                 <X size={20} />
@@ -53,29 +57,37 @@ export default function CartDrawer({ isOpen, onClose }) {
             </header>
 
             {items.length === 0 ? (
-              <div className="flex flex-1 items-center justify-center">
-                <EmptyState
-                  title="Your cart is empty"
-                  description="Add products to your cart before checking out."
-                  actionLabel="Shop Now"
-                  onAction={() => {
+              <div className="flex flex-1 flex-col items-center justify-center px-8 text-center">
+                <div className="mb-5 flex h-24 w-24 items-center justify-center rounded-full bg-homa-blush">
+                  <ShoppingBag size={40} className="text-homa-red" />
+                </div>
+                <h3 className="font-heading text-xl text-homa-black">Your cart is empty</h3>
+                <p className="mt-2 max-w-xs font-body text-sm text-homa-grey">
+                  Add products to your cart before checking out.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => {
                     onClose();
                     navigate('/shop');
                   }}
-                />
+                  className="mt-6 rounded-pill bg-homa-red px-6 py-3 font-body text-sm font-bold uppercase tracking-[0.1em] text-white transition hover:bg-homa-red-dark"
+                >
+                  Shop Now
+                </button>
               </div>
             ) : (
               <>
-                <div className="flex-1 overflow-y-auto px-5 py-4">
-                  <div className="space-y-5">
+                <div className="flex-1 overflow-y-auto">
+                  <div>
                     {items.map((item) => {
                       const id = item._id || item.id;
                       const image = item.images?.[0]?.url || item.image || '/placeholder.jpg';
                       const itemTotal = Number(item.price || 0) * Number(item.quantity || 0);
 
                       return (
-                        <div key={id} className="flex gap-4 border-b border-gray-100 pb-5">
-                          <Link to={`/products/${id}`} onClick={onClose} className="h-24 w-20 flex-shrink-0 overflow-hidden bg-gray-100">
+                        <div key={id} className="flex gap-4 border-b border-[#F0E8E8] px-6 py-4">
+                          <Link to={`/products/${id}`} onClick={onClose} className="h-[60px] w-[60px] flex-shrink-0 overflow-hidden rounded-lg bg-homa-blush">
                             <img
                               src={image}
                               alt={item.name}
@@ -88,13 +100,13 @@ export default function CartDrawer({ isOpen, onClose }) {
                           <div className="min-w-0 flex-1">
                             <div className="mb-2 flex items-start justify-between gap-3">
                               <div className="min-w-0">
-                                <p className="font-body text-xs font-semibold uppercase tracking-widest text-red-600">
+                                <p className="font-body text-[11px] font-bold uppercase tracking-[0.1em] text-homa-red">
                                   {item.brand}
                                 </p>
                                 <Link
                                   to={`/products/${id}`}
                                   onClick={onClose}
-                                  className="font-display text-lg leading-snug text-black hover:text-red-600"
+                                  className="font-heading text-sm leading-snug text-homa-black hover:text-homa-red"
                                 >
                                   {item.name}
                                 </Link>
@@ -102,7 +114,7 @@ export default function CartDrawer({ isOpen, onClose }) {
                               <button
                                 type="button"
                                 onClick={() => removeItem(id)}
-                                className="p-1 text-gray-500 hover:text-black"
+                                className="p-1 text-homa-grey transition hover:text-homa-red"
                                 aria-label={`Remove ${item.name}`}
                               >
                                 <X size={18} />
@@ -116,7 +128,7 @@ export default function CartDrawer({ isOpen, onClose }) {
                                 max={item.stock || 99}
                                 onChange={(qty) => updateQty(id, qty)}
                               />
-                              <p className="font-body text-sm font-bold text-black">
+                              <p className="font-body text-sm font-semibold text-homa-black">
                                 {formatPrice(itemTotal)}
                               </p>
                             </div>
@@ -127,17 +139,18 @@ export default function CartDrawer({ isOpen, onClose }) {
                   </div>
                 </div>
 
-                <footer className="border-t border-gray-200 px-5 py-5">
-                  <div className="space-y-2 font-body text-sm">
-                    <div className="flex justify-between text-gray-700">
+                <footer className="bg-homa-blush px-6 py-5">
+                  <div className="space-y-2 font-body text-[13px]">
+                    <div className="flex justify-between text-homa-grey">
                       <span>Subtotal</span>
-                      <span>{formatPrice(subtotal)}</span>
+                      <span className="text-homa-black">{formatPrice(subtotal)}</span>
                     </div>
-                    <div className="flex justify-between text-gray-700">
+                    <div className="flex justify-between text-homa-grey">
                       <span>VAT (13%)</span>
-                      <span>{formatPrice(vatAmount)}</span>
+                      <span className="text-homa-black">{formatPrice(vatAmount)}</span>
                     </div>
-                    <div className="flex justify-between pt-2 text-xl font-bold text-black">
+                    <p className="font-body text-[11px] italic text-homa-grey">VAT is calculated at 13%.</p>
+                    <div className="flex justify-between pt-2 font-body text-lg font-bold text-homa-black">
                       <span>Total</span>
                       <span>{formatPrice(grandTotal)}</span>
                     </div>
@@ -146,14 +159,14 @@ export default function CartDrawer({ isOpen, onClose }) {
                   <Link
                     to="/checkout"
                     onClick={onClose}
-                    className="mt-5 block w-full bg-black py-3 text-center font-body text-sm font-medium text-white hover:bg-gray-900 transition-colors"
+                    className="mt-5 block w-full rounded-pill bg-homa-red py-4 text-center font-body text-sm font-bold uppercase tracking-[0.1em] text-white transition-colors hover:bg-homa-red-dark"
                   >
                     Proceed to Checkout
                   </Link>
                   <Link
                     to="/shop"
                     onClick={onClose}
-                    className="mt-4 block text-center font-body text-sm text-gray-700 hover:text-black"
+                    className="mt-4 block text-center font-body text-sm text-homa-grey hover:text-homa-red"
                   >
                     Continue Shopping
                   </Link>

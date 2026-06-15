@@ -50,7 +50,7 @@ const StarRating = ({ rating = 0, count, size = 'md', interactive = false, onRat
       >
         <defs>
           <linearGradient id={`grad-${index}`} x1="0%" x2="100%">
-            <stop offset={`${fillPercentage * 100}%`} stopColor="#C8432B" />
+            <stop offset={`${fillPercentage * 100}%`} stopColor="#D10000" />
             <stop offset={`${fillPercentage * 100}%`} stopColor="#E5E7EB" />
           </linearGradient>
         </defs>
@@ -72,14 +72,14 @@ const StarRating = ({ rating = 0, count, size = 'md', interactive = false, onRat
         </div>
 
         {count && (
-          <span className="text-xs text-gray-600 font-body">
+          <span className="font-body text-xs text-homa-grey">
             ({count} {count === 1 ? 'review' : 'reviews'})
           </span>
         )}
       </div>
 
       {interactive && hoverRating > 0 && (
-        <p className="text-xs text-gray-600 font-body mt-1">
+        <p className="mt-1 font-body text-xs text-homa-grey">
           {labels[hoverRating]}
         </p>
       )}

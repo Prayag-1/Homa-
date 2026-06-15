@@ -2,6 +2,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ChevronDown, Heart, Menu, Search, ShoppingBag, X } from 'lucide-react';
+import HomaLogo from '../common/HomaLogo';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../hooks/useAuth';
 import { useScrollDirection } from '../../hooks/useScrollDirection';
@@ -23,8 +24,15 @@ const moreLinks = [
   { to: '/contact', label: 'Contact Us' },
 ];
 
-const navClass = 'font-body text-sm font-medium text-[#1A1410] transition-colors duration-200 hover:text-[#C8432B]';
-const iconClass = 'text-[#1A1410] transition-colors duration-200 hover:text-[#C8432B]';
+const navClass = 'relative font-body text-sm font-medium text-homa-black transition-colors duration-200 hover:text-homa-red';
+const iconClass = 'text-homa-black transition-colors duration-200 hover:text-homa-red';
+const mobileLinkClass = 'font-heading text-[32px] font-normal leading-tight text-white transition-opacity duration-200 hover:opacity-80';
+const mobileSubLinkClass = 'font-body text-base font-medium uppercase tracking-[0.14em] text-white transition-opacity duration-200 hover:opacity-80';
+
+function ActiveDot({ active }) {
+  if (!active) return null;
+  return <span className="mx-auto mt-0.5 block h-1 w-1 rounded-full bg-homa-red" aria-hidden="true" />;
+}
 
 export default function Navbar({ onCartOpen }) {
   const [searchOpen, setSearchOpen] = useState(false);
@@ -84,7 +92,7 @@ export default function Navbar({ onCartOpen }) {
     >
       <ShoppingBag size={mobile ? 22 : 20} />
       {itemCount > 0 && (
-        <span className="absolute -right-2 -top-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-[#C8432B] px-1 font-body text-[10px] font-bold leading-none text-white">
+        <span className="absolute -right-2 -top-2 flex h-5 min-w-5 items-center justify-center rounded-pill bg-homa-red px-1 font-body text-[10px] font-bold leading-none text-white">
           {cartCount}
         </span>
       )}
@@ -96,9 +104,9 @@ export default function Navbar({ onCartOpen }) {
       <motion.header
         className="fixed left-0 right-0 top-0 z-50 w-full"
         animate={{
-          backgroundColor: isTop ? 'rgba(253, 250, 247, 0.82)' : 'rgba(253, 250, 247, 0.95)',
-          borderBottomColor: isTop ? 'rgba(26, 20, 16, 0.04)' : 'rgba(26, 20, 16, 0.08)',
-          boxShadow: isTop ? '0 0 0 rgba(26, 20, 16, 0)' : '0 1px 20px rgba(26, 20, 16, 0.06)',
+          backgroundColor: isTop ? 'rgba(249, 245, 242, 0)' : 'rgba(249, 245, 242, 0.96)',
+          borderBottomColor: isTop ? 'rgba(209, 0, 0, 0)' : 'rgba(209, 0, 0, 0.1)',
+          boxShadow: isTop ? '0 0 0 rgba(209, 0, 0, 0)' : '0 1px 20px rgba(209, 0, 0, 0.06)',
         }}
         transition={{ duration: 0.2, ease: 'easeOut' }}
         style={{
@@ -107,9 +115,9 @@ export default function Navbar({ onCartOpen }) {
           backdropFilter: isTop ? 'none' : 'blur(12px)',
         }}
       >
-        <div className="mx-auto flex h-[72px] max-w-7xl items-center justify-between px-6 md:px-12">
-          <Link to="/" className="font-display text-[28px] font-semibold leading-none text-[#1A1410]">
-            HOMA
+        <div className="mx-auto flex h-[72px] max-w-7xl items-center justify-between px-5 md:px-12">
+          <Link to="/" aria-label="HOMA home">
+            <HomaLogo variant="red" size="sm" />
           </Link>
 
           <nav className="hidden items-center gap-8 md:flex">
@@ -117,24 +125,28 @@ export default function Navbar({ onCartOpen }) {
               <Link
                 key={link.to}
                 to={link.to}
-                className={`${navClass} ${isActive(link.to) ? 'text-[#C8432B]' : ''}`}
+                className={`${navClass} ${isActive(link.to) ? 'text-homa-red' : ''}`}
               >
                 {link.label}
+                <ActiveDot active={isActive(link.to)} />
               </Link>
             ))}
 
             <div ref={moreRef} className="relative">
               <button
                 type="button"
-                className={`inline-flex items-center gap-1 ${navClass} ${
-                  moreLinks.some((link) => isActive(link.to)) ? 'text-[#C8432B]' : ''
+                className={`inline-flex flex-col items-center ${navClass} ${
+                  moreLinks.some((link) => isActive(link.to)) ? 'text-homa-red' : ''
                 }`}
                 onClick={() => setMoreOpen((current) => !current)}
                 aria-expanded={moreOpen}
                 aria-haspopup="menu"
               >
-                More
-                <ChevronDown size={15} className={`transition-transform ${moreOpen ? 'rotate-180' : ''}`} />
+                <span className="inline-flex items-center gap-1">
+                  More
+                  <ChevronDown size={15} className={`transition-transform ${moreOpen ? 'rotate-180' : ''}`} />
+                </span>
+                <ActiveDot active={moreLinks.some((link) => isActive(link.to))} />
               </button>
 
               <AnimatePresence>
@@ -144,7 +156,7 @@ export default function Navbar({ onCartOpen }) {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -6 }}
                     transition={{ duration: 0.16, ease: 'easeOut' }}
-                    className="absolute left-0 top-full mt-5 w-56 border border-black/5 bg-white py-2 shadow-xl"
+                    className="absolute left-0 top-full mt-5 w-60 rounded-md border border-homa-red/10 bg-homa-cream py-2 shadow-[0_12px_32px_rgba(209,0,0,0.12)]"
                     role="menu"
                   >
                     {moreLinks.map((link) => (
@@ -152,7 +164,7 @@ export default function Navbar({ onCartOpen }) {
                         key={link.to}
                         to={link.to}
                         onClick={() => setMoreOpen(false)}
-                        className="block px-4 py-3 font-body text-sm font-medium text-[#1A1410] transition-colors hover:text-[#C8432B]"
+                        className="block px-4 py-3 font-body text-sm font-medium text-homa-black transition-colors hover:text-homa-red"
                         role="menuitem"
                       >
                         {link.label}
@@ -180,18 +192,18 @@ export default function Navbar({ onCartOpen }) {
 
             {user ? (
               <div className="flex items-center gap-3">
-                <span className="font-body text-sm font-medium text-[#1A1410]">
+                <span className="font-body text-sm font-medium text-homa-black">
                   Welcome, {user.name}
                 </span>
                 <Link
                   to="/user/dashboard"
-                  className="border border-black/10 px-4 py-2 font-body text-sm font-medium text-[#1A1410] transition-colors hover:border-[#C8432B] hover:text-[#C8432B]"
+                  className="rounded-pill border border-homa-red/20 px-4 py-2 font-body text-sm font-medium text-homa-black transition-colors hover:border-homa-red hover:text-homa-red"
                 >
                   Dashboard
                 </Link>
                 <button
                   type="button"
-                  className="bg-black px-4 py-2 font-body text-sm font-medium text-white transition-colors hover:bg-[#C8432B]"
+                  className="rounded-pill bg-homa-red px-4 py-2 font-body text-sm font-semibold text-white transition-colors hover:bg-homa-red-dark"
                   onClick={logout}
                 >
                   Logout
@@ -200,7 +212,7 @@ export default function Navbar({ onCartOpen }) {
             ) : (
               <Link
                 to="/login"
-                className="bg-black px-4 py-2 font-body text-sm font-medium text-white transition-colors hover:bg-[#C8432B]"
+                className="rounded-pill bg-homa-red px-4 py-2 font-body text-sm font-semibold text-white transition-colors hover:bg-homa-red-dark"
               >
                 Login
               </Link>
@@ -227,13 +239,13 @@ export default function Navbar({ onCartOpen }) {
               animate={{ height: 56, opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
               transition={{ duration: 0.2, ease: 'easeOut' }}
-              className="overflow-hidden border-b border-[#E5E7EB] bg-white"
+              className="overflow-hidden border-b-2 border-homa-red bg-homa-cream"
             >
               <div className="mx-auto flex h-14 max-w-7xl items-center gap-3 px-6 md:px-12">
-                <Search size={20} className="text-[#1A1410]" />
+                <Search size={20} className="text-homa-black" />
                 <input
                   autoFocus
-                  className="h-full flex-1 bg-transparent font-body text-sm text-[#1A1410] outline-none placeholder:text-gray-400"
+                  className="h-full flex-1 bg-transparent font-body text-sm text-homa-black outline-none placeholder:text-homa-grey"
                   value={searchValue}
                   onChange={(event) => setSearchValue(event.target.value)}
                   onKeyDown={(event) => {
@@ -255,7 +267,7 @@ export default function Navbar({ onCartOpen }) {
       <AnimatePresence>
         {mobileOpen && (
           <motion.div
-            className="fixed inset-0 z-[60] flex bg-[#1A1410] md:hidden"
+            className="sakura-pattern fixed inset-0 z-[60] flex bg-homa-red md:hidden"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -263,7 +275,7 @@ export default function Navbar({ onCartOpen }) {
           >
             <button
               type="button"
-              className="absolute right-6 top-6 text-white transition-colors duration-200 hover:text-[#C8432B]"
+              className="absolute right-6 top-6 z-10 text-white transition-opacity duration-200 hover:opacity-80"
               onClick={closeMobile}
               aria-label="Close menu"
             >
@@ -280,7 +292,7 @@ export default function Navbar({ onCartOpen }) {
                 >
                   <Link
                     to={link.to}
-                    className="font-display text-[30px] leading-tight text-white transition-colors duration-200 hover:text-[#C8432B]"
+                    className={mobileLinkClass}
                     onClick={closeMobile}
                   >
                     {link.label}
@@ -289,7 +301,7 @@ export default function Navbar({ onCartOpen }) {
               ))}
               <button
                 type="button"
-                className="font-display text-[30px] leading-tight text-white transition-colors duration-200 hover:text-[#C8432B]"
+                className={mobileSubLinkClass}
                 onClick={() => {
                   closeMobile();
                   setSearchOpen(true);
@@ -300,7 +312,7 @@ export default function Navbar({ onCartOpen }) {
               {user ? (
                 <button
                   type="button"
-                  className="font-display text-[30px] leading-tight text-white transition-colors duration-200 hover:text-[#C8432B]"
+                  className={mobileSubLinkClass}
                   onClick={handleLogout}
                 >
                   Logout
@@ -308,7 +320,7 @@ export default function Navbar({ onCartOpen }) {
               ) : (
                 <Link
                   to="/login"
-                  className="font-display text-[30px] leading-tight text-white transition-colors duration-200 hover:text-[#C8432B]"
+                  className={mobileSubLinkClass}
                   onClick={closeMobile}
                 >
                   Login

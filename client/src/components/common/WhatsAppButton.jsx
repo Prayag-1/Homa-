@@ -40,7 +40,7 @@ export default function WhatsAppButton() {
                 position: 'absolute',
                 bottom: '68px',
                 right: 0,
-                background: '#1A1410',
+                background: '#292828',
                 color: '#fff',
                 fontSize: '12px',
                 padding: '6px 12px',
@@ -59,7 +59,7 @@ export default function WhatsAppButton() {
                   height: 0,
                   borderLeft: '5px solid transparent',
                   borderRight: '5px solid transparent',
-                  borderTop: '5px solid #1A1410',
+                  borderTop: '5px solid #292828',
                 }}
               />
             </motion.div>

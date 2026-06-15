@@ -82,37 +82,43 @@ const Catalog = () => {
     : 'Browse authentic Japanese skincare products in Nepal. Hydrators, serums, toners, sunscreens and more. Direct import from Japan.';
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-homa-cream">
       <Helmet>
         <title>{seoTitle}</title>
         <meta name="description" content={seoDescription} />
         <link rel="canonical" href={`${window.location.origin}/shop`} />
       </Helmet>
-      {/* Page Header */}
-      <div className="border-b border-gray-200 mb-8">
-        <div className="max-w-7xl mx-auto px-4 py-10">
-          <h1 className="font-display text-4xl md:text-5xl text-black mb-2">
+      <div className="sakura-pattern bg-homa-red px-5 py-12 text-white md:px-12">
+        <div className="mx-auto max-w-7xl">
+          <div className="mb-5 font-body text-xs text-white/75">
+            <span>Home</span>
+            <span className="mx-2">/</span>
+            <span>Shop</span>
+          </div>
+          <p className="font-body text-[11px] font-bold uppercase tracking-[0.22em] text-white/70">
+            Our Collection
+          </p>
+          <h1 className="mt-3 font-heading text-5xl font-semibold text-white">
             All Products
           </h1>
-          <p className="font-body text-gray-600">
+          <p className="mt-3 font-body text-sm text-white/70">
             {total} products available
           </p>
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 pb-16">
+      <div className="mx-auto max-w-7xl px-5 py-8 md:px-12">
         {/* Mobile Filter Toggle */}
-        <div className="lg:hidden mb-6 flex justify-between items-center">
+        <div className="mb-6 flex items-center justify-between lg:hidden">
           <button
             type="button"
             onClick={() => setFilterDrawerOpen(true)}
-            className="flex items-center gap-2 border border-gray-300 px-4 py-2 text-black hover:border-gray-400 transition-colors"
+            className="flex items-center gap-2 rounded-pill border border-homa-red px-4 py-2 text-homa-red transition-colors hover:bg-homa-red hover:text-white"
           >
             <Menu size={18} />
             <span className="font-body text-sm">Filters</span>
           </button>
-          <span className="font-body text-xs text-gray-600">
+          <span className="font-body text-xs text-homa-grey">
             Showing {startProduct}–{endProduct} of {total}
           </span>
         </div>
@@ -120,14 +126,14 @@ const Catalog = () => {
         {/* Layout: Sidebar + Grid */}
         <div className="flex gap-8">
           {/* Desktop Sidebar */}
-          <div className="hidden lg:block w-80 flex-shrink-0">
+          <div className="hidden w-80 flex-shrink-0 lg:block">
             <FilterSidebar isOpen={true} />
           </div>
 
           {/* Mobile Sidebar Drawer */}
           {filterDrawerOpen && (
             <div
-              className="fixed inset-0 z-30 bg-black/30 lg:hidden"
+              className="fixed inset-0 z-30 bg-homa-black/45 lg:hidden"
               onClick={() => setFilterDrawerOpen(false)}
             >
               <div onClick={(e) => e.stopPropagation()}>
@@ -143,7 +149,7 @@ const Catalog = () => {
           <div className="flex-1">
             {/* Product Count - Desktop only */}
             <div className="hidden lg:block mb-6 text-right">
-              <p className="font-body text-sm text-gray-600">
+              <p className="font-body text-sm text-homa-grey">
                 Showing {startProduct}–{endProduct} of {total} products
               </p>
             </div>
@@ -151,13 +157,13 @@ const Catalog = () => {
             {/* Error State */}
             {isError && (
               <div className="py-16 text-center">
-                <p className="font-body text-gray-600 mb-4">
+                <p className="mb-4 font-body text-homa-grey">
                   Something went wrong. Try again.
                 </p>
                 <button
                   type="button"
                   onClick={() => refetch()}
-                  className="px-6 py-2 bg-black text-white font-body text-sm font-medium hover:bg-gray-900 transition-colors"
+                  className="rounded-pill bg-homa-red px-6 py-2 font-body text-sm font-semibold text-white transition-colors hover:bg-homa-red-dark"
                 >
                   Retry
                 </button>
@@ -166,7 +172,7 @@ const Catalog = () => {
 
             {/* Loading State */}
             {isLoading && (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
                 {Array.from({ length: 12 }).map((_, i) => (
                   <ProductCardSkeleton key={i} />
                 ))}
@@ -186,7 +192,7 @@ const Catalog = () => {
 
             {/* Product Grid */}
             {!isLoading && products.length > 0 && (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
                 {products.map(renderProduct)}
               </div>
             )}
@@ -199,7 +205,7 @@ const Catalog = () => {
                   type="button"
                   onClick={() => handlePageChange(currentPage - 1)}
                   disabled={currentPage === 1}
-                  className="p-2 border border-gray-300 hover:border-gray-400 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="rounded-pill border border-[#F0E8E8] bg-white p-2 text-homa-black transition-colors hover:border-homa-red hover:text-homa-red disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   <ChevronLeft size={18} />
                 </button>
@@ -210,10 +216,10 @@ const Catalog = () => {
                     key={page}
                     type="button"
                     onClick={() => handlePageChange(page)}
-                    className={`w-10 h-10 font-body text-sm ${
+                    className={`h-10 w-10 rounded-pill font-body text-sm ${
                       currentPage === page
-                        ? 'bg-black text-white'
-                        : 'border border-gray-300 text-black hover:border-gray-400'
+                        ? 'bg-homa-red text-white'
+                        : 'border border-[#F0E8E8] bg-white text-homa-black hover:border-homa-red hover:text-homa-red'
                     } transition-colors`}
                   >
                     {page}
@@ -225,7 +231,7 @@ const Catalog = () => {
                   type="button"
                   onClick={() => handlePageChange(currentPage + 1)}
                   disabled={currentPage === totalPages}
-                  className="p-2 border border-gray-300 hover:border-gray-400 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="rounded-pill border border-[#F0E8E8] bg-white p-2 text-homa-black transition-colors hover:border-homa-red hover:text-homa-red disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   <ChevronRight size={18} />
                 </button>

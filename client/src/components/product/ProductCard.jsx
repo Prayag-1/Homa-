@@ -37,10 +37,9 @@ const ProductCard = ({ product, showQuickAdd = true, showRemoveFromWishlist = fa
       to={`/products/${product._id}`}
       className="block group text-decoration-none"
     >
-      <div className="bg-white shadow-sm hover:shadow-md transition-shadow duration-300">
-        {/* Image Area - 65% */}
+      <div className="overflow-hidden rounded-2xl bg-white shadow-[0_2px_12px_rgba(0,0,0,0.06)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_32px_rgba(209,0,0,0.12)]">
         <div
-          className="relative w-full overflow-hidden bg-gray-100"
+          className="relative w-full overflow-hidden bg-homa-blush"
           style={{ aspectRatio: '3/4' }}
           onMouseEnter={() => {
             setHoverImage(true);
@@ -57,7 +56,7 @@ const ProductCard = ({ product, showQuickAdd = true, showRemoveFromWishlist = fa
             alt={product.name}
             loading="lazy"
             decoding="async"
-            className="w-full h-full object-cover transition-transform duration-400 ease-out"
+            className="h-full w-full object-cover transition-transform duration-[400ms] ease-out"
             style={{
               transform: hoverImage && !outOfStock ? 'scale(1.06)' : 'scale(1)',
             }}
@@ -67,20 +66,20 @@ const ProductCard = ({ product, showQuickAdd = true, showRemoveFromWishlist = fa
           <motion.button
             type="button"
             onClick={handleWishlistToggle}
-            className="absolute top-3 right-3 z-10 p-2 bg-white shadow-sm hover:shadow-md transition-all"
+            className="absolute right-3 top-3 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white shadow-[0_2px_8px_rgba(0,0,0,0.1)] transition-all hover:shadow-[0_4px_12px_rgba(0,0,0,0.14)]"
             whileTap={{ scale: 1.3 }}
             transition={{ type: 'tween', duration: 0.2 }}
           >
             <Heart
               size={20}
-              className={inWishlist ? 'fill-red-600 text-red-600' : 'text-gray-400'}
+              className={inWishlist ? 'fill-homa-red text-homa-red' : 'text-homa-grey'}
             />
           </motion.button>
 
           {/* Out of Stock Overlay */}
           {outOfStock && (
-            <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-              <span className="text-white font-body text-sm font-medium">
+            <div className="absolute inset-0 flex items-center justify-center bg-homa-black/60">
+              <span className="font-body text-[11px] font-bold uppercase tracking-[0.16em] text-white">
                 Out of Stock
               </span>
             </div>
@@ -95,7 +94,7 @@ const ProductCard = ({ product, showQuickAdd = true, showRemoveFromWishlist = fa
               animate={{ translateY: 0 }}
               exit={{ translateY: '100%' }}
               transition={{ duration: 0.3, ease: 'easeOut' }}
-              className="absolute bottom-0 left-0 right-0 bg-black text-white py-3 font-body font-medium text-sm hover:bg-gray-900 transition-colors"
+              className="absolute bottom-0 left-0 right-0 bg-homa-red py-3 font-body text-xs font-bold uppercase tracking-[0.1em] text-white transition-colors hover:bg-homa-red-dark"
             >
               Quick Add
             </motion.button>
@@ -109,22 +108,19 @@ const ProductCard = ({ product, showQuickAdd = true, showRemoveFromWishlist = fa
               animate={{ translateY: 0 }}
               exit={{ translateY: '100%' }}
               transition={{ duration: 0.3, ease: 'easeOut' }}
-              className="absolute bottom-0 left-0 right-0 bg-black text-white py-3 font-body font-medium text-sm hover:bg-gray-900 transition-colors"
+              className="absolute bottom-0 left-0 right-0 bg-homa-red py-3 font-body text-xs font-bold uppercase tracking-[0.1em] text-white transition-colors hover:bg-homa-red-dark"
             >
               Remove from Wishlist
             </motion.button>
           )}
         </div>
 
-        {/* Content Area - 35% */}
         <div className="p-4">
-          {/* Brand */}
-          <p className="text-xs font-body font-semibold tracking-widest uppercase text-red-600 mb-1">
+          <p className="mb-1 font-body text-[11px] font-bold uppercase tracking-[0.1em] text-homa-red">
             {product.brand}
           </p>
 
-          {/* Product Name */}
-          <h3 className="font-display text-lg leading-snug text-black mb-3 line-clamp-2">
+          <h3 className="mb-3 line-clamp-2 font-heading text-base leading-snug text-homa-black">
             {product.name}
           </h3>
 
@@ -139,11 +135,11 @@ const ProductCard = ({ product, showQuickAdd = true, showRemoveFromWishlist = fa
 
           {/* Price Row */}
           <div className="flex items-center gap-2 mb-3">
-            <span className="font-body font-bold text-black">
+            <span className="font-body text-lg font-semibold text-homa-black">
               {formatPrice(product.price)}
             </span>
             {product.comparePrice && (
-              <span className="font-body text-xs text-gray-500 line-through">
+              <span className="font-body text-sm text-homa-grey line-through">
                 {formatPrice(product.comparePrice)}
               </span>
             )}
@@ -155,7 +151,7 @@ const ProductCard = ({ product, showQuickAdd = true, showRemoveFromWishlist = fa
               {product.skinTypes.slice(0, 2).map((type) => (
                 <span
                   key={type}
-                  className="inline-block px-3 py-1 bg-gray-100 text-gray-700 text-xs font-body rounded-full"
+                  className="inline-block rounded-pill bg-homa-blush px-2 py-0.5 font-body text-[10px] font-bold uppercase tracking-[0.08em] text-homa-red"
                 >
                   {type}
                 </span>

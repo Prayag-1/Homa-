@@ -117,7 +117,7 @@ export default function ProductAuthenticityPage() {
       </section>
 
       <section className="mx-auto max-w-7xl px-4 pb-16 md:pb-20">
-        <div className="rounded-[2rem] border border-black/10 bg-[#1A1410] p-6 text-white shadow-[0_24px_80px_rgba(26,20,16,0.12)] md:p-8">
+        <div className="rounded-[2rem] border border-black/10 bg-[#292828] p-6 text-white shadow-[0_24px_80px_rgba(41,40,40,0.12)] md:p-8">
           <div className="max-w-3xl">
             <p className="text-xs uppercase tracking-[0.35em] text-white/45">Japanese quality standards</p>
             <h2 className="mt-3 font-display text-3xl md:text-4xl">Quality signals we highlight</h2>
@@ -175,7 +175,7 @@ export default function ProductAuthenticityPage() {
                 'Unrealistically low pricing compared with the category.',
               ].map((item) => (
                 <div key={item} className="flex items-start gap-3 rounded-2xl border border-black/10 bg-black/5 p-4">
-                  <AlertTriangle size={18} className="mt-0.5 text-[#C8432B]" />
+                  <AlertTriangle size={18} className="mt-0.5 text-[#D10000]" />
                   <p className="text-sm leading-6 text-black/70">{item}</p>
                 </div>
               ))}

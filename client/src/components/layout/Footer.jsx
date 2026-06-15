@@ -8,6 +8,7 @@ import {
   Youtube,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import HomaLogo from '../common/HomaLogo';
 import { usePublicSettings } from '../../hooks/useSiteSettings';
 
 function TikTokIcon(props) {
@@ -31,7 +32,7 @@ const sortLinks = (links = []) =>
     .sort((a, b) => Number(a.sortOrder || 0) - Number(b.sortOrder || 0));
 
 function FooterLink({ link }) {
-  const className = "inline-block text-white/70 transition duration-200 hover:translate-x-1 hover:text-white";
+  const className = 'inline-block font-body text-sm text-white transition duration-200 hover:translate-x-1 hover:underline';
 
   if (link.url.startsWith('/')) {
     return <Link to={link.url} className={className}>{link.label}</Link>;
@@ -47,14 +48,14 @@ function FooterLink({ link }) {
 function LinkColumn({ title, links }) {
   return (
     <div>
-      <h4 className="mb-5 font-body text-xs font-bold uppercase tracking-[0.22em] text-brand-red">{title}</h4>
-      <ul className="space-y-3 font-body text-sm">
+      <h4 className="mb-4 font-body text-[11px] font-bold uppercase tracking-[0.2em] text-white/60">{title}</h4>
+      <ul className="space-y-3">
         {links.length > 0 ? links.map((link) => (
           <li key={`${link.label}-${link.url}`}>
             <FooterLink link={link} />
           </li>
         )) : (
-          <li className="text-white/45">No links available</li>
+          <li className="font-body text-sm text-white/55">No links available</li>
         )}
       </ul>
     </div>
@@ -63,7 +64,7 @@ function LinkColumn({ title, links }) {
 
 function FooterSkeleton() {
   return (
-    <footer className="bg-[#1A1410] px-4 py-16 text-white">
+    <footer className="sakura-pattern bg-homa-red px-5 py-12 text-white md:px-12 md:py-16">
       <div className="mx-auto grid max-w-7xl grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4">
         {Array.from({ length: 4 }).map((_, index) => (
           <div key={index} className="space-y-4">
@@ -90,13 +91,15 @@ export default function Footer() {
   const socialEntries = Object.entries(footer.social || {}).filter(([, url]) => Boolean(url));
 
   return (
-    <footer className="bg-[#1A1410] text-white">
-      <div className="px-4 py-16 sm:px-6 lg:px-8">
+    <footer className="text-white">
+      <div className="sakura-pattern bg-homa-red px-5 py-12 md:px-12 md:py-16">
         <div className="mx-auto grid max-w-7xl grid-cols-1 gap-10 md:grid-cols-2 lg:grid-cols-4">
           <div>
-            <Link to="/" className="font-display text-5xl font-semibold text-brand-red">HOMA</Link>
+            <Link to="/" aria-label="HOMA home">
+              <HomaLogo variant="white" size="md" />
+            </Link>
             {footer.tagline && (
-              <p className="mt-5 max-w-xs font-body text-sm leading-6 text-white/70">{footer.tagline}</p>
+              <p className="mt-5 max-w-xs font-body text-sm leading-6 text-white/80">{footer.tagline}</p>
             )}
             {socialEntries.length > 0 && (
               <div className="mt-6 flex items-center gap-3">
@@ -109,10 +112,10 @@ export default function Footer() {
                       href={url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex h-9 w-9 items-center justify-center border border-white/10 text-white/70 transition duration-200 hover:border-brand-red hover:text-brand-red"
+                      className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/20 text-white transition duration-200 hover:opacity-70"
                       aria-label={platform}
                     >
-                      <Icon className="h-4 w-4" />
+                      <Icon className="h-5 w-5" />
                     </a>
                   );
                 })}
@@ -124,23 +127,23 @@ export default function Footer() {
           <LinkColumn title="Company" links={companyLinks} />
 
           <div>
-            <h4 className="mb-5 font-body text-xs font-bold uppercase tracking-[0.22em] text-brand-red">Get In Touch</h4>
-            <div className="space-y-4 font-body text-sm text-white/70">
+            <h4 className="mb-4 font-body text-[11px] font-bold uppercase tracking-[0.2em] text-white/60">Find Us</h4>
+            <div className="space-y-4 font-body text-sm text-white">
               {footer.contact?.address && (
                 <div className="flex gap-3">
-                  <MapPin size={17} className="mt-0.5 flex-shrink-0 text-brand-red" />
+                  <MapPin size={17} className="mt-0.5 flex-shrink-0 text-white" />
                   <span>{footer.contact.address}</span>
                 </div>
               )}
               {footer.contact?.phone && (
-                <a href={`tel:${footer.contact.phone}`} className="flex gap-3 transition hover:text-white">
-                  <Phone size={17} className="mt-0.5 flex-shrink-0 text-brand-red" />
+                <a href={`tel:${footer.contact.phone}`} className="flex gap-3 transition hover:underline">
+                  <Phone size={17} className="mt-0.5 flex-shrink-0 text-white" />
                   <span>{footer.contact.phone}</span>
                 </a>
               )}
               {footer.contact?.email && (
-                <a href={`mailto:${footer.contact.email}`} className="flex gap-3 transition hover:text-white">
-                  <Mail size={17} className="mt-0.5 flex-shrink-0 text-brand-red" />
+                <a href={`mailto:${footer.contact.email}`} className="flex gap-3 transition hover:underline">
+                  <Mail size={17} className="mt-0.5 flex-shrink-0 text-white" />
                   <span>{footer.contact.email}</span>
                 </a>
               )}
@@ -149,7 +152,7 @@ export default function Footer() {
                   href={whatsapp.waUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 rounded-full bg-[#25D366] px-4 py-2 font-body text-sm font-bold text-white transition hover:brightness-110"
+                  className="inline-flex items-center gap-2 rounded-pill bg-[#25D366] px-5 py-2.5 font-body text-sm font-bold text-white transition hover:brightness-110"
                 >
                   <MessageCircle size={17} />
                   Chat on WhatsApp
@@ -160,19 +163,19 @@ export default function Footer() {
         </div>
       </div>
 
-      <div className="border-t border-white/10 px-4 py-5 sm:px-6 lg:px-8">
-        <div className="mx-auto grid max-w-7xl grid-cols-1 items-center gap-4 text-center font-body text-xs text-white/55 md:grid-cols-3">
-          <div className="md:text-left">{footer.copyright}</div>
+      <div className="border-t border-white/15 bg-homa-red-dark px-5 py-4 md:px-12">
+        <div className="mx-auto grid max-w-7xl grid-cols-1 items-center gap-4 text-center font-body text-xs text-white/80 md:grid-cols-3">
+          <div className="md:text-left">{footer.copyright || 'Copyright HOMA. All rights reserved.'}</div>
           <div className="flex flex-wrap items-center justify-center gap-2">
             {footer.showPaymentIcons && (
               <>
-                <span className="rounded-full bg-[#6EC207]/15 px-3 py-1 font-bold text-[#8CEB27]">eSewa</span>
-                <span className="rounded-full bg-[#2563EB]/15 px-3 py-1 font-bold text-[#93C5FD]">Fonepay</span>
-                <span className="rounded-full bg-[#F59E0B]/15 px-3 py-1 font-bold text-[#FCD34D]">COD</span>
+                <span className="rounded-pill bg-white px-3 py-1 font-bold text-homa-red">eSewa</span>
+                <span className="rounded-pill bg-white px-3 py-1 font-bold text-homa-red">Fonepay</span>
+                <span className="rounded-pill bg-white px-3 py-1 font-bold text-homa-red">COD</span>
               </>
             )}
           </div>
-         
+          <div className="md:text-right">Made with {'\u2665'} in Nepal</div>
         </div>
       </div>
     </footer>

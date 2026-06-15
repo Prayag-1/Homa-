@@ -5,6 +5,7 @@ import toast from 'react-hot-toast';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { z } from 'zod';
 import { useAuth } from '../../hooks/useAuth';
+import HomaLogo from '../../components/common/HomaLogo';
 import '../../styles/admin.css';
 
 const schema = z.object({
@@ -54,13 +55,18 @@ export default function AdminLogin() {
   };
 
   return (
-    <div className="admin-login flex min-h-screen items-center justify-center px-4">
-      <div className="admin-card w-full max-w-[420px] p-7">
+    <div className="admin-login sakura-pattern flex min-h-screen items-center justify-center px-4">
+      <div className="admin-card w-full max-w-[420px] rounded-2xl p-12">
         <div className="mb-7 text-center">
-          <div className="text-3xl font-black tracking-[0.2em]">HOMA</div>
-          <div className="mt-2 text-sm font-semibold uppercase tracking-[0.18em]" style={{ color: 'var(--admin-muted)' }}>
+          <div className="flex justify-center">
+            <HomaLogo variant="red" size="md" />
+          </div>
+          <div className="mt-4 font-body text-[11px] font-semibold uppercase tracking-[0.18em]" style={{ color: 'var(--admin-muted)' }}>
             Admin Portal
           </div>
+          <h1 className="mt-3 font-heading text-[28px] font-semibold" style={{ color: 'var(--admin-text)' }}>
+            Sign in
+          </h1>
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">

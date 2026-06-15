@@ -1,12 +1,11 @@
-import { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useContext, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { Heart } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useProduct, useProductReviews, useSubmitReview } from '../hooks/useProducts';
 import { useWishlist } from '../hooks/useWishlist';
 import { useAuth } from '../hooks/useAuth';
-import { useContext } from 'react';
 import { CartContext } from '../context/CartContext';
 import ImageGallery from '../components/product/ImageGallery';
 import StarRating from '../components/product/StarRating';
@@ -15,7 +14,10 @@ import QuantitySelector from '../components/product/QuantitySelector';
 import AccordionSection from '../components/product/AccordionSection';
 import EmptyState from '../components/common/EmptyState';
 import Spinner from '../components/ui/Spinner';
+import { Button } from '../components/ui/Button';
 import { formatPrice } from '../utils/formatPrice';
+
+const fieldClass = 'w-full rounded-lg border border-[#F0E8E8] px-3 py-2 font-body text-sm text-homa-black outline-none transition focus:border-homa-red';
 
 const ProductDetail = () => {
   const { id } = useParams();
@@ -25,19 +27,11 @@ const ProductDetail = () => {
   const { isInWishlist, toggle } = useWishlist();
   const [qty, setQty] = useState(1);
   const [reviewFormOpen, setReviewFormOpen] = useState(false);
-  const [reviewForm, setReviewForm] = useState({
-    rating: 0,
-    title: '',
-    body: '',
-  });
+  const [reviewForm, setReviewForm] = useState({ rating: 0, title: '', body: '' });
   const [reviewError, setReviewError] = useState('');
 
   const { data: product, isLoading, isError } = useProduct(id);
-  const {
-    data: reviews = [],
-    isLoading: reviewsLoading,
-    isError: reviewsError,
-  } = useProductReviews(id);
+  const { data: reviews = [], isLoading: reviewsLoading, isError: reviewsError } = useProductReviews(id);
   const submitReview = useSubmitReview(id);
 
   const handleAddToCart = async () => {
@@ -77,14 +71,9 @@ const ProductDetail = () => {
     }
   };
 
-  // SEO
-  const metaDescription = product?.description
-    ? product.description.substring(0, 155)
-    : 'Japanese skincare product from HOMA';
-
   if (isError) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center bg-homa-cream">
         <EmptyState
           title="Product not found"
           description="The product you're looking for doesn't exist or has been removed."
@@ -97,23 +86,20 @@ const ProductDetail = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-white">
-        <div className="max-w-7xl mx-auto px-4 py-16">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-            {/* Left: Image Skeleton */}
-            <div className="bg-gray-200 animate-pulse" style={{ aspectRatio: '1/1' }} />
-
-            {/* Right: Content Skeleton */}
+      <div className="min-h-screen bg-homa-cream">
+        <div className="mx-auto max-w-7xl px-5 py-16 md:px-12">
+          <div className="grid grid-cols-1 gap-12 md:grid-cols-2">
+            <div className="animate-pulse rounded-2xl bg-white" style={{ aspectRatio: '1/1' }} />
             <div className="space-y-6">
-              <div className="h-3 w-20 bg-gray-200 animate-pulse" />
+              <div className="h-3 w-20 animate-pulse bg-homa-blush" />
               <div className="space-y-2">
-                <div className="h-8 w-full bg-gray-200 animate-pulse" />
-                <div className="h-6 w-2/3 bg-gray-200 animate-pulse" />
+                <div className="h-8 w-full animate-pulse bg-homa-blush" />
+                <div className="h-6 w-2/3 animate-pulse bg-homa-blush" />
               </div>
-              <div className="h-4 w-32 bg-gray-200 animate-pulse" />
+              <div className="h-4 w-32 animate-pulse bg-homa-blush" />
               <div className="space-y-3">
-                <div className="h-6 w-32 bg-gray-200 animate-pulse" />
-                <div className="h-4 w-40 bg-gray-200 animate-pulse" />
+                <div className="h-6 w-32 animate-pulse bg-homa-blush" />
+                <div className="h-4 w-40 animate-pulse bg-homa-blush" />
               </div>
             </div>
           </div>
@@ -124,7 +110,7 @@ const ProductDetail = () => {
 
   if (!product) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center bg-homa-cream">
         <EmptyState
           title="Product not found"
           description="The product you're looking for doesn't exist or has been removed."
@@ -137,31 +123,15 @@ const ProductDetail = () => {
 
   const inWishlist = isInWishlist(product._id);
   const outOfStock = product.stock === 0;
-  const savingsAmount = product.comparePrice
-    ? product.comparePrice - product.price
-    : 0;
+  const savingsAmount = product.comparePrice ? product.comparePrice - product.price : 0;
 
-  // Accordion items
   const accordionItems = [
-    product.ingredients?.length > 0 && {
-      title: 'Ingredients',
-      content: product.ingredients.join(', '),
-    },
-    product.benefits?.length > 0 && {
-      title: 'Benefits',
-      content: product.benefits.join(', '),
-    },
-    {
-      title: 'How To Use',
-      content: product.howToUse || 'Apply a small amount to clean skin. Follow with moisturizer.',
-    },
-    product.certifications?.length > 0 && {
-      title: 'Certifications',
-      content: product.certifications.join(', '),
-    },
+    product.ingredients?.length > 0 && { title: 'Ingredients', content: product.ingredients.join(', ') },
+    product.benefits?.length > 0 && { title: 'Benefits', content: product.benefits.join(', ') },
+    { title: 'How To Use', content: product.howToUse || 'Apply a small amount to clean skin. Follow with moisturizer.' },
+    product.certifications?.length > 0 && { title: 'Certifications', content: product.certifications.join(', ') },
   ].filter(Boolean);
 
-  // Rating breakdown
   const totalRatings = reviews.length;
   const avgRating = product.ratings?.average || 0;
   const ratingCounts = {
@@ -175,54 +145,26 @@ const ProductDetail = () => {
   return (
     <>
       <Helmet>
-        <title>
-          {product.seo?.metaTitle || `${product.name} — HOMA Beauty`}
-        </title>
+        <title>{product.seo?.metaTitle || `${product.name} - HOMA Beauty`}</title>
         <meta
           name="description"
-          content={
-            product.seo?.metaDescription ||
-            product.description?.slice(0, 155) + '...'
-          }
+          content={product.seo?.metaDescription || `${product.description?.slice(0, 155)}...`}
         />
         {product.seo?.focusKeyword && (
-          <meta
-            name="keywords"
-            content={[
-              product.seo.focusKeyword,
-              ...(product.seo.keywords || []),
-            ].join(', ')}
-          />
+          <meta name="keywords" content={[product.seo.focusKeyword, ...(product.seo.keywords || [])].join(', ')} />
         )}
         {product.seo?.canonicalUrl ? (
           <link rel="canonical" href={product.seo.canonicalUrl} />
         ) : (
-          <link
-            rel="canonical"
-            href={`${window.location.origin}/products/${product._id}`}
-          />
+          <link rel="canonical" href={`${window.location.origin}/products/${product._id}`} />
         )}
         <meta property="og:type" content="product" />
-        <meta
-          property="og:title"
-          content={product.seo?.metaTitle || product.name}
-        />
-        <meta
-          property="og:description"
-          content={
-            product.seo?.metaDescription || product.description?.slice(0, 155)
-          }
-        />
+        <meta property="og:title" content={product.seo?.metaTitle || product.name} />
+        <meta property="og:description" content={product.seo?.metaDescription || product.description?.slice(0, 155)} />
         <meta property="og:image" content={product.images?.[0]?.url} />
-        <meta
-          property="og:url"
-          content={`${window.location.origin}/products/${product._id}`}
-        />
+        <meta property="og:url" content={`${window.location.origin}/products/${product._id}`} />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta
-          name="twitter:title"
-          content={product.seo?.metaTitle || product.name}
-        />
+        <meta name="twitter:title" content={product.seo?.metaTitle || product.name} />
         <meta name="twitter:image" content={product.images?.[0]?.url} />
         <script type="application/ld+json">
           {JSON.stringify({
@@ -236,10 +178,7 @@ const ProductDetail = () => {
               '@type': 'Offer',
               priceCurrency: 'NPR',
               price: product.price,
-              availability:
-                product.stock > 0
-                  ? 'https://schema.org/InStock'
-                  : 'https://schema.org/OutOfStock',
+              availability: product.stock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
               seller: { '@type': 'Organization', name: 'HOMA Beauty' },
             },
             aggregateRating:
@@ -254,67 +193,48 @@ const ProductDetail = () => {
         </script>
       </Helmet>
 
-      <div className="min-h-screen bg-white">
-        <div className="max-w-7xl mx-auto px-4 py-12">
-          {/* Product Layout */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 mb-16">
-            {/* Left: Images */}
-            <div>
-              <ImageGallery images={product.images} />
-            </div>
+      <div className="min-h-screen bg-homa-cream">
+        <div className="mx-auto max-w-7xl px-5 py-12 md:px-12">
+          <div className="mb-16 grid grid-cols-1 gap-12 md:grid-cols-2">
+            <ImageGallery images={product.images} />
 
-            {/* Right: Info */}
             <div>
-              {/* Brand */}
-              <p className="text-xs font-body font-semibold tracking-widest uppercase text-red-600 mb-2">
+              <p className="mb-2 font-body text-[11px] font-bold uppercase tracking-[0.15em] text-homa-red">
                 {product.brand}
               </p>
-
-              {/* Product Name */}
-              <h1 className="font-display text-4xl md:text-5xl text-black mb-4">
+              <h1 className="mb-4 font-heading text-2xl font-semibold text-homa-black md:text-4xl">
                 {product.name}
               </h1>
 
-              {/* Rating */}
               <div className="mb-6">
-                <StarRating
-                  rating={product.ratings?.average || 0}
-                  count={product.ratings?.count || 0}
-                  size="md"
-                />
+                <StarRating rating={product.ratings?.average || 0} count={product.ratings?.count || 0} size="md" />
               </div>
 
-              {/* Price Section */}
-              <div className="mb-6 pb-6 border-b border-gray-200">
-                <p className="font-body text-sm text-gray-600 mb-2">Price</p>
-                <div className="flex items-center gap-3 mb-2">
-                  <span className="font-display text-3xl font-bold text-black">
-                    {formatPrice(product.price)}
-                  </span>
+              <div className="mb-6 border-b border-[#F0E8E8] pb-6">
+                <p className="mb-2 font-body text-sm text-homa-grey">Price</p>
+                <div className="mb-2 flex items-center gap-3">
+                  <span className="font-body text-[28px] font-bold text-homa-black">{formatPrice(product.price)}</span>
                   {product.comparePrice && (
-                    <span className="font-body text-lg text-gray-500 line-through">
+                    <span className="font-body text-lg text-homa-grey line-through">
                       {formatPrice(product.comparePrice)}
                     </span>
                   )}
                 </div>
                 {savingsAmount > 0 && (
-                  <p className="font-body text-sm text-green-600">
+                  <p className="inline-flex rounded-pill bg-homa-red px-3 py-1 font-body text-xs font-bold uppercase tracking-[0.08em] text-white">
                     Save {formatPrice(savingsAmount)}
                   </p>
                 )}
               </div>
 
-              {/* Skin Types */}
               {product.skinTypes?.length > 0 && (
-                <div className="mb-6 pb-6 border-b border-gray-200">
-                  <p className="font-body text-xs text-gray-600 mb-3 uppercase tracking-wide">
-                    For Skin Types
-                  </p>
+                <div className="mb-6 border-b border-[#F0E8E8] pb-6">
+                  <p className="mb-3 font-body text-xs uppercase tracking-[0.12em] text-homa-grey">For Skin Types</p>
                   <div className="flex flex-wrap gap-2">
                     {product.skinTypes.map((type) => (
                       <span
                         key={type}
-                        className="px-3 py-1 bg-gray-100 text-gray-700 text-xs font-body rounded-full"
+                        className="rounded-pill bg-homa-blush px-3 py-1 font-body text-[10px] font-bold uppercase tracking-[0.08em] text-homa-red"
                       >
                         {type}
                       </span>
@@ -323,111 +243,84 @@ const ProductDetail = () => {
                 </div>
               )}
 
-              {/* Authenticity Badge */}
-              <div className="mb-6 pb-6 border-b border-gray-200">
+              <div className="mb-6 border-b border-[#F0E8E8] pb-6">
                 <AuthenticityBadge />
               </div>
 
-              {/* Quantity & Add to Cart */}
-              <div className="space-y-4 mb-6">
+              <div className="mb-6 space-y-4">
                 <div>
-                  <p className="font-body text-xs text-gray-600 mb-3 uppercase tracking-wide">
-                    Quantity
-                  </p>
-                  <QuantitySelector
-                    value={qty}
-                    onChange={setQty}
-                    min={1}
-                    max={product.stock}
-                  />
+                  <p className="mb-3 font-body text-xs uppercase tracking-[0.12em] text-homa-grey">Quantity</p>
+                  <QuantitySelector value={qty} onChange={setQty} min={1} max={product.stock} />
                 </div>
 
-                <button
+                <Button
                   type="button"
                   onClick={handleAddToCart}
                   disabled={outOfStock}
-                  className="w-full py-3 bg-black text-white font-body font-medium hover:bg-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  variant="primary"
+                  size="lg"
+                  className="w-full"
                 >
                   {outOfStock ? 'Out of Stock' : 'Add to Cart'}
-                </button>
+                </Button>
 
-                <button
+                <Button
                   type="button"
                   onClick={() => toggle(product._id)}
-                  className="w-full py-3 border border-gray-300 text-black font-body font-medium flex items-center justify-center gap-2 hover:border-gray-400 transition-colors"
+                  variant="outline"
+                  size="md"
+                  className="w-full"
                 >
-                  <Heart
-                    size={18}
-                    className={inWishlist ? 'fill-red-600 text-red-600' : 'text-gray-400'}
-                  />
+                  <Heart size={18} className={inWishlist ? 'fill-homa-red text-homa-red' : 'text-homa-grey'} />
                   {inWishlist ? 'In Wishlist' : 'Add to Wishlist'}
-                </button>
+                </Button>
               </div>
 
-              {/* Description */}
               {product.description && (
-                <div className="font-body text-sm text-gray-700 leading-relaxed">
-                  {product.description}
-                </div>
+                <div className="font-body text-sm leading-7 text-homa-grey">{product.description}</div>
               )}
             </div>
           </div>
 
-          {/* Accordion Section */}
           {accordionItems.length > 0 && (
-            <div className="mb-16 pb-16 border-b border-gray-200">
+            <div className="mb-16">
               <AccordionSection items={accordionItems} />
             </div>
           )}
 
-          {/* Reviews Section */}
-          <div>
-            <h2 className="font-display text-3xl text-black mb-8">
-              Customer Reviews
-            </h2>
+          <div className="rounded-2xl bg-homa-blush p-6 md:p-8">
+            <h2 className="mb-8 font-heading text-3xl text-homa-black">Customer Reviews</h2>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-              {/* Rating Summary */}
+            <div className="grid grid-cols-1 gap-12 md:grid-cols-3">
               <div className="md:col-span-1">
-                <div className="text-center mb-8">
-                  <p className="font-display text-6xl font-bold text-black mb-2">
+                <div className="mb-8 text-center">
+                  <p className="mb-2 font-heading text-[64px] font-bold leading-none text-homa-red">
                     {avgRating.toFixed(1)}
                   </p>
                   <div className="mb-2">
                     <StarRating rating={avgRating} size="md" />
                   </div>
-                  <p className="font-body text-sm text-gray-600">
-                    Based on {totalRatings} reviews
-                  </p>
+                  <p className="font-body text-sm text-homa-grey">Based on {totalRatings} reviews</p>
                 </div>
 
-                {/* Rating Breakdown */}
                 <div className="space-y-2">
                   {[5, 4, 3, 2, 1].map((rating) => (
                     <div key={rating} className="flex items-center gap-2">
-                      <span className="font-body text-xs text-gray-600 w-8">
-                        {rating}★
-                      </span>
-                      <div className="flex-1 h-2 bg-gray-200">
+                      <span className="w-8 font-body text-xs text-homa-grey">{rating} star</span>
+                      <div className="h-2 flex-1 bg-white">
                         <div
-                          className="h-full bg-black"
+                          className="h-full bg-homa-red"
                           style={{
-                            width:
-                              totalRatings > 0
-                                ? `${(ratingCounts[rating] / totalRatings) * 100}%`
-                                : '0%',
+                            width: totalRatings > 0 ? `${(ratingCounts[rating] / totalRatings) * 100}%` : '0%',
                           }}
                         />
                       </div>
-                      <span className="font-body text-xs text-gray-600 w-12 text-right">
-                        {ratingCounts[rating]}
-                      </span>
+                      <span className="w-12 text-right font-body text-xs text-homa-grey">{ratingCounts[rating]}</span>
                     </div>
                   ))}
                 </div>
               </div>
 
-              {/* Reviews List */}
               <div className="md:col-span-2">
                 {reviewsLoading ? (
                   <div className="flex justify-center py-10">
@@ -435,70 +328,54 @@ const ProductDetail = () => {
                   </div>
                 ) : reviewsError ? (
                   <div className="py-8 text-center">
-                    <p className="font-body text-sm text-gray-600">
-                      Reviews could not be loaded. Please try again later.
-                    </p>
+                    <p className="font-body text-sm text-homa-grey">Reviews could not be loaded. Please try again later.</p>
                   </div>
                 ) : reviews.length === 0 ? (
-                  <EmptyState
-                    title="No reviews yet"
-                    description="Be the first to review this product."
-                  />
+                  <EmptyState title="No reviews yet" description="Be the first to review this product." />
                 ) : (
-                  <div className="space-y-6">
+                  <div className="space-y-5">
                     {reviews.map((review) => (
-                      <div key={review._id} className="pb-6 border-b border-gray-200">
-                        <div className="flex items-start justify-between mb-2">
+                      <div key={review._id} className="rounded-xl bg-white p-5">
+                        <div className="mb-2 flex items-start justify-between">
                           <div>
-                            <p className="font-body font-semibold text-black">
+                            <p className="font-body font-semibold text-homa-black">
                               {review.user?.name || 'Anonymous'}
                             </p>
-                            <p className="font-body text-xs text-gray-600">
+                            <p className="font-body text-xs text-homa-grey">
                               {new Date(review.createdAt).toLocaleDateString()}
                             </p>
                           </div>
                           <StarRating rating={review.rating} size="sm" />
                         </div>
-                        {review.title && (
-                          <p className="font-body font-semibold text-black mb-1">
-                            {review.title}
-                          </p>
-                        )}
-                        <p className="font-body text-sm text-gray-700">
-                          {review.body}
-                        </p>
+                        {review.title && <p className="mb-1 font-body font-semibold text-homa-black">{review.title}</p>}
+                        <p className="font-body text-sm text-homa-grey">{review.body}</p>
                       </div>
                     ))}
                   </div>
                 )}
 
-                {/* Submit Review Form */}
                 {user ? (
-                  <div className="mt-8 pt-8 border-t border-gray-200">
-                    <h3 className="font-display text-lg text-black mb-4">
-                      Leave a Review
-                    </h3>
+                  <div className="mt-8 rounded-2xl bg-white p-6">
+                    <h3 className="mb-4 font-heading text-lg text-homa-black">Leave a Review</h3>
 
                     {!reviewFormOpen ? (
                       <button
                         type="button"
                         onClick={() => setReviewFormOpen(true)}
-                        className="px-4 py-2 border border-gray-300 text-black font-body text-sm hover:border-gray-400 transition-colors"
+                        className="rounded-pill border border-homa-red px-4 py-2 font-body text-sm font-semibold text-homa-red transition-colors hover:bg-homa-red hover:text-white"
                       >
                         Write a Review
                       </button>
                     ) : (
                       <div className="space-y-4">
                         {reviewError && (
-                          <div className="p-3 bg-red-50 border border-red-200 text-red-800 font-body text-sm">
+                          <div className="rounded-lg border border-homa-red/20 bg-homa-red-light p-3 font-body text-sm text-homa-red">
                             {reviewError}
                           </div>
                         )}
 
                         <div>
-                          <p className="font-body text-sm text-gray-600 mb-2">
-                            Rating *
-                          </p>
+                          <p className="mb-2 font-body text-sm text-homa-grey">Rating *</p>
                           <StarRating
                             rating={reviewForm.rating}
                             interactive
@@ -512,43 +389,32 @@ const ProductDetail = () => {
                         </div>
 
                         <div>
-                          <p className="font-body text-sm text-gray-600 mb-2">
-                            Title (optional)
-                          </p>
+                          <p className="mb-2 font-body text-sm text-homa-grey">Title (optional)</p>
                           <input
                             type="text"
                             maxLength={100}
                             value={reviewForm.title}
                             disabled={submitReview.isPending}
-                            onChange={(e) =>
-                              setReviewForm({ ...reviewForm, title: e.target.value })
-                            }
+                            onChange={(e) => setReviewForm({ ...reviewForm, title: e.target.value })}
                             placeholder="Summarize your experience"
-                            className="w-full border border-gray-300 px-3 py-2 font-body text-sm"
+                            className={fieldClass}
                           />
                         </div>
 
                         <div>
-                          <div className="flex justify-between items-center mb-2">
-                            <p className="font-body text-sm text-gray-600">
-                              Review *
-                            </p>
-                            <p className="font-body text-xs text-gray-500">
-                              {reviewForm.body.length}/1000
-                            </p>
+                          <div className="mb-2 flex items-center justify-between">
+                            <p className="font-body text-sm text-homa-grey">Review *</p>
+                            <p className="font-body text-xs text-homa-grey">{reviewForm.body.length}/1000</p>
                           </div>
                           <textarea
                             value={reviewForm.body}
                             disabled={submitReview.isPending}
                             onChange={(e) =>
-                              setReviewForm({
-                                ...reviewForm,
-                                body: e.target.value.substring(0, 1000),
-                              })
+                              setReviewForm({ ...reviewForm, body: e.target.value.substring(0, 1000) })
                             }
                             placeholder="Share your experience with this product..."
                             rows={4}
-                            className="w-full border border-gray-300 px-3 py-2 font-body text-sm resize-none"
+                            className={`${fieldClass} resize-none`}
                           />
                         </div>
 
@@ -557,7 +423,7 @@ const ProductDetail = () => {
                             type="button"
                             onClick={handleSubmitReview}
                             disabled={submitReview.isPending}
-                            className="flex-1 py-2 bg-black text-white font-body text-sm font-medium hover:bg-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+                            className="flex flex-1 items-center justify-center gap-2 rounded-pill bg-homa-red py-2 font-body text-sm font-semibold text-white transition-colors hover:bg-homa-red-dark disabled:cursor-not-allowed disabled:opacity-50"
                           >
                             {submitReview.isPending ? (
                               <>
@@ -574,7 +440,7 @@ const ProductDetail = () => {
                               setReviewForm({ rating: 0, title: '', body: '' });
                               setReviewError('');
                             }}
-                            className="px-4 py-2 border border-gray-300 text-black font-body text-sm hover:border-gray-400 transition-colors"
+                            className="rounded-pill border border-[#F0E8E8] px-4 py-2 font-body text-sm text-homa-black transition-colors hover:border-homa-red hover:text-homa-red"
                           >
                             Cancel
                           </button>
@@ -583,12 +449,9 @@ const ProductDetail = () => {
                     )}
                   </div>
                 ) : (
-                  <div className="mt-8 pt-8 border-t border-gray-200">
-                    <p className="font-body text-sm text-gray-600">
-                      <a
-                        href="/login"
-                        className="text-red-600 hover:underline font-semibold"
-                      >
+                  <div className="mt-8 rounded-2xl bg-white p-6">
+                    <p className="font-body text-sm text-homa-grey">
+                      <a href="/login" className="font-semibold text-homa-red hover:underline">
                         Log in
                       </a>{' '}
                       to leave a review

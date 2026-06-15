@@ -8,166 +8,165 @@ const featuredCategories = [
 ];
 
 const dealCards = [
-  { title: 'Brightening Starter Set', price: 'Rs. 2,450', note: 'Best for beginners' },
-  { title: 'Hydration Duo', price: 'Rs. 1,980', note: 'Daily moisture boost' },
-  { title: 'Sun Care Essentials', price: 'Rs. 1,250', note: 'SPF protection' },
+  { title: 'Brightening Starter Set', price: 'Rs. 2,450', note: 'New ritual' },
+  { title: 'Hydration Duo', price: 'Rs. 1,980', note: 'Best seller' },
+  { title: 'Sun Care Essentials', price: 'Rs. 1,250', note: 'Daily SPF' },
 ];
 
-const benefits = [
-  'Authentic Japanese beauty products',
-  'Fast delivery across Nepal',
-  'Simple routines for everyday use',
+const attributes = ['Skin Health', 'Transformation', 'Beauty', 'Feminine', 'Japanese', 'Luxury'];
+
+const stats = [
+  { value: '100%', label: 'Authentic imports' },
+  { value: '77+', label: 'Districts served' },
+  { value: '4.9', label: 'Customer rating' },
 ];
+
+const testimonials = [
+  { quote: 'My routine finally feels simple, premium, and consistent.', name: 'Aarati Shrestha' },
+  { quote: 'The textures are light, elegant, and perfect for daily use.', name: 'Mina Gurung' },
+  { quote: 'HOMA made Japanese skincare easy to discover in Nepal.', name: 'Priya Thapa' },
+];
+
+function SectionHeader({ label, title, light = false }) {
+  return (
+    <div className="mb-8">
+      <p className={`font-body text-[11px] font-bold uppercase tracking-[0.22em] ${light ? 'text-white/70' : 'text-homa-red'}`}>
+        {label}
+      </p>
+      <h2 className={`mt-3 font-heading text-4xl font-semibold leading-tight ${light ? 'text-white' : 'text-homa-black'}`}>
+        {title}
+      </h2>
+    </div>
+  );
+}
+
+function MiniProductCard({ item }) {
+  return (
+    <article className="min-w-[240px] rounded-2xl bg-white p-5 shadow-[0_2px_12px_rgba(0,0,0,0.06)]">
+      <div className="mb-5 flex aspect-[4/3] items-center justify-center rounded-xl bg-homa-blush">
+        <div className="h-24 w-14 rounded-t-full rounded-b-lg bg-homa-red shadow-[12px_10px_0_rgba(209,0,0,0.14)]" />
+      </div>
+      <p className="font-body text-[11px] font-bold uppercase tracking-[0.1em] text-homa-red">{item.note}</p>
+      <h3 className="mt-2 font-heading text-xl leading-snug text-homa-black">{item.title}</h3>
+      <p className="mt-4 font-body text-lg font-semibold text-homa-black">{item.price}</p>
+      <Link
+        to="/shop"
+        className="mt-5 inline-flex rounded-pill bg-homa-red px-5 py-2.5 font-body text-xs font-bold uppercase tracking-[0.1em] text-white transition hover:bg-homa-red-dark"
+      >
+        View deal
+      </Link>
+    </article>
+  );
+}
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_top,#fff6ea_0%,#f7eee6_40%,#fffdf9_100%)]">
-      <section className="mx-auto grid max-w-7xl gap-10 px-4 py-14 lg:grid-cols-[1.1fr_0.9fr] lg:py-20">
-        <div className="rounded-[2.25rem] border border-black/10 bg-white/80 p-8 shadow-[0_24px_80px_rgba(26,20,16,0.10)] backdrop-blur md:p-12">
-          <p className="text-sm uppercase tracking-[0.35em] text-black/45">Homa Nepal</p>
-          <h1 className="mt-4 max-w-3xl font-display text-5xl leading-tight md:text-7xl">
-            Japanese beauty, curated for Nepal.
-          </h1>
-          <p className="mt-6 max-w-2xl text-base leading-7 text-black/70 md:text-lg">
-            Discover clean, effective skincare and beauty essentials inspired by Japanese routines.
-            Homa Nepal brings a simple ecommerce experience with products built for everyday use,
-            brighter skin, and a calmer routine.
-          </p>
-
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <Link to="/shop" className="rounded-full bg-black px-6 py-3 text-center text-sm font-medium text-white transition hover:bg-black/85">
-              Shop now
-            </Link>
-            <Link to="/register" className="rounded-full border border-black/15 px-6 py-3 text-center text-sm font-medium text-black transition hover:bg-black/5">
-              Create account
-            </Link>
-          </div>
-
-          <div className="mt-10 grid gap-3 sm:grid-cols-3">
-            {benefits.map((item) => (
-              <div key={item} className="rounded-2xl border border-black/10 bg-black/5 px-4 py-3 text-sm text-black/75">
-                {item}
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="grid gap-4">
-          <div className="rounded-[2rem] border border-black/10 bg-[#18120f] p-7 text-white shadow-[0_20px_60px_rgba(26,20,16,0.18)]">
-            <p className="text-xs uppercase tracking-[0.35em] text-white/55">Featured deal</p>
-            <h2 className="mt-4 text-3xl font-semibold">Glow routine bundle</h2>
-            <p className="mt-3 text-sm leading-6 text-white/75">
-              A simple, beginner-friendly skincare bundle with cleanser, serum, and moisturizer.
+    <main className="min-h-screen bg-homa-cream">
+      <section className="sakura-pattern grid min-h-[85vh] items-center bg-homa-red px-5 py-16 text-white md:px-12 lg:grid-cols-2 lg:py-20">
+        <div className="mx-auto w-full max-w-7xl lg:col-span-2 lg:grid lg:grid-cols-2 lg:items-center lg:gap-12">
+          <div>
+            <p className="font-body text-[11px] font-bold uppercase tracking-[0.25em] text-white/70">
+              Japanese Health & Beauty Store
             </p>
-            <div className="mt-6 flex items-center justify-between">
-              <span className="text-2xl font-semibold">Rs. 3,490</span>
-              <button className="rounded-full bg-white px-4 py-2 text-sm font-medium text-black">
-                Add to cart
-              </button>
+            <h1 className="mt-5 max-w-2xl font-heading text-[40px] font-semibold leading-[1.1] text-white md:text-[64px]">
+              Authentic Japanese Skincare, Delivered to Nepal.
+            </h1>
+            <p className="mt-4 max-w-xl font-body text-base leading-7 text-white/85">
+              Curated skincare, beauty rituals, and trusted essentials for youthful, healthy skin.
+            </p>
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+              <Link
+                to="/shop"
+                className="rounded-pill bg-white px-8 py-4 text-center font-body text-sm font-bold uppercase tracking-[0.12em] text-homa-red transition hover:scale-[1.02]"
+              >
+                Shop Now
+              </Link>
+              <Link
+                to="/skin-quiz"
+                className="rounded-pill border-2 border-white px-8 py-4 text-center font-body text-sm font-bold uppercase tracking-[0.12em] text-white transition hover:scale-[1.02] hover:bg-white/10"
+              >
+                Take Skin Quiz
+              </Link>
             </div>
           </div>
 
-          <div className="rounded-[2rem] border border-black/10 bg-white/80 p-6">
-            <p className="text-sm uppercase tracking-[0.3em] text-black/45">Why Homa Nepal</p>
-            <h2 className="mt-3 text-2xl font-semibold">Simple, premium, practical</h2>
-            <p className="mt-3 text-sm leading-6 text-black/70">
-              A storefront designed for easy browsing, clean product discovery, and a polished shopping feel
-              without requiring sign-in.
-            </p>
+          <div className="mt-12 flex justify-center lg:mt-0">
+            <div className="relative h-[420px] w-full max-w-md">
+              <div className="absolute left-8 top-8 h-72 w-44 rounded-t-[5rem] rounded-b-[2rem] bg-white shadow-[0_28px_80px_rgba(41,40,40,0.25)]" />
+              <div className="absolute left-16 top-24 h-40 w-28 rounded-2xl bg-homa-blush" />
+              <div className="absolute right-8 top-20 h-80 w-48 rounded-t-[6rem] rounded-b-[2rem] bg-white/95 shadow-[0_28px_80px_rgba(41,40,40,0.22)]" />
+              <div className="absolute right-20 top-36 h-32 w-24 rounded-2xl bg-homa-red-light" />
+              <div className="absolute bottom-8 left-1/2 h-28 w-60 -translate-x-1/2 rounded-[50%] bg-homa-red-dark/30 blur-xl" />
+            </div>
           </div>
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-4 pb-10">
-        <div className="rounded-[2rem] border border-black/10 bg-white/80 p-8 md:p-10">
-          <div className="flex items-end justify-between gap-4">
-            <div>
-              <p className="text-sm uppercase tracking-[0.3em] text-black/45">Categories</p>
-              <h2 className="mt-2 text-3xl font-semibold">Shop by category</h2>
-            </div>
-            <Link to="/shop" className="text-sm font-medium text-black underline underline-offset-4">
-              Browse all
-            </Link>
-          </div>
+      <div className="overflow-hidden bg-homa-black py-4 text-white">
+        <div className="animate-[marquee_24s_linear_infinite] whitespace-nowrap font-body text-xs font-bold uppercase tracking-[0.15em]">
+          Authentic Japanese Products - Delivered Across Nepal - Sugi Pharmacy Certified - Skin Health & Beauty -
+          Authentic Japanese Products - Delivered Across Nepal - Sugi Pharmacy Certified - Skin Health & Beauty -
+        </div>
+      </div>
 
-          <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <section className="bg-homa-cream px-5 py-16 md:px-12">
+        <div className="mx-auto max-w-7xl">
+          <SectionHeader label="New Arrivals" title="Fresh rituals for everyday skin health" />
+          <div className="grid auto-cols-[minmax(240px,1fr)] grid-flow-col gap-5 overflow-x-auto pb-3 md:grid-flow-row md:grid-cols-3 md:overflow-visible lg:grid-cols-4">
+            {dealCards.map((item) => <MiniProductCard key={item.title} item={item} />)}
             {featuredCategories.map((item) => (
-              <article key={item.title} className="rounded-[1.5rem] border border-black/10 bg-[linear-gradient(180deg,#fff_0%,#fbf4ef_100%)] p-5">
-                <h3 className="text-xl font-semibold">{item.title}</h3>
-                <p className="mt-2 text-sm leading-6 text-black/65">{item.description}</p>
+              <article key={item.title} className="min-w-[240px] rounded-2xl bg-white p-5 shadow-[0_2px_12px_rgba(0,0,0,0.06)]">
+                <div className="mb-5 aspect-[4/3] rounded-xl bg-homa-blush" />
+                <p className="font-body text-[11px] font-bold uppercase tracking-[0.1em] text-homa-red">Category</p>
+                <h3 className="mt-2 font-heading text-xl leading-snug text-homa-black">{item.title}</h3>
+                <p className="mt-2 font-body text-sm leading-6 text-homa-grey">{item.description}</p>
               </article>
             ))}
           </div>
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-4 pb-14">
-        <div className="grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
-          <div className="rounded-[2rem] border border-black/10 bg-white/80 p-8 shadow-[0_24px_80px_rgba(26,20,16,0.08)]">
-            <p className="text-sm uppercase tracking-[0.3em] text-black/45">About Homa</p>
-            <h2 className="mt-3 text-3xl font-semibold">Built around a calmer shopping experience.</h2>
-            <p className="mt-4 text-sm leading-6 text-black/70">
-              Homa combines curated skincare, practical routines, and a growing network of trusted
-              partners so customers can buy with confidence across Nepal.
-            </p>
-            <div className="mt-6 flex flex-wrap gap-3">
-              <Link
-                to="/about"
-                className="rounded-full bg-black px-5 py-2.5 text-sm font-medium text-white transition hover:bg-black/85"
-              >
-                Learn more
-              </Link>
-              <Link
-                to="/distributors"
-                className="rounded-full border border-black/15 px-5 py-2.5 text-sm font-medium text-black transition hover:bg-black/5"
-              >
-                Find dealers
-              </Link>
-            </div>
-          </div>
-
-          <div className="rounded-[2rem] border border-black/10 bg-[linear-gradient(135deg,#18120f_0%,#2a1d18_100%)] p-8 text-white shadow-[0_24px_80px_rgba(26,20,16,0.16)]">
-            <p className="text-sm uppercase tracking-[0.3em] text-white/50">Authorized Dealers</p>
-            <h2 className="mt-3 text-3xl font-semibold">Buy from verified distributors.</h2>
-            <p className="mt-4 text-sm leading-6 text-white/75">
-              Discover Homa&apos;s authorized network, regional coverage, and local points of contact
-              for a reliable purchasing experience.
-            </p>
-            <div className="mt-6 grid gap-3 sm:grid-cols-3">
-              {[
-                { label: 'Verified', value: '100%' },
-                { label: 'Support', value: 'Local' },
-                { label: 'Coverage', value: 'Nationwide' },
-              ].map((item) => (
-                <div key={item.label} className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                  <div className="text-xs uppercase tracking-[0.25em] text-white/50">{item.label}</div>
-                  <div className="mt-2 text-xl font-semibold">{item.value}</div>
-                </div>
-              ))}
-            </div>
+      <section className="bg-homa-blush px-5 py-16 md:px-12">
+        <div className="mx-auto max-w-7xl">
+          <SectionHeader label="Best Sellers" title="Beloved formulas customers return to" />
+          <div className="grid gap-5 md:grid-cols-3">
+            {dealCards.map((deal) => <MiniProductCard key={`best-${deal.title}`} item={deal} />)}
           </div>
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-4 pb-14">
-        <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
-          <div className="rounded-[2rem] border border-black/10 bg-[#f4ece4] p-8">
-            <p className="text-sm uppercase tracking-[0.3em] text-black/45">New arrivals</p>
-            <h2 className="mt-3 text-3xl font-semibold">Latest deals</h2>
-            <p className="mt-3 text-sm leading-6 text-black/70">
-              Dummy ecommerce content you can later connect to real product data, promotions, or collections.
-            </p>
+      <section className="sakura-pattern bg-homa-red px-5 py-16 text-white md:px-12">
+        <div className="mx-auto max-w-7xl text-center">
+          <SectionHeader label="Brand Attributes" title="Japanese beauty, modern transformation" light />
+          <div className="mx-auto flex max-w-4xl flex-wrap justify-center gap-3">
+            {attributes.map((attribute) => (
+              <span key={attribute} className="rounded-pill bg-homa-red-dark px-6 py-3 font-body text-sm font-bold uppercase tracking-[0.12em] text-white">
+                {attribute}
+              </span>
+            ))}
           </div>
+        </div>
+      </section>
 
-          <div className="grid gap-4 md:grid-cols-3">
-            {dealCards.map((deal) => (
-              <article key={deal.title} className="rounded-[1.5rem] border border-black/10 bg-white/80 p-5">
-                <p className="text-xs uppercase tracking-[0.28em] text-black/45">{deal.note}</p>
-                <h3 className="mt-3 text-xl font-semibold">{deal.title}</h3>
-                <p className="mt-4 text-sm font-medium text-black/65">{deal.price}</p>
-                <button className="mt-5 rounded-full border border-black/15 px-4 py-2 text-sm font-medium transition hover:bg-black hover:text-white">
-                  View deal
-                </button>
+      <section className="bg-homa-black px-5 py-14 md:px-12">
+        <div className="mx-auto grid max-w-7xl gap-8 text-center md:grid-cols-3">
+          {stats.map((stat) => (
+            <div key={stat.label}>
+              <p className="font-heading text-[64px] font-semibold leading-none text-homa-red">{stat.value}</p>
+              <p className="mt-3 font-body text-sm font-bold uppercase tracking-[0.14em] text-white/70">{stat.label}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="bg-homa-cream px-5 py-16 md:px-12">
+        <div className="mx-auto max-w-7xl">
+          <SectionHeader label="Testimonials" title="Notes from the HOMA community" />
+          <div className="grid gap-5 md:grid-cols-3">
+            {testimonials.map((item) => (
+              <article key={item.name} className="rounded-2xl bg-white p-6 shadow-[0_2px_12px_rgba(0,0,0,0.06)]">
+                <p className="font-heading text-lg italic leading-8 text-homa-black">"{item.quote}"</p>
+                <p className="mt-5 font-body text-sm font-bold uppercase tracking-[0.1em] text-homa-red">{item.name}</p>
               </article>
             ))}
           </div>

@@ -47,6 +47,9 @@ const infoRows = [
   },
 ];
 
+const contactWhatsAppHandle = import.meta.env.VITE_WHATSAPP_HANDLE || 'WhatsApp';
+const contactWhatsAppUrl = import.meta.env.VITE_WHATSAPP_URL || '#';
+
 const socialLinks = [
   {
     name: 'Facebook',
@@ -64,8 +67,8 @@ const socialLinks = [
   },
   {
     name: 'WhatsApp',
-    handle: '+977 9863768725', //add homa number
-    href: 'https://wa.me/9779863768725',
+    handle: contactWhatsAppHandle,
+    href: contactWhatsAppUrl,
     color: '#25D366',
     icon: MessageCircle,
   },

@@ -1,11 +1,12 @@
 :root {
-  --admin-bg: #0F1117;
-  --admin-sidebar: #1A1D27;
-  --admin-card: #1F2232;
-  --admin-border: #2D3148;
-  --admin-text: #F9FAFB;
-  --admin-muted: #9CA3AF;
-  --admin-accent: #C8432B;
+  --admin-bg: #0D0A0A;
+  --admin-sidebar: #1A0808;
+  --admin-card: #1F1212;
+  --admin-border: #3D1515;
+  --admin-text: #F9F5F2;
+  --admin-muted: #9A8080;
+  --admin-accent: #D10000;
+  --admin-hover: #A80000;
   --admin-success: #10B981;
   --admin-warning: #F59E0B;
   --admin-error: #EF4444;
@@ -15,7 +16,7 @@
 .admin-login {
   background: var(--admin-bg);
   color: var(--admin-text);
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: var(--font-body);
 }
 
 .leaflet-container {
@@ -75,7 +76,7 @@
 .admin-card {
   background: var(--admin-card);
   border: 1px solid var(--admin-border);
-  border-radius: 0;
+  border-radius: 16px;
 }
 
 .admin-input,
@@ -83,8 +84,8 @@
 .admin-textarea {
   width: 100%;
   border: 1px solid var(--admin-border);
-  border-radius: 0;
-  background: #161925;
+  border-radius: 6px;
+  background: var(--admin-card);
   color: var(--admin-text);
   font-size: 14px;
   outline: none;
@@ -114,8 +115,8 @@
   justify-content: center;
   gap: 8px;
   border: 1px solid var(--admin-border);
-  border-radius: 0;
-  background: #171A25;
+  border-radius: 9999px;
+  background: var(--admin-card);
   color: var(--admin-text);
   font-size: 13px;
   font-weight: 600;
@@ -126,8 +127,8 @@
 }
 
 .admin-button:hover:not(:disabled) {
-  background: #24283A;
-  border-color: #3A405D;
+  background: rgba(209, 0, 0, 0.1);
+  border-color: var(--admin-accent);
 }
 
 .admin-button:disabled {
@@ -142,8 +143,8 @@
 }
 
 .admin-button-primary:hover:not(:disabled) {
-  background: #A93624;
-  border-color: #A93624;
+  background: var(--admin-hover);
+  border-color: var(--admin-hover);
 }
 
 .admin-button-danger {
@@ -187,10 +188,10 @@
   position: sticky;
   top: 0;
   z-index: 1;
-  background: #191C2A;
+  background: var(--admin-accent);
   border-bottom: 1px solid var(--admin-border);
-  color: var(--admin-muted);
-  font-size: 11px;
+  color: white;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.06em;
   padding: 11px 14px;
@@ -207,8 +208,12 @@
   vertical-align: middle;
 }
 
+.admin-table tbody tr:nth-child(even) {
+  background: rgba(209, 0, 0, 0.03);
+}
+
 .admin-table tbody tr:hover {
-  background: #24283A;
+  background: rgba(209, 0, 0, 0.08);
 }
 
 .admin-table tbody tr:last-child td {
@@ -240,6 +245,7 @@
   font-weight: 700;
   line-height: 1;
   padding: 5px 7px;
+  border-radius: 9999px;
   text-transform: uppercase;
 }
 

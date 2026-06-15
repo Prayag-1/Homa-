@@ -26,24 +26,24 @@ export default function RevenueLineChart({ data }) {
   return (
     <ResponsiveContainer width="100%" height={chartHeight}>
       <LineChart data={data}>
-        <CartesianGrid strokeDasharray="3 3" stroke="#2D3148" />
+        <CartesianGrid strokeDasharray="3 3" stroke="#3D1515" />
         <XAxis
           dataKey="date"
-          tick={{ fill: '#9CA3AF', fontSize: 11 }}
+          tick={{ fill: '#9A8080', fontSize: 11 }}
           tickFormatter={(date) => new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
         />
         <YAxis
-          tick={{ fill: '#9CA3AF', fontSize: 11 }}
+          tick={{ fill: '#9A8080', fontSize: 11 }}
           tickFormatter={(value) => `NPR ${(value / 1000).toFixed(0)}k`}
         />
         <Tooltip
-          contentStyle={{ background: '#1F2232', border: '1px solid #2D3148', borderRadius: 0, color: '#F9FAFB' }}
+          contentStyle={{ background: '#1F1212', border: '1px solid #3D1515', borderRadius: 8, color: '#F9F5F2' }}
           formatter={(value, name) => [
             name === 'orders' ? value.toLocaleString() : `NPR ${Number(value).toLocaleString('en-NP')}`,
             name === 'orders' ? 'Orders' : 'Revenue',
           ]}
         />
-        <Line type="monotone" dataKey="revenue" stroke="#C8432B" strokeWidth={2} dot={false} activeDot={{ r: 4 }} />
+        <Line type="monotone" dataKey="revenue" stroke="#D10000" strokeWidth={2} dot={{ fill: '#D10000' }} activeDot={{ r: 4, fill: '#D10000' }} />
       </LineChart>
     </ResponsiveContainer>
   );

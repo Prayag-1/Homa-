@@ -1,17 +1,25 @@
 import { memo } from 'react';
 
 const colorMap = {
-  green: 'bg-green-100 text-green-800',
-  red: 'bg-red-100 text-red-800',
-  blue: 'bg-blue-100 text-blue-800',
-  orange: 'bg-orange-100 text-orange-800',
-  grey: 'bg-gray-100 text-gray-800',
+  red: 'bg-homa-red text-white',
+  blush: 'bg-homa-blush text-homa-red',
+  grey: 'bg-[#F0F0F0] text-homa-grey',
+  black: 'bg-homa-black text-white',
+  green: 'bg-[#E8F5E9] text-[#2E7D32]',
+  orange: 'bg-[#FFF3E0] text-[#E65100]',
+  blue: 'bg-homa-red-light text-homa-red',
 };
 
-function BadgeComponent({ text, color = 'grey' }) {
+function BadgeComponent({ text, children, color = 'grey', className = '' }) {
   return (
-    <span className={`inline-block px-3 py-1 text-xs font-medium rounded-full ${colorMap[color]}`}>
-      {text}
+    <span
+      className={[
+        'inline-block rounded-pill px-2.5 py-[3px] font-body text-[11px] font-semibold uppercase tracking-[0.08em]',
+        colorMap[color] || colorMap.grey,
+        className,
+      ].join(' ')}
+    >
+      {children || text}
     </span>
   );
 }

@@ -1,14 +1,169 @@
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=DM+Sans:wght@400;500;600&display=swap');
+/* HOMA official brand tokens
+   Source: Homa Logo Final Files Brand Guide */
+
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap');
 
 :root {
-  --color-black:   #1A1410;
-  --color-red:     #C8432B;
-  --color-cream:   #F5F0EA;
-  --color-blush:   #E8CDBF;
-  --color-white:   #FDFAF7;
-  --font-display:  'Cormorant Garamond', serif;
-  --font-body:     'DM Sans', sans-serif;
+  /* Brand colors */
+  --homa-red: #D10000;
+  --homa-red-dark: #A80000;
+  --homa-red-light: #F5E0E0;
+  --homa-white: #FFFFFF;
+  --homa-grey: #7F7F7F;
+  --homa-off-black: #292828;
+
+  /* Background tones */
+  --homa-bg-cream: #F9F5F2;
+  --homa-bg-blush: #F5EEE9;
+  --homa-bg-pink: #F9EDE8;
+  --homa-bg-dark: #1A0000;
+
+  /* Typography */
+  --font-heading: 'Playfair Display', Georgia, serif;
+  --font-body: 'DM Sans', system-ui, sans-serif;
+
+  /* Legacy aliases mapped to the official palette */
+  --color-black: var(--homa-off-black);
+  --color-red: var(--homa-red);
+  --color-cream: var(--homa-bg-cream);
+  --color-blush: var(--homa-bg-blush);
+  --color-white: var(--homa-white);
+  --font-display: var(--font-heading);
+
+  /* Spacing scale */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 40px;
+  --space-2xl: 64px;
+  --space-3xl: 96px;
+
+  /* Border radius */
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 24px;
+  --radius-pill: 9999px;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 3px rgba(209, 0, 0, 0.08);
+  --shadow-md: 0 4px 16px rgba(209, 0, 0, 0.12);
+  --shadow-lg: 0 8px 32px rgba(209, 0, 0, 0.16);
+
+  /* Transitions */
+  --transition: all 0.2s ease;
+  --transition-slow: all 0.35s ease;
 }
 
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: var(--font-body); background-color: var(--color-cream); color: var(--color-black); }
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--homa-bg-cream);
+  color: var(--homa-off-black);
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  color: var(--homa-off-black);
+  line-height: 1.2;
+  font-weight: 600;
+}
+
+.sakura-pattern {
+  position: relative;
+  overflow: hidden;
+}
+
+.sakura-pattern::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 0;
+  width: 55%;
+  height: 100%;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 400' opacity='0.08'%3E%3Cpath fill='%23800000' d='M200 50 C220 30 250 40 240 70 C260 55 285 65 275 90 C295 80 310 100 295 120 C315 115 320 140 300 150 C315 165 305 190 285 185 C290 205 275 220 255 210 C250 230 230 235 220 215 C210 235 190 235 180 215 C170 235 150 230 145 210 C125 220 110 205 115 185 C95 190 85 165 100 150 C80 140 85 115 105 120 C90 100 105 80 125 90 C115 65 140 55 160 70 C150 40 180 30 200 50Z'/%3E%3Ccircle fill='%23800000' cx='200' cy='140' r='8'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 180px 180px;
+  pointer-events: none;
+}
+
+.sakura-pattern > * {
+  position: relative;
+  z-index: 1;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--homa-bg-cream);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--homa-red);
+  border-radius: 3px;
+}
+
+::selection {
+  background: var(--homa-red);
+  color: white;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse-red {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(209, 0, 0, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(209, 0, 0, 0);
+  }
+}
+
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
