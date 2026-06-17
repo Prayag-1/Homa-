@@ -1,6 +1,13 @@
 const crypto = require('crypto');
+const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const ApiError = require('../utils/ApiError');
 const { buildTokenPair } = require('../utils/authTokens');
+const {
+  sanitizeString,
+  validatePagination,
+} = require('../utils/queryHelpers');
+const { sanitizeString: sanitizeContentString } = require('../utils/sanitize');
 const {
   normalizePhoneNumber,
   normalizeEmail,
@@ -13,7 +20,7 @@ const { getMembershipTier } = require('../utils/loyalty');
 const cookieOptions = {
   httpOnly: true,
   secure: process.env.NODE_ENV === 'production',
-  sameSite: 'lax',
+  sameSite: 'strict',
   path: '/api/v1/auth',
   maxAge: 7 * 24 * 60 * 60 * 1000,
 };
@@ -35,6 +42,13 @@ const sanitizeUser = (user) => ({
   createdAt: user.createdAt,
   updatedAt: user.updatedAt,
 });
+
+const isStrongPassword = (pwd) => (
+  typeof pwd === 'string' &&
+  pwd.length >= 8 &&
+  /[A-Z]/.test(pwd) &&
+  /[0-9]/.test(pwd)
+);
 
 const createVerificationPayload = (target) => {
   const code = generateVerificationCode();
@@ -78,6 +92,13 @@ const register = async (req, res, next) => {
     const { name, email, phoneNumber, password, birthday, address, verificationMethod } = req.body;
     const normalizedEmail = normalizeEmail(email);
     const normalizedPhone = normalizePhoneNumber(phoneNumber);
+
+    if (!isStrongPassword(password)) {
+      return next(new ApiError(
+        400,
+        'Password must be at least 8 characters with one uppercase letter and one number',
+      ));
+    }
 
     if (!normalizedPhone) {
       return res.status(400).json({
@@ -314,7 +335,7 @@ const login = async (req, res, next) => {
     const user = await findUserByIdentifier(identifier);
 
     if (!user || !(await user.comparePassword(password))) {
-      return res.status(401).json({ success: false, message: 'Invalid credentials' });
+      return next(new ApiError(401, 'Invalid email or password'));
     }
 
     if (!user.isVerified) {
@@ -357,16 +378,16 @@ const adminGetUsers = async (req, res, next) => {
       role = 'user',
     } = req.query;
 
-    const pageNumber = Math.max(parseInt(page, 10) || 1, 1);
-    const pageSize = Math.min(Math.max(parseInt(limit, 10) || 20, 1), 100);
+    const { safePage: pageNumber, safeLimit: pageSize, skip } = validatePagination(page, limit, 100, 20);
     const query = {};
 
     if (role && role !== 'all') {
       query.role = role;
     }
 
-    if (search.trim()) {
-      const safeSearch = search.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const searchTerm = sanitizeString(search, 100);
+    if (searchTerm) {
+      const safeSearch = searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       query.$or = [
         { name: { $regex: safeSearch, $options: 'i' } },
         { email: { $regex: safeSearch, $options: 'i' } },
@@ -377,7 +398,7 @@ const adminGetUsers = async (req, res, next) => {
     const [items, total] = await Promise.all([
       User.find(query)
         .sort({ createdAt: -1 })
-        .skip((pageNumber - 1) * pageSize)
+        .skip(skip)
         .limit(pageSize),
       User.countDocuments(query),
     ]);
@@ -406,40 +427,49 @@ const logout = async (req, res, next) => {
   }
 };
 
-const refreshToken = async (req, res) => {
+const refreshToken = async (req, res, next) => {
   try {
-    const token = req.cookies.refreshToken;
-    if (!token) {
-      return res.status(401).json({ success: false, message: 'Refresh token not found' });
+    if (!req.cookies?.refreshToken) {
+      return next(new ApiError(401, 'No refresh token'));
     }
 
-    const decoded = require('jsonwebtoken').verify(token, process.env.JWT_REFRESH_SECRET);
+    let decoded;
+    try {
+      decoded = jwt.verify(req.cookies.refreshToken, process.env.JWT_REFRESH_SECRET, {
+        algorithms: ['HS256'],
+      });
+    } catch (err) {
+      res.clearCookie('refreshToken', { ...cookieOptions, maxAge: undefined });
+      return next(new ApiError(401, 'Invalid refresh token'));
+    }
+
     const user = await User.findById(decoded.id);
 
     if (!user || !user.isActive || !user.isVerified) {
-      return res.status(401).json({
-        success: false,
-        message: 'User not found, deactivated, or unverified',
-      });
+      return next(new ApiError(401, 'User not found, deactivated, or unverified'));
     }
 
     const { accessToken } = buildTokenPair(user._id);
     res.status(200).json({ success: true, data: { accessToken } });
   } catch (error) {
-    res.status(401).json({ success: false, message: 'Invalid or expired refresh token' });
+    next(error);
   }
 };
 
 const updateProfile = async (req, res, next) => {
   try {
+    // SECURITY: scoped to req.user._id to prevent IDOR
     const user = await User.findById(req.user._id);
     if (!user) {
       return res.status(404).json({ success: false, message: 'User not found' });
     }
+    if (user.role === 'admin') {
+      return next(new ApiError(403, 'Forbidden'));
+    }
 
     const { name, birthday, address, skinType, phoneNumber } = req.body;
 
-    if (name) user.name = name;
+    if (name) user.name = sanitizeContentString(name);
     if (birthday) user.birthday = birthday;
     if (skinType) user.skinType = skinType;
     

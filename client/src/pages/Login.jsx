@@ -5,6 +5,12 @@ import { useAuth } from '../hooks/useAuth';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import HomaLogo from '../components/common/HomaLogo';
+import { z } from 'zod';
+
+const loginSchema = z.object({
+  identifier: z.string().trim().min(1, 'Email or phone is required'),
+  password: z.string().min(1, 'Password is required'),
+});
 
 export default function Login() {
   const navigate = useNavigate();
@@ -22,9 +28,14 @@ export default function Login() {
   const onSubmit = async (event) => {
     event.preventDefault();
     if (loading) return;
+    const parsed = loginSchema.safeParse(form);
+    if (!parsed.success) {
+      toast.error(parsed.error.issues[0]?.message || 'Please check your login details');
+      return;
+    }
     setLoading(true);
     try {
-      await login(form.identifier, form.password);
+      await login(parsed.data.identifier, parsed.data.password);
       toast.success('Logged in successfully');
       navigate(redirectTo, { replace: true });
     } catch (error) {

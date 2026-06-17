@@ -1,4 +1,5 @@
 const crypto = require('crypto');
+const mongoose = require('mongoose');
 const Order = require('../models/Order');
 const User = require('../models/User');
 const Product = require('../models/Product');
@@ -8,6 +9,9 @@ const { calculateOrderTotals } = require('../utils/tax');
 const { generateInvoicePDF } = require('../utils/invoice');
 const { createOrderSchema } = require('../validators/orderValidators');
 const { calculateLoyaltyPoints } = require('../utils/loyalty');
+
+const VALID_ORDER_STATUSES = new Set(['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled']);
+const VALID_PAYMENT_STATUSES = new Set(['pending', 'paid', 'failed', 'pending_collection', 'collected']);
 
 // Environment variables for eSewa
 const ESEWA_PRODUCT_CODE = process.env.ESEWA_PRODUCT_CODE || 'EPAYTEST';
@@ -32,6 +36,87 @@ function generateEsewaSignature(totalAmount, transactionUuid, productCode, secre
     .update(message)
     .digest('base64');
 }
+
+const generateInvoiceNumber = () =>
+  `INV-${Date.now()}-${crypto.randomBytes(4).toString('hex').toUpperCase()}`;
+
+const buildOrderItemsFromDb = async (items) => {
+  const quantityByProductId = new Map();
+
+  for (const item of items) {
+    const productId = item.product;
+    if (!mongoose.Types.ObjectId.isValid(productId)) {
+      throw new ApiError(400, 'Invalid product in cart');
+    }
+
+    const quantity = Math.max(1, Math.min(parseInt(item.quantity, 10) || 1, 99));
+    quantityByProductId.set(productId, (quantityByProductId.get(productId) || 0) + quantity);
+  }
+
+  const productIds = [...quantityByProductId.keys()];
+  const products = await Product.find({
+    _id: { $in: productIds },
+    isActive: true,
+    stock: { $gt: 0 },
+  }).lean();
+
+  if (products.length !== productIds.length) {
+    throw new ApiError(400, 'One or more products are unavailable');
+  }
+
+  const productMap = new Map(products.map((product) => [product._id.toString(), product]));
+
+  return productIds.map((productId) => {
+    const product = productMap.get(productId);
+    const quantity = quantityByProductId.get(productId);
+
+    if (!product) {
+      throw new ApiError(400, 'Product not found');
+    }
+    if (product.stock < quantity) {
+      throw new ApiError(400, `Insufficient stock for ${product.name}`);
+    }
+
+    return {
+      product: product._id,
+      name: product.name,
+      price: product.price,
+      quantity,
+      image: product.images?.[0]?.url || '',
+    };
+  });
+};
+
+const reserveStock = async (orderItems) => {
+  const reservedItems = [];
+
+  for (const item of orderItems) {
+    const updated = await Product.findOneAndUpdate(
+      {
+        _id: item.product,
+        stock: { $gte: item.quantity },
+      },
+      { $inc: { stock: -item.quantity } },
+      { new: true },
+    );
+
+    if (!updated) {
+      await releaseStock(reservedItems);
+      throw new ApiError(400, `Insufficient stock for ${item.name}`);
+    }
+
+    reservedItems.push(item);
+  }
+
+  return reservedItems;
+};
+
+const releaseStock = async (orderItems = []) => {
+  await Promise.all(orderItems.map((item) => Product.updateOne(
+    { _id: item.product },
+    { $inc: { stock: item.quantity } },
+  )));
+};
 
 async function awardLoyaltyPointsForOrder(order) {
   if (!order || order.loyaltyPointsAwarded) {
@@ -70,7 +155,6 @@ async function awardLoyaltyPointsForOrder(order) {
     try {
       await order.save();
     } catch (rollbackError) {
-      console.error('Failed to roll back loyalty award flag:', rollbackError);
     }
 
     throw error;
@@ -90,28 +174,12 @@ exports.createOrder = async (req, res, next) => {
 
     const { items, shippingAddress, paymentMethod, couponCode, notes } = value;
 
-    // Fetch and validate items
-    const orderItems = [];
-    let discountAmount = 0;
-
-    for (const item of items) {
-      const dbProduct = await Product.findById(item.product);
-      if (!dbProduct || !dbProduct.isActive) {
-        return next(new ApiError(404, `Product not found or inactive: ${item.product}`));
-      }
-
-      if (dbProduct.stock < item.quantity) {
-        return next(new ApiError(400, `Insufficient stock for product: ${dbProduct.name}. Available: ${dbProduct.stock}`));
-      }
-
-      orderItems.push({
-        product: dbProduct._id,
-        name: dbProduct.name,
-        price: dbProduct.price,
-        quantity: item.quantity,
-        image: dbProduct.images?.[0]?.url || '',
-      });
+    if (paymentMethod === 'fonepay') {
+      return next(new ApiError(400, 'Fonepay payments are not available yet'));
     }
+
+    const orderItems = await buildOrderItemsFromDb(items);
+    let discountAmount = 0;
 
     // Calculate subtotal
     const subtotal = orderItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
@@ -156,24 +224,31 @@ exports.createOrder = async (req, res, next) => {
     // Calculate totals using tax util
     const totals = calculateOrderTotals(orderItems, discountAmount, deliveryCharge);
 
-    // Create the order in DB
-    const order = await Order.create({
-      user: req.user._id,
-      items: orderItems,
-      subtotal: totals.subtotal,
-      discount: totals.discountAmount,
-      taxableAmount: totals.taxableAmount,
-      vatAmount: totals.vatAmount,
-      deliveryCharge: totals.deliveryCharge,
-      grandTotal: totals.grandTotal,
-      vatRate: totals.vatRate,
-      shippingAddress,
-      paymentMethod,
-      paymentStatus: 'pending',
-      orderStatus: 'pending',
-      couponCode,
-      notes,
-    });
+    const reservedItems = await reserveStock(orderItems);
+    let order;
+    try {
+      // SECURITY: scoped to req.user._id to prevent IDOR
+      order = await Order.create({
+        user: req.user._id,
+        items: orderItems,
+        subtotal: totals.subtotal,
+        discount: totals.discountAmount,
+        taxableAmount: totals.taxableAmount,
+        vatAmount: totals.vatAmount,
+        deliveryCharge: totals.deliveryCharge,
+        grandTotal: totals.grandTotal,
+        vatRate: totals.vatRate,
+        shippingAddress,
+        paymentMethod,
+        paymentStatus: 'pending',
+        orderStatus: 'pending',
+        couponCode,
+        notes,
+      });
+    } catch (err) {
+      await releaseStock(reservedItems);
+      throw err;
+    }
 
     // Handle payment integration flows
     if (paymentMethod === 'esewa') {
@@ -217,22 +292,7 @@ exports.createOrder = async (req, res, next) => {
     }
 
     if (paymentMethod === 'cod') {
-      // Cash on Delivery flow: decrease stock immediately, generate invoice
-      for (const item of orderItems) {
-        const result = await Product.updateOne(
-          { _id: item.product, stock: { $gte: item.quantity } },
-          { $inc: { stock: -item.quantity } }
-        );
-
-        if (result.modifiedCount === 0) {
-          // Rollback could be done, but we checked beforehand. Just in case:
-          return next(new ApiError(400, `Stock was depleted by another user for product: ${item.name}`));
-        }
-      }
-
-      // Generate invoice number
-      const invoiceNumber = `INV-${Date.now()}-${Math.floor(1000 + Math.random() * 9000)}`;
-      order.invoiceNumber = invoiceNumber;
+      order.invoiceNumber = generateInvoiceNumber();
       order.orderStatus = 'confirmed';
       await order.save();
 
@@ -280,7 +340,7 @@ exports.verifyEsewaPayment = async (req, res, next) => {
       signature,
     } = decoded;
 
-    if (!transaction_uuid || !total_amount) {
+    if (!transaction_uuid || !total_amount || !signed_field_names || !signature) {
       return next(new ApiError(400, 'Missing critical payment response parameters'));
     }
 
@@ -295,7 +355,12 @@ exports.verifyEsewaPayment = async (req, res, next) => {
       .update(message)
       .digest('base64');
 
-    if (calculatedSig !== signature) {
+    const expectedSignature = Buffer.from(calculatedSig);
+    const receivedSignature = Buffer.from(String(signature));
+    if (
+      expectedSignature.length !== receivedSignature.length ||
+      !crypto.timingSafeEqual(expectedSignature, receivedSignature)
+    ) {
       return next(new ApiError(400, 'Payment signature verification failed (Tampered data)'));
     }
 
@@ -303,29 +368,43 @@ exports.verifyEsewaPayment = async (req, res, next) => {
       return next(new ApiError(400, `Payment not completed. Status: ${status}`));
     }
 
-    // 3. Find the order
-    const order = await Order.findById(transaction_uuid);
-    if (!order) {
-      return next(new ApiError(404, 'Order not found'));
-    }
-
-    if (order.paymentStatus === 'paid') {
-      if (!order.loyaltyPointsAwarded) {
-        await awardLoyaltyPointsForOrder(order);
-      }
+    // 3. Load the pending order for amount checks before idempotent update
+    // SECURITY: scoped to req.user._id to prevent IDOR
+    const pendingOrder = await Order.findOne({
+      _id: transaction_uuid,
+      user: req.user._id,
+      paymentStatus: 'pending',
+    });
+    if (!pendingOrder) {
       return res.json({
         success: true,
-        message: 'Payment verified already.',
-        data: order,
+        message: 'Already processed',
       });
     }
 
     // Verify amount matches (convert to numbers to avoid string formatting issues)
-    const orderAmount = order.grandTotal.toFixed(2);
-    const paidAmount = parseFloat(total_amount.replace(/,/g, '')).toFixed(2);
+    const orderAmount = pendingOrder.grandTotal.toFixed(2);
+    const paidAmount = parseFloat(String(total_amount).replace(/,/g, '')).toFixed(2);
 
     if (parseFloat(orderAmount) !== parseFloat(paidAmount)) {
-      return next(new ApiError(400, `Amount mismatch. Order: ${orderAmount}, Paid: ${paidAmount}`));
+      const failedOrder = await Order.findOneAndUpdate(
+        {
+          _id: pendingOrder._id,
+          user: req.user._id,
+          paymentStatus: 'pending',
+        },
+        {
+          $set: {
+            paymentStatus: 'failed',
+            orderStatus: 'cancelled',
+          },
+        },
+        { new: true },
+      );
+      if (failedOrder) {
+        await releaseStock(failedOrder.items);
+      }
+      return next(new ApiError(400, 'Payment amount mismatch'));
     }
 
     // 4. Server-to-server validation check with eSewa Status API for extra security
@@ -343,31 +422,36 @@ exports.verifyEsewaPayment = async (req, res, next) => {
         );
       }
     } catch (err) {
-      console.error('eSewa Server Status Check Error:', err);
       // We don't fail immediately if server check times out, but signature verified.
       // However, for strict security in production, you might block it. Let's log it.
     }
 
-    // 5. Deduct inventory stock securely and atomically
-    for (const item of order.items) {
-      const result = await Product.updateOne(
-        { _id: item.product, stock: { $gte: item.quantity } },
-        { $inc: { stock: -item.quantity } }
-      );
+    // 5. Idempotently update only pending orders.
+    const order = await Order.findOneAndUpdate(
+      {
+        _id: pendingOrder._id,
+        user: req.user._id,
+        paymentStatus: 'pending',
+      },
+      {
+        $set: {
+          paymentStatus: 'paid',
+          paymentRef: transaction_code,
+          paidAt: new Date(),
+          orderStatus: 'confirmed',
+          invoiceNumber: generateInvoiceNumber(),
+        },
+      },
+      { new: true },
+    );
 
-      if (result.modifiedCount === 0) {
-        // If stock is insufficient now, order can still be marked paid, but we must flag stock issue.
-        // For a seamless flow, we log it and proceed. In production, notify admin.
-        console.error(`STOCK ERROR: Sufficient stock not available for product ${item.product} during verification!`);
-      }
+    if (!order) {
+      return res.json({
+        success: true,
+        message: 'Already processed',
+      });
     }
 
-    // 6. Update order status
-    order.paymentStatus = 'paid';
-    order.paymentRef = transaction_code;
-    order.orderStatus = 'confirmed';
-    order.invoiceNumber = `INV-${Date.now()}-${Math.floor(1000 + Math.random() * 9000)}`;
-    await order.save();
     await awardLoyaltyPointsForOrder(order);
 
     return res.json({
@@ -385,6 +469,7 @@ exports.verifyEsewaPayment = async (req, res, next) => {
  */
 exports.getMyOrders = async (req, res, next) => {
   try {
+    // SECURITY: scoped to req.user._id to prevent IDOR
     const orders = await Order.find({ user: req.user._id }).sort({ createdAt: -1 });
     return res.json({
       success: true,
@@ -400,14 +485,14 @@ exports.getMyOrders = async (req, res, next) => {
  */
 exports.getOrderDetails = async (req, res, next) => {
   try {
-    const order = await Order.findById(req.params.id).populate('user', 'name email phone');
+    const orderQuery = req.user.role === 'admin'
+      ? { _id: req.params.id }
+      : { _id: req.params.id, user: req.user._id };
+
+    // SECURITY: scoped to req.user._id to prevent IDOR
+    const order = await Order.findOne(orderQuery).populate('user', 'name email phone');
     if (!order) {
       return next(new ApiError(404, 'Order not found'));
-    }
-
-    // Authorization check: either admin or order owner
-    if (req.user.role !== 'admin' && order.user._id.toString() !== req.user._id.toString()) {
-      return next(new ApiError(403, 'Access denied. You do not own this order.'));
     }
 
     return res.json({
@@ -424,14 +509,14 @@ exports.getOrderDetails = async (req, res, next) => {
  */
 exports.downloadInvoice = async (req, res, next) => {
   try {
-    const order = await Order.findById(req.params.id).populate('user', 'name email phone address');
+    const orderQuery = req.user.role === 'admin'
+      ? { _id: req.params.id }
+      : { _id: req.params.id, user: req.user._id };
+
+    // SECURITY: scoped to req.user._id to prevent IDOR
+    const order = await Order.findOne(orderQuery).populate('user', 'name email phone address');
     if (!order) {
       return next(new ApiError(404, 'Order not found'));
-    }
-
-    // Authorization check
-    if (req.user.role !== 'admin' && order.user._id.toString() !== req.user._id.toString()) {
-      return next(new ApiError(403, 'Access denied. You do not own this order.'));
     }
 
     if (!order.invoiceNumber) {
@@ -457,8 +542,8 @@ exports.adminGetOrders = async (req, res, next) => {
   try {
     const { status, paymentStatus } = req.query;
     const filter = {};
-    if (status) filter.orderStatus = status;
-    if (paymentStatus) filter.paymentStatus = paymentStatus;
+    if (VALID_ORDER_STATUSES.has(status)) filter.orderStatus = status;
+    if (VALID_PAYMENT_STATUSES.has(paymentStatus)) filter.paymentStatus = paymentStatus;
 
     const orders = await Order.find(filter)
       .populate('user', 'name email phone')

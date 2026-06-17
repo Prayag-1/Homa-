@@ -1,17 +1,15 @@
 const Distributor = require('../models/Distributor');
 const ApiError = require('../utils/ApiError');
+const {
+  sanitizeString,
+  validatePagination,
+} = require('../utils/queryHelpers');
 
 const escapeRegex = (value) => String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 const normalizeText = (value) => String(value || '').trim();
 
 const normalizeEmail = (value) => normalizeText(value).toLowerCase();
-
-const getPagination = (query, defaultLimit = 50) => {
-  const safePage = Math.max(Number(query.page) || 1, 1);
-  const safeLimit = Math.min(Number(query.limit) || defaultLimit, 50);
-  return { safePage, safeLimit, skip: (safePage - 1) * safeLimit };
-};
 
 const serializeDistributor = (distributor) => ({
   id: String(distributor._id || distributor.id || ''),
@@ -80,7 +78,7 @@ const ensureUniqueName = async (name, excludeId = null) => {
 
 exports.getPublicDistributors = async (req, res, next) => {
   try {
-    const { safeLimit, skip } = getPagination(req.query);
+    const { safeLimit, skip } = validatePagination(req.query.page, req.query.limit, 50, 50);
     const distributors = await Distributor.find({ isActive: true })
       .select('name address phone email coverageArea representative isActive createdAt updatedAt')
       .sort({ name: 1 })
@@ -101,9 +99,9 @@ exports.getPublicDistributors = async (req, res, next) => {
 exports.adminGetDistributors = async (req, res, next) => {
   try {
     const { search, isActive } = req.query;
-    const { safeLimit, skip } = getPagination(req.query);
+    const { safeLimit, skip } = validatePagination(req.query.page, req.query.limit, 50, 50);
     const filter = buildFilter({
-      search,
+      search: sanitizeString(search, 100),
       isActive: isActive === 'true' ? true : isActive === 'false' ? false : undefined,
     });
 

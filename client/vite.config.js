@@ -27,6 +27,10 @@ const env = loadEnv(mode, process.cwd(), '');
       alias: { '@': path.resolve(__dirname, './src') },
     },
     build: {
+      minify: 'esbuild',
+      esbuildOptions: {
+        drop: ['console', 'debugger'],
+      },
       rollupOptions: {
         output: {
           manualChunks(id) {

@@ -6,6 +6,36 @@ import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { AddressMapPicker } from '../components/shared';
 import HomaLogo from '../components/common/HomaLogo';
+import { z } from 'zod';
+
+const phoneSchema = z.string().trim().regex(/^\+?[1-9]\d{9,14}$/, 'Enter a valid phone number');
+const addressSchema = z.object({
+  line1: z.string().trim().min(3, 'Address line 1 is required').max(120),
+  line2: z.string().trim().max(120).optional(),
+  city: z.string().trim().min(2, 'City is required').max(80),
+  state: z.string().trim().min(2, 'State is required').max(80),
+  postalCode: z.string().trim().min(3, 'Postal code is required').max(20),
+  country: z.string().trim().min(2, 'Country is required').max(80),
+});
+const registerSchema = z.object({
+  verificationMethod: z.enum(['email', 'phone']),
+  name: z.string().trim().min(2, 'Name is required').max(100),
+  email: z.string().trim().email('Enter a valid email').optional().or(z.literal('')),
+  phoneNumber: phoneSchema,
+  password: z.string()
+    .min(8, 'Password must be at least 8 characters')
+    .regex(/[A-Z]/, 'Password needs one uppercase letter')
+    .regex(/[0-9]/, 'Password needs one number'),
+  birthday: z.string().min(1, 'Birthday is required'),
+  address: addressSchema,
+}).superRefine((value, ctx) => {
+  if (value.verificationMethod === 'email' && !value.email) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['email'], message: 'Email is required for email verification' });
+  }
+});
+const verificationSchema = z.object({
+  code: z.string().trim().regex(/^\d{6}$/, 'Enter the 6-digit verification code'),
+});
 
 const initialForm = {
   name: '',
@@ -68,7 +98,13 @@ export default function Register() {
           country: form.country,
         },
       };
-      const response = await register(payload);
+      const parsed = registerSchema.safeParse(payload);
+      if (!parsed.success) {
+        toast.error(parsed.error.issues[0]?.message || 'Please check your registration details');
+        setBusy(false);
+        return;
+      }
+      const response = await register(parsed.data);
       setVerification({
         target: response.data?.target || targetValue,
         code: '',
@@ -84,9 +120,14 @@ export default function Register() {
 
   const onVerify = async (event) => {
     event.preventDefault();
+    const parsed = verificationSchema.safeParse({ code: verification.code });
+    if (!parsed.success) {
+      toast.error(parsed.error.issues[0]?.message || 'Enter a valid verification code');
+      return;
+    }
     setBusy(true);
     try {
-      await verifyAccount(verificationMethod, verification.target, verification.code);
+      await verifyAccount(verificationMethod, verification.target, parsed.data.code);
       toast.success('Account verified');
       navigate('/user/dashboard');
     } catch (error) {

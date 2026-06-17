@@ -1,3 +1,5 @@
+const ApiError = require('../utils/ApiError');
+
 const validate = (schema) => {
   return async (req, res, next) => {
     try {
@@ -7,7 +9,7 @@ const validate = (schema) => {
       });
       next();
     } catch (error) {
-      res.status(400).json({ success: false, message: error.message });
+      next(new ApiError(400, error.message));
     }
   };
 };

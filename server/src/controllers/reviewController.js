@@ -4,8 +4,10 @@ const Review = require('../models/Review');
 const Product = require('../models/Product');
 const Order = require('../models/Order');
 const ApiError = require('../utils/ApiError');
+const { validatePagination } = require('../utils/queryHelpers');
+const { sanitizeString } = require('../utils/sanitize');
 
-const strip = (str) => (str ? str.replace(/<[^>]*>/g, '').trim() : str);
+const strip = (str) => sanitizeString(str);
 
 exports.getProductReviews = async (req, res, next) => {
   try {
@@ -13,9 +15,7 @@ exports.getProductReviews = async (req, res, next) => {
       return next(new ApiError(404, 'Product not found'));
     }
 
-    const safePage = Math.max(Number(req.query.page) || 1, 1);
-    const safeLimit = Math.min(Number(req.query.limit) || 20, 50);
-    const skip = (safePage - 1) * safeLimit;
+    const { safePage, safeLimit, skip } = validatePagination(req.query.page, req.query.limit, 50, 20);
     const filter = {
       product: req.params.productId,
       isApproved: true,
@@ -72,6 +72,7 @@ exports.submitReview = async (req, res, next) => {
       return next(new ApiError(400, error.details[0].message));
     }
 
+    // SECURITY: scoped to req.user._id to prevent IDOR
     const hasPurchased = await Order.findOne({
       user: req.user._id,
       orderStatus: 'delivered',
@@ -87,6 +88,7 @@ exports.submitReview = async (req, res, next) => {
       );
     }
 
+    // SECURITY: scoped to req.user._id to prevent IDOR
     const existing = await Review.findOne({
       product: productId,
       user: req.user._id,
@@ -96,6 +98,7 @@ exports.submitReview = async (req, res, next) => {
       return next(new ApiError(400, 'You have already reviewed this product.'));
     }
 
+    // SECURITY: scoped to req.user._id to prevent IDOR
     const review = await Review.create({
       product: productId,
       user: req.user._id,

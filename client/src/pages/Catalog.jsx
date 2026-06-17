@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { Menu, ChevronLeft, ChevronRight } from 'lucide-react';
@@ -13,17 +13,25 @@ const Catalog = () => {
   const [filterDrawerOpen, setFilterDrawerOpen] = useState(false);
 
   // Build filters object from URL params
-  const filters = {
-    brand: searchParams.get('brand') || undefined,
-    skinType: searchParams.get('skinType') || undefined,
-    category: searchParams.get('category') || undefined,
-    minPrice: searchParams.get('minPrice') || undefined,
-    maxPrice: searchParams.get('maxPrice') || undefined,
-    search: searchParams.get('search') || undefined,
-    sort: searchParams.get('sort') || undefined,
-    page: searchParams.get('page') || 1,
+  const brandParam = searchParams.get('brand') || undefined;
+  const categoryParam = searchParams.get('category') || undefined;
+  const skinTypeParam = searchParams.get('skinType') || undefined;
+  const minPriceParam = searchParams.get('minPrice') || undefined;
+  const maxPriceParam = searchParams.get('maxPrice') || undefined;
+  const searchParam = searchParams.get('search') || undefined;
+  const sortParam = searchParams.get('sort') || undefined;
+  const pageParam = searchParams.get('page') || 1;
+  const filters = useMemo(() => ({
+    brand: brandParam,
+    skinType: skinTypeParam,
+    category: categoryParam,
+    minPrice: minPriceParam,
+    maxPrice: maxPriceParam,
+    search: searchParam,
+    sort: sortParam,
+    page: pageParam,
     limit: 12,
-  };
+  }), [brandParam, categoryParam, skinTypeParam, minPriceParam, maxPriceParam, searchParam, sortParam, pageParam]);
 
   const { data, isLoading, isError, refetch } = useProducts(filters);
 
@@ -69,8 +77,6 @@ const Catalog = () => {
   const endProduct = Math.min(currentPage * 12, total);
 
   // Generate dynamic SEO title and description
-  const categoryParam = searchParams.get('category');
-  const brandParam = searchParams.get('brand');
   const seoTitle = categoryParam
     ? `${categoryParam} — Shop HOMA Beauty`
     : brandParam

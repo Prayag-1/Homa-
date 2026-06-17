@@ -4,8 +4,22 @@ const User = require('../models/User');
 const ApiError = require('../utils/ApiError');
 const { generateSlug } = require('../utils/slugify');
 const { uploadToCloudinary } = require('../middleware/upload');
+const {
+  sanitizeString: sanitizeQueryString,
+  validatePagination,
+  validateSort,
+} = require('../utils/queryHelpers');
+const { sanitizeString: sanitizeContentString } = require('../utils/sanitize');
 
 const MAX_LIMIT = 50;
+const BLOG_SORT_WHITELIST = new Set([
+  '-createdAt',
+  'createdAt',
+  '-publishedAt',
+  'publishedAt',
+  'title',
+  '-title',
+]);
 
 const escapeRegex = (value) => String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
@@ -53,11 +67,6 @@ const parseDateInput = (value) => {
   }
 
   return date;
-};
-
-const toPositiveInt = (value, fallback) => {
-  const parsed = Math.floor(Number(value));
-  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
 };
 
 const buildAuthorSearchIds = async (search) => {
@@ -144,7 +153,6 @@ const attachCoverImage = async (req) => {
   const result = await uploadToCloudinary(
     req.file.buffer,
     'blogs',
-    `blog-${Date.now()}-${Math.random().toString(36).slice(2)}`,
   );
 
   return result.url;
@@ -169,7 +177,7 @@ const resolveSlug = async (title, providedSlug, excludeId = null) => {
 };
 
 const buildBlogPayload = async (req, existingBlog = null) => {
-  const title = String(req.body.title || '').trim();
+  const title = sanitizeContentString(String(req.body.title || ''));
   const content = String(req.body.content || '').trim();
   const status = req.body.status === 'published' ? 'published' : 'draft';
   const slug = await resolveSlug(title, req.body.slug, existingBlog?._id || null);
@@ -183,9 +191,9 @@ const buildBlogPayload = async (req, existingBlog = null) => {
   return {
     title,
     slug,
-    excerpt: String(req.body.excerpt || '').trim(),
+    excerpt: sanitizeContentString(String(req.body.excerpt || '')),
     content,
-    category: String(req.body.category || '').trim(),
+    category: sanitizeContentString(String(req.body.category || '')),
     tags: parseTags(req.body.tags),
     coverImage,
     readTimeMinutes: estimateReadTimeMinutes(content),
@@ -200,20 +208,19 @@ exports.getBlogs = async (req, res, next) => {
     const { search, category, status, page = 1, limit = 10, sort = '-publishedAt' } = req.query;
 
     const filter = await buildListFilter({
-      search,
-      category,
+      search: sanitizeQueryString(search, 100),
+      category: sanitizeQueryString(category, 100),
       status,
       publishedOnly: true,
     });
 
-    const pageNum = toPositiveInt(page, 1);
-    const safeLimit = Math.max(Math.min(toPositiveInt(limit, 10), MAX_LIMIT), 1);
-    const skip = (pageNum - 1) * safeLimit;
+    const { safePage, safeLimit, skip } = validatePagination(page, limit, MAX_LIMIT, 10);
+    const safeSort = validateSort(sort, BLOG_SORT_WHITELIST, '-publishedAt');
 
     const [blogs, total] = await Promise.all([
       Blog.find(filter)
         .populate('author', 'name avatar')
-        .sort(sort)
+        .sort(safeSort)
         .skip(skip)
         .limit(safeLimit)
         .lean(),
@@ -225,16 +232,13 @@ exports.getBlogs = async (req, res, next) => {
       data: {
         items: blogs.map(serializeBlog),
         total,
-        page: pageNum,
+        page: safePage,
         limit: safeLimit,
         totalPages: Math.ceil(total / safeLimit),
       },
       message: '',
     });
   } catch (err) {
-    if (err?.statusCode !== 400) {
-      console.error('Blog create failed:', err);
-    }
     next(err);
   }
 };
@@ -255,9 +259,6 @@ exports.getBlogBySlug = async (req, res, next) => {
       message: '',
     });
   } catch (err) {
-    if (err?.statusCode !== 400) {
-      console.error('Blog update failed:', err);
-    }
     next(err);
   }
 };
@@ -267,20 +268,19 @@ exports.adminGetBlogs = async (req, res, next) => {
     const { search, category, status, page = 1, limit = 10, sort = '-createdAt' } = req.query;
 
     const filter = await buildListFilter({
-      search,
-      category,
+      search: sanitizeQueryString(search, 100),
+      category: sanitizeQueryString(category, 100),
       status,
       publishedOnly: false,
     });
 
-    const pageNum = toPositiveInt(page, 1);
-    const safeLimit = Math.max(Math.min(toPositiveInt(limit, 10), MAX_LIMIT), 1);
-    const skip = (pageNum - 1) * safeLimit;
+    const { safePage, safeLimit, skip } = validatePagination(page, limit, MAX_LIMIT, 10);
+    const safeSort = validateSort(sort, BLOG_SORT_WHITELIST);
 
     const [blogs, total] = await Promise.all([
       Blog.find(filter)
         .populate('author', 'name avatar')
-        .sort(sort)
+        .sort(safeSort)
         .skip(skip)
         .limit(safeLimit)
         .lean(),
@@ -292,7 +292,7 @@ exports.adminGetBlogs = async (req, res, next) => {
       data: {
         items: blogs.map(serializeBlog),
         total,
-        page: pageNum,
+        page: safePage,
         limit: safeLimit,
         totalPages: Math.ceil(total / safeLimit),
       },

@@ -1,16 +1,24 @@
 const User = require('../models/User');
 const Order = require('../models/Order');
 const ApiError = require('../utils/ApiError');
+const {
+  sanitizeString,
+  validatePagination,
+  validateSort,
+} = require('../utils/queryHelpers');
+
+const CUSTOMER_SORT_WHITELIST = new Set(['-createdAt', 'createdAt', 'name', '-name']);
+const MEMBERSHIP_TIER_WHITELIST = new Set(['Bronze', 'Silver', 'Gold', 'Platinum']);
+const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 // GET /admin/customers
 const getCustomers = async (req, res, next) => {
   try {
     const { search, membershipTier, isActive, hasOrders, page = 1, limit = 20, sort = '-createdAt' } = req.query;
 
-    // Enforce max limit
-    const parsedLimit = Math.min(parseInt(limit) || 20, 50);
-    const parsedPage = Math.max(1, parseInt(page) || 1);
-    const skip = (parsedPage - 1) * parsedLimit;
+    const { safePage, safeLimit, skip } = validatePagination(page, limit, 50, 20);
+    const safeSearch = sanitizeString(search, 100);
+    const safeSort = validateSort(sort, CUSTOMER_SORT_WHITELIST);
 
     // Build filter dynamically
     const filter = { role: 'user' };
@@ -19,16 +27,14 @@ const getCustomers = async (req, res, next) => {
       filter.isActive = isActive === 'true';
     }
 
-    if (membershipTier) {
+    if (MEMBERSHIP_TIER_WHITELIST.has(membershipTier)) {
       filter.membershipTier = membershipTier;
     }
 
-    if (search) {
+    if (safeSearch) {
       // Search on name only in list view (PII protection)
-      filter.name = { $regex: search, $options: 'i' };
+      filter.name = { $regex: escapeRegex(safeSearch), $options: 'i' };
     }
-
-    const safeSort = ['-createdAt', 'createdAt', 'name', '-name'].includes(sort) ? sort : '-createdAt';
 
     const [customerStats, customers, total] = await Promise.all([
       Order.aggregate([
@@ -46,7 +52,7 @@ const getCustomers = async (req, res, next) => {
         .select('_id name membershipTier loyaltyPoints isActive createdAt')
         .sort(safeSort)
         .skip(skip)
-        .limit(parsedLimit)
+        .limit(safeLimit)
         .lean(),
       User.countDocuments(filter),
     ]);
@@ -85,9 +91,9 @@ const getCustomers = async (req, res, next) => {
         customers: enrichedCustomers,
         pagination: {
           total,
-          page: parsedPage,
-          limit: parsedLimit,
-          pages: Math.ceil(total / parsedLimit),
+          page: safePage,
+          limit: safeLimit,
+          pages: Math.ceil(total / safeLimit),
         },
       },
       message: 'Customers retrieved successfully',

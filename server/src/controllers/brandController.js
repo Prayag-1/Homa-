@@ -1,18 +1,16 @@
 const Brand = require('../models/Brand');
 const ApiError = require('../utils/ApiError');
 const { generateUniqueSlug } = require('../utils/slugify');
+const {
+  sanitizeString,
+  validatePagination,
+} = require('../utils/queryHelpers');
 
 const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
-const getPagination = (query, defaultLimit = 50) => {
-  const safePage = Math.max(Number(query.page) || 1, 1);
-  const safeLimit = Math.min(Number(query.limit) || defaultLimit, 50);
-  return { safePage, safeLimit, skip: (safePage - 1) * safeLimit };
-};
-
 exports.getPublicBrands = async (req, res, next) => {
   try {
-    const { safeLimit, skip } = getPagination(req.query);
+    const { safeLimit, skip } = validatePagination(req.query.page, req.query.limit, 50, 50);
     const brands = await Brand.find({ isActive: true })
       .select('name slug description logo sortOrder')
       .sort({ sortOrder: 1, name: 1 })
@@ -30,11 +28,12 @@ exports.getPublicBrands = async (req, res, next) => {
 exports.adminGetBrands = async (req, res, next) => {
   try {
     const { search, isActive } = req.query;
-    const { safeLimit, skip } = getPagination(req.query);
+    const { safeLimit, skip } = validatePagination(req.query.page, req.query.limit, 50, 50);
     const filter = {};
+    const safeSearch = sanitizeString(search, 100);
 
-    if (search) {
-      filter.name = { $regex: escapeRegex(String(search)), $options: 'i' };
+    if (safeSearch) {
+      filter.name = { $regex: escapeRegex(safeSearch), $options: 'i' };
     }
     if (isActive === 'true' || isActive === 'false') {
       filter.isActive = isActive === 'true';

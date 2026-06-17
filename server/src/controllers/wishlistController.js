@@ -5,6 +5,7 @@ const ApiError = require('../utils/ApiError');
 
 exports.getWishlist = async (req, res, next) => {
   try {
+    // SECURITY: scoped to req.user._id to prevent IDOR
     const user = await User.findById(req.user._id).populate(
       'wishlist',
       'name price images brand slug isActive ratings comparePrice'
@@ -38,11 +39,13 @@ exports.toggleWishlist = async (req, res, next) => {
     const isInWishlist = req.user.wishlist.some((id) => id.toString() === productId);
 
     if (isInWishlist) {
+      // SECURITY: scoped to req.user._id to prevent IDOR
       await User.findByIdAndUpdate(req.user._id, {
         $pull: { wishlist: productId },
       });
       return res.json({ success: true, data: { action: 'removed' } });
     } else {
+      // SECURITY: scoped to req.user._id to prevent IDOR
       await User.findByIdAndUpdate(req.user._id, {
         $addToSet: { wishlist: productId },
       });

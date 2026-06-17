@@ -5,8 +5,22 @@ const User = require('../models/User');
 const ApiError = require('../utils/ApiError');
 const { generateSlug } = require('../utils/slugify');
 const { uploadToCloudinary } = require('../middleware/upload');
+const {
+  sanitizeString: sanitizeQueryString,
+  validatePagination,
+  validateSort,
+} = require('../utils/queryHelpers');
+const { sanitizeString: sanitizeContentString } = require('../utils/sanitize');
 
 const MAX_LIMIT = 50;
+const TRANSFORMATION_SORT_WHITELIST = new Set([
+  '-createdAt',
+  'createdAt',
+  '-publishedAt',
+  'publishedAt',
+  'title',
+  '-title',
+]);
 
 const hasCloudinaryConfig =
   Boolean(process.env.CLOUDINARY_CLOUD_NAME) &&
@@ -54,11 +68,6 @@ const parseDateInput = (value) => {
   }
 
   return date;
-};
-
-const toPositiveInt = (value, fallback) => {
-  const parsed = Math.floor(Number(value));
-  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
 };
 
 const buildAuthorSearchIds = async (search) => {
@@ -158,7 +167,6 @@ const uploadImage = async (file, folder) => {
   const result = await uploadToCloudinary(
     file.buffer,
     folder,
-    `${folder}-${Date.now()}-${Math.random().toString(36).slice(2)}`,
   );
 
   return {
@@ -223,7 +231,7 @@ const pickResolvedImage = async ({
 
 const buildPayload = async (req, existingStory = null) => {
   const files = getFiles(req);
-  const title = String(req.body.title || '').trim();
+  const title = sanitizeContentString(String(req.body.title || ''));
   const content = String(req.body.content || '').trim();
   const status = req.body.status === 'published' ? 'published' : 'draft';
   const slug = await resolveSlug(title, req.body.slug, existingStory?._id || null);
@@ -259,10 +267,10 @@ const buildPayload = async (req, existingStory = null) => {
   return {
     title,
     slug,
-    excerpt: String(req.body.excerpt || '').trim(),
+    excerpt: sanitizeContentString(String(req.body.excerpt || '')),
     content,
-    category: String(req.body.category || '').trim(),
-    customerName: String(req.body.customerName || '').trim(),
+    category: sanitizeContentString(String(req.body.category || '')),
+    customerName: sanitizeContentString(String(req.body.customerName || '')),
     tags: parseTags(req.body.tags),
     coverImage,
     beforeImage,
@@ -287,19 +295,18 @@ exports.getTransformationStories = async (req, res, next) => {
   try {
     const { search, category, page = 1, limit = 9, sort = '-publishedAt' } = req.query;
     const filter = await buildListFilter({
-      search,
-      category,
+      search: sanitizeQueryString(search, 100),
+      category: sanitizeQueryString(category, 100),
       publishedOnly: true,
     });
 
-    const pageNum = toPositiveInt(page, 1);
-    const safeLimit = Math.max(Math.min(toPositiveInt(limit, 9), MAX_LIMIT), 1);
-    const skip = (pageNum - 1) * safeLimit;
+    const { safePage, safeLimit, skip } = validatePagination(page, limit, MAX_LIMIT, 9);
+    const safeSort = validateSort(sort, TRANSFORMATION_SORT_WHITELIST, '-publishedAt');
 
     const [stories, total] = await Promise.all([
       TransformationStory.find(filter)
         .populate('author', 'name avatar')
-        .sort(sort)
+        .sort(safeSort)
         .skip(skip)
         .limit(safeLimit)
         .lean(),
@@ -313,7 +320,7 @@ exports.getTransformationStories = async (req, res, next) => {
       data: {
         items: stories.map(serializeStory),
         total,
-        page: pageNum,
+        page: safePage,
         limit: safeLimit,
         totalPages: Math.ceil(total / safeLimit),
       },
@@ -376,20 +383,19 @@ exports.adminGetTransformationStories = async (req, res, next) => {
   try {
     const { search, category, status, page = 1, limit = 10, sort = '-createdAt' } = req.query;
     const filter = await buildListFilter({
-      search,
-      category,
+      search: sanitizeQueryString(search, 100),
+      category: sanitizeQueryString(category, 100),
       status,
       publishedOnly: false,
     });
 
-    const pageNum = toPositiveInt(page, 1);
-    const safeLimit = Math.max(Math.min(toPositiveInt(limit, 10), MAX_LIMIT), 1);
-    const skip = (pageNum - 1) * safeLimit;
+    const { safePage, safeLimit, skip } = validatePagination(page, limit, MAX_LIMIT, 10);
+    const safeSort = validateSort(sort, TRANSFORMATION_SORT_WHITELIST);
 
     const [stories, total] = await Promise.all([
       TransformationStory.find(filter)
         .populate('author', 'name avatar')
-        .sort(sort)
+        .sort(safeSort)
         .skip(skip)
         .limit(safeLimit)
         .lean(),
@@ -401,7 +407,7 @@ exports.adminGetTransformationStories = async (req, res, next) => {
       data: {
         items: stories.map(serializeStory),
         total,
-        page: pageNum,
+        page: safePage,
         limit: safeLimit,
         totalPages: Math.ceil(total / safeLimit),
       },
@@ -456,9 +462,6 @@ exports.adminCreateTransformationStory = async (req, res, next) => {
       message: 'Transformation story created successfully',
     });
   } catch (err) {
-    if (err?.statusCode !== 400) {
-      console.error('Transformation story create failed:', err);
-    }
     next(err);
   }
 };
@@ -495,9 +498,6 @@ exports.adminUpdateTransformationStory = async (req, res, next) => {
       message: 'Transformation story updated successfully',
     });
   } catch (err) {
-    if (err?.statusCode !== 400) {
-      console.error('Transformation story update failed:', err);
-    }
     next(err);
   }
 };

@@ -44,6 +44,17 @@ api.interceptors.response.use(
         window.location.href = '/login';
       }
     }
+
+    if (import.meta.env.PROD) {
+      const status = err.response?.status;
+      const serverMessage = err.response?.data?.message;
+      if (!serverMessage) {
+        err.message = status >= 500
+          ? 'Service temporarily unavailable. Please try again.'
+          : 'Something went wrong. Please try again.';
+      }
+    }
+
     return Promise.reject(err);
   }
 );

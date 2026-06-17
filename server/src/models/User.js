@@ -20,6 +20,7 @@ const userSchema = new mongoose.Schema(
     name: { type: String, required: true, trim: true },
     email: {
       type: String,
+      unique: true,
       sparse: true,
       lowercase: true,
       trim: true,
@@ -81,7 +82,6 @@ userSchema.methods.comparePassword = async function (candidate) {
 };
 
 // Performance index — added for query optimization
-userSchema.index({ email: 1 }, { unique: true, sparse: true });
 userSchema.index({ role: 1, createdAt: -1 });
 userSchema.index({ membershipTier: 1 });
 

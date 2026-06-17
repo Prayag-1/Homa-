@@ -26,7 +26,7 @@ const sendVerificationCode = async ({ phoneNumber, code }) => {
     (process.env.NODE_ENV === 'production' ? 'webhook' : 'console');
 
   if (mode === 'console') {
-    console.info(`[phone-verification] ${phoneNumber}: ${code}`);
+    process.stdout.write(`[phone-verification] ${phoneNumber}: ${code}\n`);
     return;
   }
 

@@ -1,6 +1,7 @@
 const router = require('express').Router();
 const mongoose = require('mongoose');
 const { protect, adminOnly } = require('../middleware/auth');
+const validateObjectId = require('../middleware/validateObjectId');
 const Order = require('../models/Order');
 const ApiError = require('../utils/ApiError');
 
@@ -56,7 +57,7 @@ router.get('/', async (req, res, next) => {
   }
 });
 
-router.get('/:id', async (req, res, next) => {
+router.get('/:id', validateObjectId(), async (req, res, next) => {
   try {
     if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
       return next(new ApiError(404, 'Order not found'));
@@ -70,7 +71,7 @@ router.get('/:id', async (req, res, next) => {
   }
 });
 
-router.put('/:id/status', async (req, res, next) => {
+router.put('/:id/status', validateObjectId(), async (req, res, next) => {
   try {
     const { status } = req.body;
 

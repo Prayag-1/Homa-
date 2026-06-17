@@ -1,4 +1,7 @@
 const router = require('express').Router();
+const { generalLimiter } = require('../middleware/rateLimiters');
+
+router.use(generalLimiter);
 
 // Public auth routes plus protected /me endpoint inside authRoutes.
 router.use('/auth',           require('./authRoutes'));
@@ -20,6 +23,8 @@ router.use('/brands',         require('./brandRoutes'));
 router.use('/categories',     require('./categoryRoutes'));
 // Public product routes plus protected review submission.
 router.use('/products',       require('./productRoutes'));
+// Protected user profile routes.
+router.use('/user',           require('./userRoutes'));
 // Protected user wishlist routes.
 router.use('/user/wishlist',  require('./wishlistRoutes'));
 // Protected user order routes plus admin-only status endpoint.

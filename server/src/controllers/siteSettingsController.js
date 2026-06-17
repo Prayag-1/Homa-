@@ -1,6 +1,7 @@
 const Joi = require('joi');
 const SiteSettings = require('../models/SiteSettings');
 const ApiError = require('../utils/ApiError');
+const { sanitizeString } = require('../utils/sanitize');
 
 // GET /settings/public — NO auth required
 const getPublicSettings = async (req, res, next) => {
@@ -72,7 +73,9 @@ const updateWhatsApp = async (req, res, next) => {
     const settings = await SiteSettings.getInstance();
     settings.whatsapp = {
       phoneNumber: cleanPhone,
-      prefilledMessage: value.prefilledMessage || settings.whatsapp.prefilledMessage,
+      prefilledMessage: value.prefilledMessage
+        ? sanitizeString(value.prefilledMessage)
+        : settings.whatsapp.prefilledMessage,
       isEnabled: value.isEnabled,
     };
 
@@ -113,7 +116,7 @@ const updateAnnouncementBar = async (req, res, next) => {
     if (error) return next(new ApiError(400, error.details[0].message));
 
     // SECURITY: Sanitize text — strip all HTML tags
-    const sanitizedText = value.text.replace(/<[^>]*>/g, '').trim();
+    const sanitizedText = sanitizeString(value.text);
 
     const settings = await SiteSettings.getInstance();
     settings.announcementBar = {
@@ -179,7 +182,7 @@ const updateFooter = async (req, res, next) => {
     }
 
     // SECURITY: Sanitize all text fields (strip HTML)
-    const sanitizeText = (text) => text.replace(/<[^>]*>/g, '').trim();
+    const sanitizeText = (text) => sanitizeString(text);
 
     const settings = await SiteSettings.getInstance();
 

@@ -2,6 +2,7 @@ import { Clock3, Layers3, ArrowLeft, RefreshCw, User } from 'lucide-react';
 import { Helmet } from 'react-helmet-async';
 import { Link, useParams } from 'react-router-dom';
 import { useRelatedTransformationStories, useTransformationStory } from '../../hooks/useTransformationStory';
+import { sanitizeHtml } from '../../utils/sanitizeHtml';
 
 const formatDate = (value?: string | null) =>
   value
@@ -284,8 +285,7 @@ export default function TransformationDetailPage() {
                 {isHtmlContent(story.content) ? (
                   <div
                     className="prose prose-lg max-w-none prose-headings:text-black prose-p:text-black/75 prose-a:text-black"
-                    // Admin-authored CMS HTML content.
-                    dangerouslySetInnerHTML={{ __html: story.content }}
+                    dangerouslySetInnerHTML={{ __html: sanitizeHtml(story.content) }}
                   />
                 ) : (
                   <div className="space-y-5">{renderMarkdownLike(story.content)}</div>

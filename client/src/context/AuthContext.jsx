@@ -3,6 +3,48 @@ import api from '../services/api';
 
 export const AuthContext = createContext();
 
+const sanitizeUser = (value) => {
+  if (!value || typeof value !== 'object') return null;
+  const {
+    id,
+    _id,
+    name,
+    email,
+    phone,
+    phoneNumber,
+    birthday,
+    address,
+    role,
+    loyaltyPoints,
+    membershipTier,
+    verificationMethod,
+    isVerified,
+    isActive,
+    skinType,
+    createdAt,
+    updatedAt,
+  } = value;
+
+  return {
+    id: id || _id,
+    name,
+    email,
+    phone,
+    phoneNumber,
+    birthday,
+    address,
+    role: role === 'admin' ? 'admin' : 'user',
+    loyaltyPoints,
+    membershipTier,
+    verificationMethod,
+    isVerified,
+    isActive,
+    skinType,
+    createdAt,
+    updatedAt,
+  };
+};
+
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [accessToken, setAccessToken] = useState(() => localStorage.getItem('accessToken'));
@@ -15,7 +57,7 @@ export function AuthProvider({ children }) {
         if (token) {
           setAccessToken(token);
           const me = await api.get('/auth/me');
-          setUser(me.data.data.user);
+          setUser(sanitizeUser(me.data.data.user));
         }
       } catch {
         localStorage.removeItem('accessToken');
@@ -33,7 +75,7 @@ export function AuthProvider({ children }) {
     const { data } = await api.post('/auth/login', { identifier, password });
     localStorage.setItem('accessToken', data.data.accessToken);
     setAccessToken(data.data.accessToken);
-    setUser(data.data.user);
+    setUser(sanitizeUser(data.data.user));
     return data;
   };
 
@@ -46,7 +88,7 @@ export function AuthProvider({ children }) {
     const { data } = await api.post('/auth/verify', { verificationMethod, target, code });
     localStorage.setItem('accessToken', data.data.accessToken);
     setAccessToken(data.data.accessToken);
-    setUser(data.data.user);
+    setUser(sanitizeUser(data.data.user));
     return data;
   };
 
@@ -67,14 +109,16 @@ export function AuthProvider({ children }) {
 
   const refreshUser = async () => {
     const { data } = await api.get('/auth/me');
-    setUser(data.data.user);
-    return data.data.user;
+    const user = sanitizeUser(data.data.user);
+    setUser(user);
+    return user;
   };
 
   const updateProfile = async (payload) => {
     const { data } = await api.put('/auth/profile', payload);
-    setUser(data.data.user);
-    return data.data.user;
+    const user = sanitizeUser(data.data.user);
+    setUser(user);
+    return user;
   };
 
   return (

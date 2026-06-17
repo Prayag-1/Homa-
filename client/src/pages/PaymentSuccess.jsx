@@ -36,7 +36,6 @@ export default function PaymentSuccess() {
           clearCart(); // Clear cart now that payment is confirmed
           toast.success('Payment verified successfully!');
         } catch (err) {
-          console.error(err);
           setError(err.response?.data?.message || 'Failed to verify payment with eSewa.');
           toast.error('Payment verification failed.');
         } finally {
@@ -50,7 +49,6 @@ export default function PaymentSuccess() {
           const res = await getOrderDetails(orderIdParam);
           setOrder(res.data);
         } catch (err) {
-          console.error(err);
           setError(err.response?.data?.message || 'Failed to fetch order details.');
         } finally {
           setLoading(false);
@@ -73,7 +71,6 @@ export default function PaymentSuccess() {
       await downloadInvoice(order._id, order.invoiceNumber);
       toast.success('Invoice downloaded successfully!');
     } catch (err) {
-      console.error(err);
       toast.error('Failed to download invoice PDF.');
     } finally {
       setDownloading(false);

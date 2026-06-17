@@ -28,6 +28,7 @@ const orderSchema = new mongoose.Schema(
     paymentStatus: { type: String, enum: ['pending', 'paid', 'failed', 'pending_collection', 'collected'], default: 'pending' },
     orderStatus: { type: String, enum: ['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled'], default: 'pending' },
     paymentRef: String,
+    paidAt: Date,
     invoiceNumber: { type: String, unique: true, sparse: true },
     invoiceUrl: String,
     notes: String,

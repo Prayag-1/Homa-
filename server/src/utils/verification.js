@@ -30,7 +30,7 @@ const sendVerificationCode = async ({ method, target, code }) => {
   const normalizedMethod = method === 'email' ? 'email' : 'phone';
 
   if (process.env.NODE_ENV !== 'production' && process.env.VERIFICATION_MODE === 'console') {
-    console.info(`[verification:${normalizedMethod}] ${target}: ${code}`);
+    process.stdout.write(`[verification:${normalizedMethod}] ${target}: ${code}\n`);
     return;
   }
 
@@ -52,7 +52,7 @@ const sendVerificationCode = async ({ method, target, code }) => {
   const mode = process.env.PHONE_VERIFICATION_MODE || (process.env.NODE_ENV === 'production' ? 'webhook' : 'console');
 
   if (mode === 'console') {
-    console.info(`[phone-verification] ${target}: ${code}`);
+    process.stdout.write(`[phone-verification] ${target}: ${code}\n`);
     return;
   }
 

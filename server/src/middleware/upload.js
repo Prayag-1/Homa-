@@ -1,3 +1,4 @@
+const crypto = require('crypto');
 const multer = require('multer');
 const streamifier = require('streamifier');
 const cloudinary = require('../config/cloudinary');
@@ -18,18 +19,55 @@ const fileFilter = (req, file, cb) => {
 const limits = {
   fileSize: 5 * 1024 * 1024,
   files: 8,
+  fields: 20,
+  fieldSize: 10 * 1024,
+};
+
+const getUploadedFiles = (req) => {
+  if (req.file) return [req.file];
+  if (Array.isArray(req.files)) return req.files;
+  if (req.files && typeof req.files === 'object') {
+    return Object.values(req.files).flat();
+  }
+  return [];
+};
+
+const validateImageBuffer = async (req, res, next) => {
+  try {
+    const files = getUploadedFiles(req);
+    if (files.length === 0) return next();
+
+    const { fileTypeFromBuffer } = await import('file-type');
+    for (const file of files) {
+      const type = await fileTypeFromBuffer(file.buffer);
+      if (!type || !ALLOWED_MIMETYPES.has(type.mime)) {
+        return next(new ApiError(
+          400,
+          'Invalid file content. Only real JPEG, PNG, and WebP images are allowed.',
+        ));
+      }
+      file.mimetype = type.mime;
+    }
+
+    next();
+  } catch (err) {
+    next(err);
+  }
 };
 
 const uploadToCloudinary = (buffer, folder, publicId) =>
   new Promise((resolve, reject) => {
+    const generatedPublicId = `homa-${folder}-${Date.now()}-${crypto.randomBytes(8).toString('hex')}`;
     const uploadStream = cloudinary.uploader.upload_stream(
       {
         folder: `homa/${folder}`,
-        public_id: publicId,
+        public_id: publicId || generatedPublicId,
+        allowed_formats: ['jpg', 'jpeg', 'png', 'webp'],
+        resource_type: 'image',
         transformation: [
           {
-            width: 800,
-            height: 800,
+            width: 1200,
+            height: 1200,
             crop: 'limit',
             quality: 'auto',
             fetch_format: 'auto',
@@ -115,5 +153,6 @@ module.exports = {
   uploadProductImages,
   uploadBlogCoverImage,
   uploadTransformationStoryImages,
+  validateImageBuffer,
   uploadToCloudinary,
 };

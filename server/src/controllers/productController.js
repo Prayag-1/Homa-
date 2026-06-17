@@ -1,8 +1,12 @@
-const mongoose = require('mongoose');
 const Product = require('../models/Product');
 const ApiError = require('../utils/ApiError');
+const {
+  PRODUCT_SORT_WHITELIST,
+  sanitizeString,
+  validatePagination,
+  validateSort,
+} = require('../utils/queryHelpers');
 
-const ALLOWED_SORTS = ['-createdAt', 'createdAt', 'price', '-price', '-ratings.average', 'ratings.average'];
 const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 exports.getProducts = async (req, res, next) => {
@@ -10,17 +14,21 @@ exports.getProducts = async (req, res, next) => {
     const { brand, skinType, category, minPrice, maxPrice, search, page = 1, limit = 12, sort = '-createdAt' } = req.query;
 
     const filter = { isActive: true };
+    const safeBrand = sanitizeString(brand, 100);
+    const safeSkinType = sanitizeString(skinType, 50);
+    const safeCategory = sanitizeString(category, 100);
+    const safeSearch = sanitizeString(search, 100) || '';
 
-    if (brand) {
-      filter.brand = { $regex: escapeRegex(String(brand)), $options: 'i' };
+    if (safeBrand) {
+      filter.brand = { $regex: escapeRegex(safeBrand), $options: 'i' };
     }
 
-    if (skinType && typeof skinType === 'string') {
-      filter.skinTypes = { $in: [skinType.trim()] };
+    if (safeSkinType) {
+      filter.skinTypes = { $in: [safeSkinType] };
     }
 
-    if (category && typeof category === 'string') {
-      filter.category = category.trim();
+    if (safeCategory) {
+      filter.category = safeCategory;
     }
 
     if (minPrice || maxPrice) {
@@ -32,18 +40,14 @@ exports.getProducts = async (req, res, next) => {
       if (Object.keys(filter.price).length === 0) delete filter.price;
     }
 
-    const safeSearch = typeof search === 'string' ? search.trim() : '';
     const hasTextSearch = safeSearch.length >= 2;
 
     if (hasTextSearch) {
       filter.$text = { $search: safeSearch };
     }
 
-    const pageNum = Math.max(Math.floor(Number(page) || 1), 1);
-    const safeLimit = Math.max(Math.floor(Math.min(Number(limit) || 12, 50)), 1);
-    const skip = (pageNum - 1) * safeLimit;
-
-    const safeSort = ALLOWED_SORTS.includes(sort) ? sort : '-createdAt';
+    const { safePage, safeLimit, skip } = validatePagination(page, limit, 50, 12);
+    const safeSort = validateSort(sort, PRODUCT_SORT_WHITELIST);
     const sortByRelevance = hasTextSearch && (!sort || sort === '-createdAt');
 
     let query = Product.find(filter)
@@ -67,7 +71,7 @@ exports.getProducts = async (req, res, next) => {
       data: {
         items: products,
         total,
-        page: pageNum,
+        page: safePage,
         limit: safeLimit,
         totalPages: Math.ceil(total / safeLimit),
       },
@@ -79,10 +83,6 @@ exports.getProducts = async (req, res, next) => {
 
 exports.getProduct = async (req, res, next) => {
   try {
-    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
-      return next(new ApiError(404, 'Product not found'));
-    }
-
     const product = await Product.findOne({ _id: req.params.id, isActive: true }).select('-__v');
 
     if (!product) {
@@ -140,7 +140,7 @@ exports.getBestSellers = async (req, res, next) => {
 
 exports.searchSuggestions = async (req, res, next) => {
   try {
-    const { q } = req.query;
+    const q = sanitizeString(req.query.q, 100);
 
     // Minimum 2 characters
     if (!q || q.length < 2) {

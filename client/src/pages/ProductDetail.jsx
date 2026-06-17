@@ -16,8 +16,14 @@ import EmptyState from '../components/common/EmptyState';
 import Spinner from '../components/ui/Spinner';
 import { Button } from '../components/ui/Button';
 import { formatPrice } from '../utils/formatPrice';
+import { z } from 'zod';
 
 const fieldClass = 'w-full rounded-lg border border-[#F0E8E8] px-3 py-2 font-body text-sm text-homa-black outline-none transition focus:border-homa-red';
+const reviewSchema = z.object({
+  rating: z.number().int().min(1, 'Please select a rating').max(5),
+  title: z.string().trim().max(100).optional(),
+  body: z.string().trim().min(10, 'Review must be at least 10 characters').max(1000),
+});
 
 const ProductDetail = () => {
   const { id } = useParams();
@@ -42,18 +48,14 @@ const ProductDetail = () => {
   const handleSubmitReview = async () => {
     setReviewError('');
 
-    if (reviewForm.rating === 0) {
-      setReviewError('Please select a rating');
-      return;
-    }
-
-    if (reviewForm.body.length < 10) {
-      setReviewError('Review must be at least 10 characters');
+    const parsed = reviewSchema.safeParse(reviewForm);
+    if (!parsed.success) {
+      setReviewError(parsed.error.issues[0]?.message || 'Please check your review');
       return;
     }
 
     try {
-      await submitReview.mutateAsync(reviewForm);
+      await submitReview.mutateAsync(parsed.data);
       setReviewForm({ rating: 0, title: '', body: '' });
       setReviewFormOpen(false);
       toast.success('Review submitted and awaiting approval.');

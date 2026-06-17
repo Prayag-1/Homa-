@@ -4,11 +4,27 @@ import { getMyOrders, downloadInvoice } from '../services/orderService';
 import { formatPrice } from '../utils/formatPrice';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-hot-toast';
+import { z } from 'zod';
 import { 
   User, MapPin, ShoppingBag, Award, Edit2, Calendar, Droplets, 
   ChevronDown, ChevronUp, Download, Eye, ShieldAlert, LogOut, CheckCircle2 
 } from 'lucide-react';
 import { AddressMapPicker } from '../components/shared';
+
+const profileSchema = z.object({
+  name: z.string().trim().min(1, 'Name is required').max(80, 'Name is too long'),
+  phoneNumber: z.string().trim().max(20, 'Phone number is too long').optional(),
+  birthday: z.string().optional(),
+  skinType: z.enum(['', 'Oily', 'Dry', 'Combination', 'Sensitive', 'Acne-Prone']).optional(),
+  address: z.object({
+    line1: z.string().trim().max(160).optional(),
+    line2: z.string().trim().max(160).optional(),
+    city: z.string().trim().max(80).optional(),
+    state: z.string().trim().max(80).optional(),
+    postalCode: z.string().trim().max(20).optional(),
+    country: z.string().trim().max(80).optional(),
+  }),
+});
 
 export default function Dashboard() {
   const { user, updateProfile, logout } = useAuth();
@@ -68,7 +84,6 @@ export default function Dashboard() {
         const res = await getMyOrders();
         setOrders(res.data);
       } catch (err) {
-        console.error(err);
         toast.error('Failed to load order history');
       } finally {
         setOrdersLoading(false);
@@ -102,29 +117,32 @@ export default function Dashboard() {
 
   const handleProfileSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.name.trim()) return toast.error('Name is required');
+    const payload = {
+      name: formData.name.trim(),
+      phoneNumber: formData.phoneNumber.trim(),
+      birthday: formData.birthday,
+      skinType: formData.skinType || undefined,
+      address: {
+        line1: formData.line1.trim(),
+        line2: formData.line2.trim(),
+        city: formData.city.trim(),
+        state: formData.state.trim(),
+        postalCode: formData.postalCode.trim(),
+        country: formData.country.trim(),
+      },
+    };
+
+    const parsed = profileSchema.safeParse(payload);
+    if (!parsed.success) {
+      toast.error(parsed.error.issues[0]?.message || 'Please check your profile details');
+      return;
+    }
 
     try {
-      const payload = {
-        name: formData.name.trim(),
-        phoneNumber: formData.phoneNumber.trim(),
-        birthday: formData.birthday,
-        skinType: formData.skinType || undefined,
-        address: {
-          line1: formData.line1.trim(),
-          line2: formData.line2.trim(),
-          city: formData.city.trim(),
-          state: formData.state.trim(),
-          postalCode: formData.postalCode.trim(),
-          country: formData.country.trim(),
-        },
-      };
-
-      await updateProfile(payload);
+      await updateProfile(parsed.data);
       toast.success('Profile updated successfully!');
       setIsEditing(false);
     } catch (err) {
-      console.error(err);
       toast.error(err.response?.data?.message || 'Failed to update profile');
     }
   };
@@ -138,8 +156,7 @@ export default function Dashboard() {
     try {
       await downloadInvoice(orderId, invoiceNumber);
       toast.success('Invoice downloaded!');
-    } catch (err) {
-      console.error(err);
+    } catch {
       toast.error('Failed to download invoice PDF.');
     } finally {
       setDownloadingInvoice((prev) => ({ ...prev, [orderId]: false }));

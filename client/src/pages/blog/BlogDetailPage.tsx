@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { ArrowLeft, Clock3 } from 'lucide-react';
 import { useBlog, useBlogs } from '../../hooks/useBlogs';
+import { sanitizeHtml } from '../../utils/sanitizeHtml';
 
 const formatDate = (value) =>
   new Intl.DateTimeFormat('en-US', {
@@ -275,8 +276,7 @@ export default function BlogDetailPage() {
                   {isHtmlContent(blog.content) ? (
                     <div
                       className="space-y-5 text-[17px] leading-8 text-black/78"
-                      // Admin-authored CMS HTML content.
-                      dangerouslySetInnerHTML={{ __html: blog.content }}
+                      dangerouslySetInnerHTML={{ __html: sanitizeHtml(blog.content) }}
                     />
                   ) : (
                     <div className="space-y-5">{renderMarkdownLike(blog.content)}</div>

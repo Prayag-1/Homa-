@@ -4,9 +4,19 @@ const cloudinary = require('../config/cloudinary');
 const { uploadToCloudinary } = require('../middleware/upload');
 const { generateUniqueSlug } = require('../utils/slugify');
 const ApiError = require('../utils/ApiError');
+const {
+  PRODUCT_SORT_WHITELIST,
+  sanitizeString,
+  validatePagination,
+  validateSort,
+} = require('../utils/queryHelpers');
 
 const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-const ALLOWED_ADMIN_SORTS = ['-createdAt', 'createdAt', 'name', '-name', 'price', '-price', 'stock', '-stock'];
+const ADMIN_PRODUCT_SORT_WHITELIST = new Set([
+  ...PRODUCT_SORT_WHITELIST,
+  'stock',
+  '-stock',
+]);
 
 const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
 
@@ -93,7 +103,6 @@ const uploadProductFiles = async (files = []) => {
     const result = await uploadToCloudinary(
       file.buffer,
       'products',
-      `product-${Date.now()}-${Math.random().toString(36).slice(2)}`,
     );
     uploadedImages.push({ url: result.url, publicId: result.publicId });
   }
@@ -116,31 +125,33 @@ exports.adminGetProducts = async (req, res, next) => {
     } = req.query;
 
     const filter = {};
+    const safeSearch = sanitizeString(search, 100);
+    const safeCategory = sanitizeString(category, 100);
+    const safeBrand = sanitizeString(brand, 100);
 
-    if (search) {
-      const safeSearch = escapeRegex(String(search));
+    if (safeSearch) {
+      const escapedSearch = escapeRegex(safeSearch);
       filter.$or = [
-        { name: { $regex: safeSearch, $options: 'i' } },
-        { brand: { $regex: safeSearch, $options: 'i' } },
-        { sku: { $regex: safeSearch, $options: 'i' } },
-        { description: { $regex: safeSearch, $options: 'i' } },
+        { name: { $regex: escapedSearch, $options: 'i' } },
+        { brand: { $regex: escapedSearch, $options: 'i' } },
+        { sku: { $regex: escapedSearch, $options: 'i' } },
+        { description: { $regex: escapedSearch, $options: 'i' } },
       ];
     }
 
-    if (category && typeof category === 'string') filter.category = category.trim();
-    if (brand) filter.brand = { $regex: escapeRegex(String(brand)), $options: 'i' };
+    if (safeCategory) filter.category = safeCategory;
+    if (safeBrand) filter.brand = { $regex: escapeRegex(safeBrand), $options: 'i' };
     if (isActive === 'true' || isActive === 'false') filter.isActive = isActive === 'true';
     if (isNewArrival === 'true' || isNewArrival === 'false') filter.isNewArrival = isNewArrival === 'true';
     if (isBestSeller === 'true' || isBestSeller === 'false') filter.isBestSeller = isBestSeller === 'true';
 
-    const pageNum = Math.max(Math.floor(Number(page) || 1), 1);
-    const safeLimit = Math.max(Math.floor(Math.min(Number(limit) || 20, 50)), 1);
-    const skip = (pageNum - 1) * safeLimit;
+    const { safePage, safeLimit, skip } = validatePagination(page, limit, 50, 20);
+    const safeSort = validateSort(sort, ADMIN_PRODUCT_SORT_WHITELIST);
 
     const [products, total] = await Promise.all([
       Product.find(filter)
         .select('name sku slug brand category price comparePrice stock images isActive isNewArrival isBestSeller ratings createdAt')
-        .sort(ALLOWED_ADMIN_SORTS.includes(sort) ? sort : '-createdAt')
+        .sort(safeSort)
         .skip(skip)
         .limit(safeLimit)
         .lean(),
@@ -152,7 +163,7 @@ exports.adminGetProducts = async (req, res, next) => {
       data: {
         items: products,
         total,
-        page: pageNum,
+        page: safePage,
         limit: safeLimit,
         totalPages: Math.ceil(total / safeLimit),
       },

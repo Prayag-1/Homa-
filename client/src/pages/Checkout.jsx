@@ -7,6 +7,18 @@ import { formatPrice } from '../utils/formatPrice';
 import { toast } from 'react-hot-toast';
 import { ArrowLeft, CreditCard, ShoppingBag, Truck, CheckCircle2, Ticket } from 'lucide-react';
 import { AddressMapPicker } from '../components/shared';
+import { z } from 'zod';
+
+const checkoutSchema = z.object({
+  shippingAddress: z.object({
+    street: z.string().trim().min(3, 'Street address is required').max(120),
+    city: z.string().trim().min(2, 'City is required').max(80),
+    phone: z.string().trim().regex(/^\+?[1-9]\d{9,14}$/, 'Please enter a valid phone number'),
+  }),
+  paymentMethod: z.enum(['esewa', 'cod']),
+  couponCode: z.string().trim().max(100).optional(),
+  notes: z.string().trim().max(500).optional(),
+});
 
 
 export default function Checkout() {
@@ -100,15 +112,14 @@ export default function Checkout() {
   const handlePlaceOrder = async (e) => {
     e.preventDefault();
 
-    // Basic validation
-    if (!shippingDetails.street.trim()) {
-      return toast.error('Street address is required');
-    }
-    if (!shippingDetails.city.trim()) {
-      return toast.error('City is required');
-    }
-    if (!shippingDetails.phone.trim() || !/^\+?[1-9]\d{9,14}$/.test(shippingDetails.phone.trim())) {
-      return toast.error('Please enter a valid phone number');
+    const parsed = checkoutSchema.safeParse({
+      shippingAddress: shippingDetails,
+      paymentMethod,
+      couponCode: appliedCoupon ? appliedCoupon.code : undefined,
+      notes,
+    });
+    if (!parsed.success) {
+      return toast.error(parsed.error.issues[0]?.message || 'Please check your checkout details');
     }
 
     setIsSubmitting(true);
@@ -120,14 +131,8 @@ export default function Checkout() {
 
       const orderData = {
         items: orderItems,
-        shippingAddress: {
-          street: shippingDetails.street.trim(),
-          city: shippingDetails.city.trim(),
-          phone: shippingDetails.phone.trim(),
-        },
-        paymentMethod,
-        couponCode: appliedCoupon ? appliedCoupon.code : undefined,
-        notes: notes.trim() || undefined,
+        ...parsed.data,
+        notes: parsed.data.notes || undefined,
       };
 
       const res = await createOrder(orderData);
@@ -160,7 +165,6 @@ export default function Checkout() {
         navigate(`/payment-success?orderId=${res.data.order._id}`);
       }
     } catch (err) {
-      console.error(err);
       const errorMsg = err.response?.data?.message || 'Failed to place order';
       toast.error(errorMsg);
       setIsSubmitting(false);

@@ -1,5 +1,6 @@
 const router = require('express').Router();
 const { protect, adminOnly } = require('../middleware/auth');
+const validateObjectId = require('../middleware/validateObjectId');
 const {
   getCustomers,
   getCustomer,
@@ -10,7 +11,7 @@ const {
 router.use(protect, adminOnly);
 
 router.get('/', getCustomers);
-router.get('/:id', getCustomer);
-router.patch('/:id/toggle', toggleCustomerActive);
+router.get('/:id', validateObjectId(), getCustomer);
+router.patch('/:id/toggle', validateObjectId(), toggleCustomerActive);
 
 module.exports = router;
