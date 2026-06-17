@@ -1,4 +1,11 @@
-export default function HomaLogo({ variant = 'red', size = 'md', className = '' }) {
+export default function HomaLogo({
+  variant = 'red',
+  size = 'md',
+  className = '',
+  imageSrc = '',
+  imageAlt = 'Homa logo',
+  showText = true,
+}) {
   const sizes = {
     sm: { icon: 28, text: 18, sub: 8 },
     md: { icon: 36, text: 24, sub: 10 },
@@ -11,56 +18,62 @@ export default function HomaLogo({ variant = 'red', size = 'md', className = '' 
   return (
     <div className={`flex items-center gap-2 ${className}`} style={{ userSelect: 'none' }}>
       <div
+        className="flex-shrink-0 overflow-hidden rounded-lg border border-homa-red/10 bg-white/70"
         style={{
-          width: s.icon,
+          width: Math.round(s.icon * 1.8),
           height: s.icon,
-          borderRadius: '50%',
-          background: color,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          flexShrink: 0,
+          boxShadow: variant === 'white' ? 'none' : '0 1px 8px rgba(209, 0, 0, 0.06)',
         }}
+        aria-label={imageSrc ? imageAlt : 'Logo placeholder'}
       >
-        <svg width={s.icon * 0.6} height={s.icon * 0.6} viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <circle cx="12" cy="8" r="5" stroke="white" strokeWidth="1.5" fill="none" />
-          <circle cx="12" cy="6" r="1" fill="white" />
-          <path d="M9 13 Q12 11 15 13 L15.5 20 Q12 22 8.5 20 Z" fill="white" opacity="0.9" />
-          <circle cx="11" cy="6.5" r="0.5" fill="white" />
-          <path
-            d="M10 8.5 Q11 9 12 8.5 Q13 8 13 9 Q13 10 12 10 Q11 10 11 9 Q11 8 10 8.5"
-            fill="white"
-            opacity="0.6"
+        {imageSrc ? (
+          <img
+            src={imageSrc}
+            alt={imageAlt}
+            className="h-full w-full object-contain p-1.5"
+            draggable="false"
           />
-        </svg>
+        ) : (
+          <span
+            className="font-body text-[10px] font-semibold uppercase tracking-[0.28em]"
+            style={{ color }}
+          >
+            Logo
+          </span>
+        )}
       </div>
-      <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1 }}>
-        <span
-          style={{
-            fontFamily: '"Playfair Display", Georgia, serif',
-            fontSize: s.text,
-            fontWeight: 600,
-            color,
-            letterSpacing: '-0.02em',
-            lineHeight: 1,
-          }}
-        >
-          homa
-        </span>
-        <span
-          style={{
-            fontFamily: '"DM Sans", sans-serif',
-            fontSize: s.sub,
-            color: subColor,
-            letterSpacing: '0.15em',
-            textTransform: 'uppercase',
-            marginTop: 2,
-            lineHeight: 1,
-          }}
-        >
-          Japanese Health & Beauty
-        </span>
-      </div>
+      {showText && (
+        <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1 }}>
+          <span
+            style={{
+              fontFamily: '"Playfair Display", Georgia, serif',
+              fontSize: s.text,
+              fontWeight: 600,
+              color,
+              letterSpacing: '-0.02em',
+              lineHeight: 1,
+            }}
+          >
+            homa
+          </span>
+          <span
+            style={{
+              fontFamily: '"DM Sans", sans-serif',
+              fontSize: s.sub,
+              color: subColor,
+              letterSpacing: '0.15em',
+              textTransform: 'uppercase',
+              marginTop: 2,
+              lineHeight: 1,
+            }}
+          >
+            Japanese Health & Beauty
+          </span>
+        </div>
+      )}
     </div>
   );
 }
