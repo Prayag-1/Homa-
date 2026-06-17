@@ -1,17 +1,7 @@
 import { Link } from 'react-router-dom';
-
-const featuredCategories = [
-  { title: 'Cleansers', description: 'Gentle daily wash formulas for fresh skin.' },
-  { title: 'Serums', description: 'Targeted care for glow, hydration, and repair.' },
-  { title: 'Sunscreens', description: 'Lightweight UV protection for every day.' },
-  { title: 'Moisturizers', description: 'Barrier support and long-lasting hydration.' },
-];
-
-const dealCards = [
-  { title: 'Brightening Starter Set', price: 'Rs. 2,450', note: 'New ritual' },
-  { title: 'Hydration Duo', price: 'Rs. 1,980', note: 'Best seller' },
-  { title: 'Sun Care Essentials', price: 'Rs. 1,250', note: 'Daily SPF' },
-];
+import ProductCard from '../components/product/ProductCard';
+import ProductCardSkeleton from '../components/product/ProductCardSkeleton';
+import { useBestSellers, useNewArrivals } from '../hooks/useProducts';
 
 const attributes = ['Skin Health', 'Transformation', 'Beauty', 'Feminine', 'Japanese', 'Luxury'];
 
@@ -40,26 +30,13 @@ function SectionHeader({ label, title, light = false }) {
   );
 }
 
-function MiniProductCard({ item }) {
-  return (
-    <article className="min-w-[240px] rounded-2xl bg-white p-5 shadow-[0_2px_12px_rgba(0,0,0,0.06)]">
-      <div className="mb-5 flex aspect-[4/3] items-center justify-center rounded-xl bg-homa-blush">
-        <div className="h-24 w-14 rounded-t-full rounded-b-lg bg-homa-red shadow-[12px_10px_0_rgba(209,0,0,0.14)]" />
-      </div>
-      <p className="font-body text-[11px] font-bold uppercase tracking-[0.1em] text-homa-red">{item.note}</p>
-      <h3 className="mt-2 font-heading text-xl leading-snug text-homa-black">{item.title}</h3>
-      <p className="mt-4 font-body text-lg font-semibold text-homa-black">{item.price}</p>
-      <Link
-        to="/shop"
-        className="mt-5 inline-flex rounded-pill bg-homa-red px-5 py-2.5 font-body text-xs font-bold uppercase tracking-[0.1em] text-white transition hover:bg-homa-red-dark"
-      >
-        View deal
-      </Link>
-    </article>
-  );
-}
-
 export default function Home() {
+  const { data: newArrivalsData, isLoading: newArrivalsLoading } = useNewArrivals();
+  const { data: bestSellersData, isLoading: bestSellersLoading } = useBestSellers();
+
+  const newArrivals = Array.isArray(newArrivalsData) ? newArrivalsData : newArrivalsData?.items || [];
+  const bestSellers = Array.isArray(bestSellersData) ? bestSellersData : bestSellersData?.items || [];
+
   return (
     <main className="min-h-screen bg-homa-cream">
       <section className="sakura-pattern grid min-h-[85vh] items-center bg-homa-red px-5 py-16 text-white md:px-12 lg:grid-cols-2 lg:py-20">
@@ -112,16 +89,12 @@ export default function Home() {
       <section className="bg-homa-cream px-5 py-16 md:px-12">
         <div className="mx-auto max-w-7xl">
           <SectionHeader label="New Arrivals" title="Fresh rituals for everyday skin health" />
-          <div className="grid auto-cols-[minmax(240px,1fr)] grid-flow-col gap-5 overflow-x-auto pb-3 md:grid-flow-row md:grid-cols-3 md:overflow-visible lg:grid-cols-4">
-            {dealCards.map((item) => <MiniProductCard key={item.title} item={item} />)}
-            {featuredCategories.map((item) => (
-              <article key={item.title} className="min-w-[240px] rounded-2xl bg-white p-5 shadow-[0_2px_12px_rgba(0,0,0,0.06)]">
-                <div className="mb-5 aspect-[4/3] rounded-xl bg-homa-blush" />
-                <p className="font-body text-[11px] font-bold uppercase tracking-[0.1em] text-homa-red">Category</p>
-                <h3 className="mt-2 font-heading text-xl leading-snug text-homa-black">{item.title}</h3>
-                <p className="mt-2 font-body text-sm leading-6 text-homa-grey">{item.description}</p>
-              </article>
-            ))}
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {newArrivalsLoading
+              ? Array.from({ length: 3 }).map((_, index) => <ProductCardSkeleton key={index} />)
+              : newArrivals.slice(0, 3).map((product) => (
+                  <ProductCard key={product._id} product={product} />
+                ))}
           </div>
         </div>
       </section>
@@ -130,7 +103,11 @@ export default function Home() {
         <div className="mx-auto max-w-7xl">
           <SectionHeader label="Best Sellers" title="Beloved formulas customers return to" />
           <div className="grid gap-5 md:grid-cols-3">
-            {dealCards.map((deal) => <MiniProductCard key={`best-${deal.title}`} item={deal} />)}
+            {bestSellersLoading
+              ? Array.from({ length: 3 }).map((_, index) => <ProductCardSkeleton key={index} />)
+              : bestSellers.slice(0, 3).map((product) => (
+                  <ProductCard key={product._id} product={product} />
+                ))}
           </div>
         </div>
       </section>

@@ -17,34 +17,27 @@ export default function HomaLogo({
 
   return (
     <div className={`flex items-center gap-2 ${className}`} style={{ userSelect: 'none' }}>
-      <div
-        className="flex-shrink-0 overflow-hidden rounded-lg border border-homa-red/10 bg-white/70"
-        style={{
-          width: Math.round(s.icon * 1.8),
-          height: s.icon,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          boxShadow: variant === 'white' ? 'none' : '0 1px 8px rgba(209, 0, 0, 0.06)',
-        }}
-        aria-label={imageSrc ? imageAlt : 'Logo placeholder'}
-      >
-        {imageSrc ? (
+      {imageSrc && (
+        <div
+          className="flex-shrink-0 overflow-hidden rounded-lg border border-homa-red/10 bg-white/70"
+          style={{
+            width: Math.round(s.icon * 1.8),
+            height: s.icon,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxShadow: variant === 'white' ? 'none' : '0 1px 8px rgba(209, 0, 0, 0.06)',
+          }}
+          aria-label={imageAlt}
+        >
           <img
             src={imageSrc}
             alt={imageAlt}
             className="h-full w-full object-contain p-1.5"
             draggable="false"
           />
-        ) : (
-          <span
-            className="font-body text-[10px] font-semibold uppercase tracking-[0.28em]"
-            style={{ color }}
-          >
-            Logo
-          </span>
-        )}
-      </div>
+        </div>
+      )}
       {showText && (
         <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1 }}>
           <span
