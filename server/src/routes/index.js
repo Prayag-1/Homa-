@@ -37,6 +37,8 @@ router.use('/admin/reports',   require('./reportsRoutes'));
 router.use('/admin/customers', require('./adminCustomerRoutes'));
 // Public settings route plus admin-only settings routes.
 router.use('/settings',        require('./siteSettingsRoutes'));
+// Public banner routes plus admin banner manager routes.
+router.use('/banners',         require('./bannerRoutes'));
 
 // Health check
 router.get('/health', (req, res) => res.json({ success: true, message: 'HOMA API is running', timestamp: new Date().toISOString() }));

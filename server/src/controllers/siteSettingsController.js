@@ -2,6 +2,13 @@ const Joi = require('joi');
 const SiteSettings = require('../models/SiteSettings');
 const ApiError = require('../utils/ApiError');
 const { sanitizeString } = require('../utils/sanitize');
+const cloudinary = require('../config/cloudinary');
+const { uploadToCloudinary } = require('../middleware/upload');
+
+const hasCloudinaryConfig =
+  Boolean(process.env.CLOUDINARY_CLOUD_NAME) &&
+  Boolean(process.env.CLOUDINARY_API_KEY) &&
+  Boolean(process.env.CLOUDINARY_API_SECRET);
 
 // GET /settings/public — NO auth required
 const getPublicSettings = async (req, res, next) => {
@@ -22,6 +29,9 @@ const getPublicSettings = async (req, res, next) => {
       },
       announcementBar: settings.announcementBar,
       footer: settings.footer,
+      version: settings.announcementBar?.lastUpdatedAt
+        ? new Date(settings.announcementBar.lastUpdatedAt).toISOString()
+        : (settings.updatedAt ? new Date(settings.updatedAt).toISOString() : null),
     };
 
     res.set('Cache-Control', 'public, max-age=300, stale-while-revalidate=60');
@@ -43,6 +53,9 @@ const getAdminSettings = async (req, res, next) => {
     res.json({
       success: true,
       data: settings,
+      version: settings.announcementBar?.lastUpdatedAt
+        ? new Date(settings.announcementBar.lastUpdatedAt).toISOString()
+        : (settings.updatedAt ? new Date(settings.updatedAt).toISOString() : null),
       message: 'Admin settings retrieved successfully',
     });
   } catch (err) {
@@ -95,7 +108,7 @@ const updateWhatsApp = async (req, res, next) => {
 const updateAnnouncementBar = async (req, res, next) => {
   try {
     const schema = Joi.object({
-      text: Joi.string().max(200).required(),
+      text: Joi.string().max(200).allow('').optional(),
       bgColor: Joi.string()
         .pattern(/^#[0-9A-Fa-f]{6}$/)
         .required()
@@ -109,22 +122,54 @@ const updateAnnouncementBar = async (req, res, next) => {
           'string.pattern.base': 'Invalid hex color format',
         }),
       isActive: Joi.boolean().required(),
-      link: Joi.string().uri().optional().allow(''),
+      link: Joi.alternatives()
+        .try(
+          Joi.string().uri(),
+          Joi.string().pattern(/^\/[^\s]*$/),
+        )
+        .optional()
+        .allow(''),
+      removeImage: Joi.boolean().default(false),
     });
 
     const { error, value } = schema.validate(req.body, { stripUnknown: true });
     if (error) return next(new ApiError(400, error.details[0].message));
 
     // SECURITY: Sanitize text — strip all HTML tags
-    const sanitizedText = sanitizeString(value.text);
+    const sanitizedText = sanitizeString(value.text) || '';
 
     const settings = await SiteSettings.getInstance();
+    const existingImage = settings.announcementBar.image || { url: '', publicId: '' };
+    let image = existingImage;
+
+    if (req.file) {
+      if (!hasCloudinaryConfig) {
+        return next(new ApiError(400, 'Image upload is not configured. Add Cloudinary credentials to enable announcement images.'));
+      }
+
+      const uploaded = await uploadToCloudinary(req.file.buffer, 'settings');
+      image = {
+        url: uploaded.url,
+        publicId: uploaded.publicId,
+      };
+      if (existingImage.publicId && existingImage.publicId !== uploaded.publicId) {
+        await cloudinary.uploader.destroy(existingImage.publicId);
+      }
+    } else if (value.removeImage) {
+      if (existingImage.publicId) {
+        await cloudinary.uploader.destroy(existingImage.publicId);
+      }
+      image = { url: '', publicId: '' };
+    }
+
     settings.announcementBar = {
       text: sanitizedText,
       bgColor: value.bgColor,
       textColor: value.textColor,
       isActive: value.isActive,
       link: value.link || '',
+      image,
+      lastUpdatedAt: new Date(),
     };
 
     await settings.save();

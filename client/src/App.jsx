@@ -31,6 +31,7 @@ const AdminCategories = lazy(() => import('./pages/admin/AdminCategories'));
 const AdminDistributors = lazy(() => import('./pages/admin/AdminDistributors'));
 const AdminReports = lazy(() => import('./pages/admin/AdminReports'));
 const AdminCustomers = lazy(() => import('./pages/admin/AdminCustomers'));
+const AdminBanners = lazy(() => import('./pages/admin/AdminBanners'));
 const AdminSiteSettings = lazy(() => import('./pages/admin/AdminSiteSettings'));
 const AdminOrders = lazy(() => import('./pages/admin/AdminOrders'));
 const AdminProducts = lazy(() => import('./pages/admin/AdminProducts'));
@@ -137,6 +138,7 @@ function AppRoutes() {
             <Route path="/admin/orders" element={<AdminRoute><AdminOrders /></AdminRoute>} />
             <Route path="/admin/reports" element={<AdminRoute><AdminReports /></AdminRoute>} />
             <Route path="/admin/customers" element={<AdminRoute><AdminCustomers /></AdminRoute>} />
+            <Route path="/admin/banners" element={<AdminRoute><AdminBanners /></AdminRoute>} />
             <Route path="/admin/settings" element={<AdminRoute><AdminSiteSettings /></AdminRoute>} />
             <Route path="/admin/transformations" element={<AdminRoute><TransformationStoriesPage /></AdminRoute>} />
             <Route path="/admin/transformations/new" element={<AdminRoute><TransformationStoryFormPage /></AdminRoute>} />

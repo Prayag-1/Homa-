@@ -89,6 +89,8 @@ const uploadToCloudinary = (buffer, folder, publicId) =>
 
 const productImagesUpload = multer({ storage, limits, fileFilter }).array('images', 8);
 const blogCoverImageUpload = multer({ storage, limits, fileFilter }).single('coverImageFile');
+const announcementImageUpload = multer({ storage, limits, fileFilter }).single('announcementImageFile');
+const bannerImageUpload = multer({ storage, limits, fileFilter }).single('bannerImageFile');
 const transformationStoryImagesUpload = multer({ storage, limits, fileFilter }).fields([
   { name: 'coverImageFile', maxCount: 1 },
   { name: 'beforeImageFile', maxCount: 1 },
@@ -131,6 +133,42 @@ const uploadBlogCoverImage = (req, res, next) => {
   });
 };
 
+const uploadAnnouncementImage = (req, res, next) => {
+  announcementImageUpload(req, res, (err) => {
+    if (!err) return next();
+
+    if (err instanceof multer.MulterError) {
+      if (err.code === 'LIMIT_FILE_SIZE') {
+        return next(new ApiError(400, 'The announcement image must be 5MB or less'));
+      }
+      if (err.code === 'LIMIT_FILE_COUNT') {
+        return next(new ApiError(400, 'Only one announcement image can be uploaded'));
+      }
+      return next(new ApiError(400, err.message));
+    }
+
+    return next(err);
+  });
+};
+
+const uploadBannerImage = (req, res, next) => {
+  bannerImageUpload(req, res, (err) => {
+    if (!err) return next();
+
+    if (err instanceof multer.MulterError) {
+      if (err.code === 'LIMIT_FILE_SIZE') {
+        return next(new ApiError(400, 'The banner image must be 5MB or less'));
+      }
+      if (err.code === 'LIMIT_FILE_COUNT') {
+        return next(new ApiError(400, 'Only one banner image can be uploaded'));
+      }
+      return next(new ApiError(400, err.message));
+    }
+
+    return next(err);
+  });
+};
+
 const uploadTransformationStoryImages = (req, res, next) => {
   transformationStoryImagesUpload(req, res, (err) => {
     if (!err) return next();
@@ -152,6 +190,8 @@ const uploadTransformationStoryImages = (req, res, next) => {
 module.exports = {
   uploadProductImages,
   uploadBlogCoverImage,
+  uploadAnnouncementImage,
+  uploadBannerImage,
   uploadTransformationStoryImages,
   validateImageBuffer,
   uploadToCloudinary,

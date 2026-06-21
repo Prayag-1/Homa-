@@ -1,6 +1,8 @@
 import { Link } from 'react-router-dom';
 import ProductCard from '../components/product/ProductCard';
 import ProductCardSkeleton from '../components/product/ProductCardSkeleton';
+import HeroCarousel from '../components/home/HeroCarousel';
+import { usePublicBanners } from '../hooks/useBanners';
 import { useBestSellers, useNewArrivals } from '../hooks/useProducts';
 
 const attributes = ['Skin Health', 'Transformation', 'Beauty', 'Feminine', 'Japanese', 'Luxury'];
@@ -33,9 +35,11 @@ function SectionHeader({ label, title, light = false }) {
 export default function Home() {
   const { data: newArrivalsData, isLoading: newArrivalsLoading } = useNewArrivals();
   const { data: bestSellersData, isLoading: bestSellersLoading } = useBestSellers();
+  const { data: heroBannersData } = usePublicBanners();
 
   const newArrivals = Array.isArray(newArrivalsData) ? newArrivalsData : newArrivalsData?.items || [];
   const bestSellers = Array.isArray(bestSellersData) ? bestSellersData : bestSellersData?.items || [];
+  const heroBanners = Array.isArray(heroBannersData) ? heroBannersData : [];
 
   return (
     <main className="min-h-screen bg-homa-cream">
@@ -68,13 +72,7 @@ export default function Home() {
           </div>
 
           <div className="mt-12 flex justify-center lg:mt-0">
-            <div className="relative h-[420px] w-full max-w-md">
-              <div className="absolute left-8 top-8 h-72 w-44 rounded-t-[5rem] rounded-b-[2rem] bg-white shadow-[0_28px_80px_rgba(41,40,40,0.25)]" />
-              <div className="absolute left-16 top-24 h-40 w-28 rounded-2xl bg-homa-blush" />
-              <div className="absolute right-8 top-20 h-80 w-48 rounded-t-[6rem] rounded-b-[2rem] bg-white/95 shadow-[0_28px_80px_rgba(41,40,40,0.22)]" />
-              <div className="absolute right-20 top-36 h-32 w-24 rounded-2xl bg-homa-red-light" />
-              <div className="absolute bottom-8 left-1/2 h-28 w-60 -translate-x-1/2 rounded-[50%] bg-homa-red-dark/30 blur-xl" />
-            </div>
+            <HeroCarousel banners={heroBanners} />
           </div>
         </div>
       </section>

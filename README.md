@@ -26,13 +26,13 @@ A production-ready MERN stack monorepo for the HOMA Japanese Skincare project ta
 # Install server dependencies
 cd server
 npm install
-cp .env.example .env
+copy .env.example .env
 # Fill in .env with your credentials
 
 # Install client dependencies
 cd ../client
 npm install
-cp .env.example .env
+copy .env.example .env
 # VITE_API_URL should point to your server
 ```
 
@@ -44,6 +44,13 @@ MONGO_URI=mongodb+srv://USERNAME:PASSWORD@cluster.mongodb.net/homa
 JWT_SECRET=your_long_random_string
 JWT_REFRESH_SECRET=your_another_random_string
 CLIENT_URL=http://localhost:5173
+```
+
+To generate random JWT secrets for development:
+
+```bash
+cd server
+npm run secrets
 ```
 
 **Client** (.env):

@@ -7,9 +7,9 @@ export default function HomaLogo({
   showText = true,
 }) {
   const sizes = {
-    sm: { icon: 28, text: 18, sub: 8 },
-    md: { icon: 36, text: 24, sub: 10 },
-    lg: { icon: 48, text: 32, sub: 12 },
+    sm: { icon: 56, text: 36, sub: 16 },
+    md: { icon: 72, text: 48, sub: 20 },
+    lg: { icon: 96, text: 64, sub: 24 },
   };
   const s = sizes[size] || sizes.md;
   const color = variant === 'white' ? '#FFFFFF' : '#D10000';
@@ -19,21 +19,20 @@ export default function HomaLogo({
     <div className={`flex items-center gap-2 ${className}`} style={{ userSelect: 'none' }}>
       {imageSrc && (
         <div
-          className="flex-shrink-0 overflow-hidden rounded-lg border border-homa-red/10 bg-white/70"
+          className="flex-shrink-0 overflow-hidden"
           style={{
             width: Math.round(s.icon * 1.8),
             height: s.icon,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            boxShadow: variant === 'white' ? 'none' : '0 1px 8px rgba(209, 0, 0, 0.06)',
           }}
           aria-label={imageAlt}
         >
           <img
             src={imageSrc}
             alt={imageAlt}
-            className="h-full w-full object-contain p-1.5"
+            className="h-full w-full object-contain"
             draggable="false"
           />
         </div>

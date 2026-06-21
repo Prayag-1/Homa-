@@ -1,4 +1,5 @@
 require("dotenv").config();
+const crypto = require("crypto");
 
 // STARTUP SECURITY CHECKS
 const REQUIRED_ENV = [
@@ -29,17 +30,37 @@ for (const key of REQUIRED_ENV) {
   }
 }
 
-for (const key of ["JWT_SECRET", "JWT_REFRESH_SECRET"]) {
+const isProduction = process.env.NODE_ENV === "production";
+
+function ensureStrongSecret(key) {
   const value = process.env[key] || "";
-  if (WEAK_SECRETS.some((weak) => value.toLowerCase().includes(weak))) {
-    console.error(`FATAL: ${key} is too weak. Use a random 64-character string.`);
-    process.exit(1);
-  }
-  if (value.length < 32) {
+  const weak = WEAK_SECRETS.some((entry) => value.toLowerCase().includes(entry));
+  const tooShort = value.length < 32;
+
+  if (!weak && !tooShort) return;
+
+  if (isProduction) {
+    if (weak) {
+      console.error(`FATAL: ${key} is too weak. Use a random 64-character string.`);
+      process.exit(1);
+    }
+
     console.error(`FATAL: ${key} must be at least 32 characters.`);
     process.exit(1);
   }
+
+  const generated = crypto
+    .createHash("sha256")
+    .update(`${process.cwd()}|${key}|homa-dev-secret-fallback`)
+    .digest("hex");
+  process.env[key] = generated;
+  console.warn(
+    `WARN: ${key} was missing or weak. Using a stable development fallback secret.`,
+  );
 }
+
+ensureStrongSecret("JWT_SECRET");
+ensureStrongSecret("JWT_REFRESH_SECRET");
 
 const express = require("express");
 const cors = require("cors");

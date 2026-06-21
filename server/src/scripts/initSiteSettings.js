@@ -32,6 +32,11 @@ const initSiteSettings = async () => {
         textColor: '#FFFFFF',
         isActive: false,
         link: '/shop',
+        image: {
+          url: '',
+          publicId: '',
+        },
+        lastUpdatedAt: new Date(),
       },
       footer: {
         tagline: 'Authentic Japanese Skincare for Nepal',

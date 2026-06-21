@@ -3,6 +3,7 @@ import {
   Facebook,
   Instagram,
   Link as LinkIcon,
+  ImagePlus,
   MessageCircle,
   Music2,
   Plus,
@@ -29,6 +30,15 @@ const emptyFooter = {
   companyLinks: [],
   contact: { address: '', phone: '', email: '', mapUrl: '' },
   social: { facebook: '', instagram: '', tiktok: '', youtube: '' },
+};
+
+const emptyAnnouncement = {
+  text: '',
+  link: '',
+  bgColor: '#D10000',
+  textColor: '#FFFFFF',
+  isActive: false,
+  image: { url: '', publicId: '' },
 };
 
 const normalizeFooter = (footer = {}) => ({
@@ -155,24 +165,49 @@ export default function AdminSiteSettings() {
   const updateAnnouncement = useUpdateAnnouncement();
   const updateFooter = useUpdateFooter();
   const [whatsapp, setWhatsapp] = useState({ phoneNumber: '', prefilledMessage: '', isEnabled: false });
-  const [announcement, setAnnouncement] = useState({ text: '', link: '', bgColor: '#D10000', textColor: '#FFFFFF', isActive: false });
+  const [announcement, setAnnouncement] = useState(emptyAnnouncement);
+  const [announcementImageFile, setAnnouncementImageFile] = useState(null);
+  const [announcementImagePreview, setAnnouncementImagePreview] = useState('');
+  const [announcementImageRemoved, setAnnouncementImageRemoved] = useState(false);
   const [footer, setFooter] = useState(emptyFooter);
   const [initialSnapshot, setInitialSnapshot] = useState('');
 
   useEffect(() => {
     if (!settings) return;
     const nextWhatsApp = settings.whatsapp || { phoneNumber: '', prefilledMessage: '', isEnabled: false };
-    const nextAnnouncement = settings.announcementBar || { text: '', link: '', bgColor: '#D10000', textColor: '#FFFFFF', isActive: false };
+    const nextAnnouncement = {
+      ...emptyAnnouncement,
+      ...(settings.announcementBar || {}),
+      image: {
+        ...emptyAnnouncement.image,
+        ...(settings.announcementBar?.image || {}),
+      },
+    };
     const nextFooter = normalizeFooter(settings.footer);
     setWhatsapp(nextWhatsApp);
     setAnnouncement(nextAnnouncement);
+    setAnnouncementImageFile(null);
+    setAnnouncementImagePreview('');
+    setAnnouncementImageRemoved(false);
     setFooter(nextFooter);
     setInitialSnapshot(JSON.stringify({ whatsapp: nextWhatsApp, announcement: nextAnnouncement, footer: nextFooter }));
   }, [settings]);
 
+  useEffect(
+    () => () => {
+      if (announcementImagePreview) {
+        URL.revokeObjectURL(announcementImagePreview);
+      }
+    },
+    [announcementImagePreview],
+  );
+
   const dirty = useMemo(
-    () => initialSnapshot !== JSON.stringify({ whatsapp, announcement, footer }),
-    [announcement, footer, initialSnapshot, whatsapp],
+    () =>
+      initialSnapshot !== JSON.stringify({ whatsapp, announcement, footer }) ||
+      Boolean(announcementImageFile) ||
+      announcementImageRemoved,
+    [announcement, announcementImageFile, announcementImageRemoved, footer, initialSnapshot, whatsapp],
   );
 
   const waUrl = whatsapp.phoneNumber
@@ -195,6 +230,40 @@ export default function AdminSiteSettings() {
       companyLinks: cleanLinks(footer.companyLinks),
       contact,
       social: footer.social,
+    });
+  };
+
+  const handleAnnouncementImageChange = (file) => {
+    if (!file) return;
+
+    if (announcementImagePreview) {
+      URL.revokeObjectURL(announcementImagePreview);
+    }
+
+    setAnnouncementImageFile(file);
+    setAnnouncementImagePreview(URL.createObjectURL(file));
+    setAnnouncementImageRemoved(false);
+  };
+
+  const removeAnnouncementImage = () => {
+    if (announcementImagePreview) {
+      URL.revokeObjectURL(announcementImagePreview);
+    }
+    setAnnouncementImageFile(null);
+    setAnnouncementImagePreview('');
+    setAnnouncementImageRemoved(true);
+    setAnnouncement((current) => ({ ...current, image: { url: '', publicId: '' } }));
+  };
+
+  const saveAnnouncement = () => {
+    updateAnnouncement.mutate({
+      text: announcement.text,
+      link: announcement.link,
+      bgColor: announcement.bgColor,
+      textColor: announcement.textColor,
+      isActive: announcement.isActive,
+      removeImage: announcementImageRemoved,
+      imageFile: announcementImageFile,
     });
   };
 
@@ -272,45 +341,149 @@ export default function AdminSiteSettings() {
           )}
 
           {activeTab === 'announcement' && (
-            <div className="max-w-3xl space-y-5">
-              <Toggle checked={announcement.isActive} onChange={(value) => setAnnouncement((current) => ({ ...current, isActive: value }))} label="Show announcement bar" />
-              {announcement.isActive && (
-                <>
-                  <Field label="Text">
-                    <input
-                      className="admin-input"
-                      maxLength={200}
+            <div className="max-w-6xl space-y-6">
+              <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1.05fr_0.95fr]">
+                <div className="space-y-5">
+                  <Toggle checked={announcement.isActive} onChange={(value) => setAnnouncement((current) => ({ ...current, isActive: value }))} label="Enable popup announcement" />
+                  <Field label="Popup Text">
+                    <textarea
+                      className="admin-textarea"
+                      maxLength={160}
                       value={announcement.text || ''}
                       onChange={(event) => setAnnouncement((current) => ({ ...current, text: event.target.value }))}
+                      placeholder="Short message shown beside the image"
                     />
-                    <div className="admin-char-count">{(announcement.text || '').length}/200</div>
+                    <div className="admin-char-count">{(announcement.text || '').length}/160</div>
                   </Field>
                   <Field label="Link">
-                    <input className="admin-input" value={announcement.link || ''} onChange={(event) => setAnnouncement((current) => ({ ...current, link: event.target.value }))} placeholder="https://example.com" />
+                    <input
+                      className="admin-input"
+                      value={announcement.link || ''}
+                      onChange={(event) => setAnnouncement((current) => ({ ...current, link: event.target.value }))}
+                      placeholder="https://example.com"
+                    />
                   </Field>
-                </>
-              )}
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                <Field label="Background Color">
-                  <div className="flex gap-2">
-                    <input className="h-[38px] w-[54px] border-0 bg-transparent p-0" type="color" value={announcement.bgColor} onChange={(event) => setAnnouncement((current) => ({ ...current, bgColor: event.target.value }))} />
-                    <input className="admin-input" value={announcement.bgColor} onChange={(event) => setAnnouncement((current) => ({ ...current, bgColor: event.target.value }))} />
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    <Field label="Background Color">
+                      <div className="flex gap-2">
+                        <input className="h-[38px] w-[54px] border-0 bg-transparent p-0" type="color" value={announcement.bgColor} onChange={(event) => setAnnouncement((current) => ({ ...current, bgColor: event.target.value }))} />
+                        <input className="admin-input" value={announcement.bgColor} onChange={(event) => setAnnouncement((current) => ({ ...current, bgColor: event.target.value }))} />
+                      </div>
+                    </Field>
+                    <Field label="Text Color">
+                      <div className="flex gap-2">
+                        <input className="h-[38px] w-[54px] border-0 bg-transparent p-0" type="color" value={announcement.textColor} onChange={(event) => setAnnouncement((current) => ({ ...current, textColor: event.target.value }))} />
+                        <input className="admin-input" value={announcement.textColor} onChange={(event) => setAnnouncement((current) => ({ ...current, textColor: event.target.value }))} />
+                      </div>
+                    </Field>
                   </div>
-                </Field>
-                <Field label="Text Color">
-                  <div className="flex gap-2">
-                    <input className="h-[38px] w-[54px] border-0 bg-transparent p-0" type="color" value={announcement.textColor} onChange={(event) => setAnnouncement((current) => ({ ...current, textColor: event.target.value }))} />
-                    <input className="admin-input" value={announcement.textColor} onChange={(event) => setAnnouncement((current) => ({ ...current, textColor: event.target.value }))} />
+                  <div className="rounded-2xl border p-4" style={{ borderColor: 'var(--admin-border)', background: '#171A25' }}>
+                    <div className="mb-3 flex items-center justify-between gap-3">
+                      <div>
+                        <h4 className="font-bold">Popup Image</h4>
+                        <p className="text-sm" style={{ color: 'var(--admin-muted)' }}>Upload a large hero image for the popup banner.</p>
+                      </div>
+                      {(announcementImageFile || announcement.image?.url) && (
+                        <button className="admin-button admin-button-danger" type="button" onClick={removeAnnouncementImage}>
+                          <Trash2 size={15} />
+                          Remove
+                        </button>
+                      )}
+                    </div>
+                    <button
+                    type="button"
+                    className="admin-upload-zone !min-h-[180px]"
+                    onClick={() => document.getElementById('announcement-image-input')?.click()}
+                  >
+                      {announcementImagePreview || announcement.image?.url ? (
+                        <div className="w-full space-y-3">
+                          <img
+                            src={announcementImagePreview || announcement.image.url}
+                            alt="Announcement preview"
+                            className="mx-auto h-48 w-full max-w-[520px] rounded-2xl object-cover"
+                          />
+                          <span className="font-semibold">Click to replace the image</span>
+                        </div>
+                      ) : (
+                        <>
+                          <ImagePlus size={28} />
+                          <span className="font-semibold">Click to upload or drag and drop</span>
+                          <span className="text-xs" style={{ color: 'var(--admin-muted)' }}>
+                            JPEG, PNG, WebP up to 5MB
+                          </span>
+                        </>
+                      )}
+                    </button>
+                    <input
+                      id="announcement-image-input"
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      className="hidden"
+                      onChange={(event) => {
+                        const file = event.target.files?.[0];
+                        if (file) handleAnnouncementImageChange(file);
+                        event.target.value = '';
+                      }}
+                    />
                   </div>
-                </Field>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="rounded-3xl border p-4" style={{ borderColor: 'var(--admin-border)', background: '#0E1017' }}>
+                    <div className="mb-3 flex items-center justify-between">
+                      <h4 className="font-bold">Popup Preview</h4>
+                      <span className="admin-badge admin-badge-warning">First open</span>
+                    </div>
+                    <div className="overflow-hidden rounded-3xl border" style={{ borderColor: announcement.bgColor, background: announcement.bgColor }}>
+                      <div className="grid min-h-[420px] grid-cols-1 lg:grid-cols-[1.2fr_0.8fr]">
+                        <div className="min-h-[240px] bg-black/5">
+                          {(announcementImagePreview || announcement.image?.url) ? (
+                            <img
+                              src={announcementImagePreview || announcement.image.url}
+                              alt="Popup preview"
+                              className="h-full w-full object-cover"
+                            />
+                          ) : (
+                            <div className="flex h-full min-h-[240px] items-center justify-center p-8 text-center" style={{ color: announcement.textColor }}>
+                              <div>
+                                <p className="text-lg font-bold">Image preview area</p>
+                                <p className="mt-2 text-sm opacity-80">Add a large promotional image here.</p>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex flex-col justify-center gap-4 p-6 md:p-8" style={{ color: announcement.textColor }}>
+                          <div className="inline-flex w-fit rounded-full border border-white/20 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em]">
+                            Special announcement
+                          </div>
+                          <div>
+                            <h3 className="text-2xl font-bold leading-tight">
+                              {announcement.text || 'Announcement preview'}
+                            </h3>
+                            <p className="mt-3 text-sm leading-6 opacity-90">
+                              This popup is shown once when the app opens, then stays dismissed on this device until the announcement changes.
+                            </p>
+                          </div>
+                          {announcement.link && (
+                            <a
+                              href={announcement.link}
+                              className="inline-flex w-fit items-center rounded-full bg-white px-4 py-2 text-sm font-bold"
+                              style={{ color: announcement.bgColor }}
+                            >
+                              Open link
+                            </a>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <button className="admin-button admin-button-primary" type="button" disabled={updateAnnouncement.isPending} onClick={saveAnnouncement}>
+                    {updateAnnouncement.isPending ? <Spinner size="sm" color="currentColor" /> : <Save size={16} />}
+                    Save
+                  </button>
+                </div>
               </div>
-              <div className="px-4 py-3 text-center text-sm font-bold" style={{ background: announcement.bgColor, color: announcement.textColor }}>
-                {announcement.text || 'Announcement preview'}
-              </div>
-              <button className="admin-button admin-button-primary" type="button" disabled={updateAnnouncement.isPending} onClick={() => updateAnnouncement.mutate(announcement)}>
-                {updateAnnouncement.isPending ? <Spinner size="sm" color="currentColor" /> : <Save size={16} />}
-                Save
-              </button>
             </div>
           )}
 

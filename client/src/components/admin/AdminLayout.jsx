@@ -1,5 +1,6 @@
 import {
   BarChart3,
+  Image as ImageIcon,
   FileText,
   Grid3X3,
   LayoutDashboard,
@@ -26,6 +27,7 @@ const navItems = [
   { label: 'Blogs', to: '/admin/blogs', icon: FileText },
   { label: 'Transformation Stories', to: '/admin/transformations', icon: Sparkles },
   { label: 'Distributors', to: '/admin/distributors', icon: MapPin },
+  { label: 'Hero Banners', to: '/admin/banners', icon: ImageIcon },
   { label: 'Reports', to: '/admin/reports', icon: BarChart3 },
   { label: 'Settings', to: '/admin/settings', icon: Settings },
 ];

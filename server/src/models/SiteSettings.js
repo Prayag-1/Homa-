@@ -20,6 +20,11 @@ const siteSettingsSchema = new mongoose.Schema(
       textColor: { type: String, default: '#FFFFFF', maxlength: 7 },
       isActive: { type: Boolean, default: false },
       link: { type: String, default: '', maxlength: 500 },
+      image: {
+        url: { type: String, default: '' },
+        publicId: { type: String, default: '' },
+      },
+      lastUpdatedAt: { type: Date, default: Date.now },
     },
 
     // Footer
