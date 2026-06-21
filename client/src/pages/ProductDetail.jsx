@@ -1,4 +1,4 @@
-import { useContext, useState } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { Heart } from 'lucide-react';
@@ -16,6 +16,7 @@ import EmptyState from '../components/common/EmptyState';
 import Spinner from '../components/ui/Spinner';
 import { Button } from '../components/ui/Button';
 import { formatPrice } from '../utils/formatPrice';
+import { useIsMobile } from '../hooks/useMediaQuery';
 import { z } from 'zod';
 
 const fieldClass = 'w-full rounded-lg border border-[#F0E8E8] px-3 py-2 font-body text-sm text-homa-black outline-none transition focus:border-homa-red';
@@ -35,6 +36,9 @@ const ProductDetail = () => {
   const [reviewFormOpen, setReviewFormOpen] = useState(false);
   const [reviewForm, setReviewForm] = useState({ rating: 0, title: '', body: '' });
   const [reviewError, setReviewError] = useState('');
+  const [showStickyBar, setShowStickyBar] = useState(false);
+  const addToCartRef = useRef(null);
+  const isMobile = useIsMobile();
 
   const { data: product, isLoading, isError } = useProduct(id);
   const { data: reviews = [], isLoading: reviewsLoading, isError: reviewsError } = useProductReviews(id);
@@ -44,6 +48,21 @@ const ProductDetail = () => {
     addItem(product, qty);
     toast.success('Added to cart');
   };
+
+  useEffect(() => {
+    if (!isMobile || !addToCartRef.current || typeof IntersectionObserver === 'undefined') {
+      setShowStickyBar(false);
+      return undefined;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => setShowStickyBar(!entry.isIntersecting),
+      { threshold: 0 }
+    );
+
+    observer.observe(addToCartRef.current);
+    return () => observer.disconnect();
+  }, [isMobile, product?._id]);
 
   const handleSubmitReview = async () => {
     setReviewError('');
@@ -196,11 +215,11 @@ const ProductDetail = () => {
       </Helmet>
 
       <div className="min-h-screen bg-homa-cream">
-        <div className="mx-auto max-w-7xl px-5 py-12 md:px-12">
-          <div className="mb-16 grid grid-cols-1 gap-12 md:grid-cols-2">
+        <div className="mx-auto max-w-7xl px-5 py-8 pb-28 md:px-12 md:py-12 md:pb-12">
+          <div className="mb-12 flex flex-col gap-6 md:mb-16 md:flex-row md:gap-12">
             <ImageGallery images={product.images} />
 
-            <div>
+            <div className="min-w-0 flex-1">
               <p className="mb-2 font-body text-[11px] font-bold uppercase tracking-[0.15em] text-homa-red">
                 {product.brand}
               </p>
@@ -255,16 +274,18 @@ const ProductDetail = () => {
                   <QuantitySelector value={qty} onChange={setQty} min={1} max={product.stock} />
                 </div>
 
-                <Button
-                  type="button"
-                  onClick={handleAddToCart}
-                  disabled={outOfStock}
-                  variant="primary"
-                  size="lg"
-                  className="w-full"
-                >
-                  {outOfStock ? 'Out of Stock' : 'Add to Cart'}
-                </Button>
+                <div ref={addToCartRef}>
+                  <Button
+                    type="button"
+                    onClick={handleAddToCart}
+                    disabled={outOfStock}
+                    variant="primary"
+                    size="lg"
+                    className="w-full"
+                  >
+                    {outOfStock ? 'Out of Stock' : 'Add to Cart'}
+                  </Button>
+                </div>
 
                 <Button
                   type="button"
@@ -290,11 +311,11 @@ const ProductDetail = () => {
             </div>
           )}
 
-          <div className="rounded-2xl bg-homa-blush p-6 md:p-8">
-            <h2 className="mb-8 font-heading text-3xl text-homa-black">Customer Reviews</h2>
+          <div className="rounded-2xl bg-homa-blush p-5 md:p-8">
+            <h2 className="text-h2 mb-8 font-heading text-homa-black">Customer Reviews</h2>
 
-            <div className="grid grid-cols-1 gap-12 md:grid-cols-3">
-              <div className="md:col-span-1">
+            <div className="flex flex-col gap-8 lg:flex-row">
+              <div className="lg:w-1/3">
                 <div className="mb-8 text-center">
                   <p className="mb-2 font-heading text-[64px] font-bold leading-none text-homa-red">
                     {avgRating.toFixed(1)}
@@ -323,7 +344,7 @@ const ProductDetail = () => {
                 </div>
               </div>
 
-              <div className="md:col-span-2">
+              <div className="min-w-0 flex-1">
                 {reviewsLoading ? (
                   <div className="flex justify-center py-10">
                     <Spinner size="md" />
@@ -357,7 +378,7 @@ const ProductDetail = () => {
                 )}
 
                 {user ? (
-                  <div className="mt-8 rounded-2xl bg-white p-6">
+                  <div className="mt-8 w-full rounded-2xl bg-white p-5 md:p-6">
                     <h3 className="mb-4 font-heading text-lg text-homa-black">Leave a Review</h3>
 
                     {!reviewFormOpen ? (
@@ -420,7 +441,7 @@ const ProductDetail = () => {
                           />
                         </div>
 
-                        <div className="flex gap-2">
+                        <div className="flex flex-col gap-2 sm:flex-row">
                           <button
                             type="button"
                             onClick={handleSubmitReview}
@@ -451,7 +472,7 @@ const ProductDetail = () => {
                     )}
                   </div>
                 ) : (
-                  <div className="mt-8 rounded-2xl bg-white p-6">
+                  <div className="mt-8 w-full rounded-2xl bg-white p-5 md:p-6">
                     <p className="font-body text-sm text-homa-grey">
                       <a href="/login" className="font-semibold text-homa-red hover:underline">
                         Log in
@@ -463,6 +484,30 @@ const ProductDetail = () => {
               </div>
             </div>
           </div>
+        </div>
+      </div>
+      <div
+        className="fixed bottom-0 left-0 right-0 z-40 border-t border-gray-200 bg-white p-4 safe-bottom md:hidden"
+        style={{
+          transform: showStickyBar ? 'translateY(0)' : 'translateY(100%)',
+          transition: 'transform 0.3s ease',
+          pointerEvents: showStickyBar ? 'auto' : 'none',
+        }}
+      >
+        <div className="flex items-center gap-3">
+          <div className="min-w-0 flex-1">
+            <p className="truncate font-body text-xs text-gray-500">{product.name}</p>
+            <p className="font-body font-bold text-homa-black">{formatPrice(product.price)}</p>
+          </div>
+          <Button
+            type="button"
+            variant="primary"
+            onClick={handleAddToCart}
+            disabled={outOfStock}
+            className="flex-1"
+          >
+            {outOfStock ? 'Out of Stock' : 'Add to Cart'}
+          </Button>
         </div>
       </div>
     </>

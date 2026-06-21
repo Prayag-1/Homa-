@@ -10,6 +10,7 @@ export function Button({
 }) {
   const baseStyles = [
     'inline-flex items-center justify-center gap-2 rounded-pill font-body font-semibold',
+    'min-h-[44px]',
     'transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50',
     'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-homa-red',
   ].join(' ');

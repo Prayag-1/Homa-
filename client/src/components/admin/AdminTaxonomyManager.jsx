@@ -206,9 +206,9 @@ export default function AdminTaxonomyManager({
             {items.length} total
           </span>
         </div>
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex w-full flex-wrap items-center gap-3 sm:w-auto">
           <input
-            className="admin-input w-[260px]"
+            className="admin-input w-full sm:w-[260px]"
             value={searchInput}
             onChange={(event) => setSearchInput(event.target.value)}
             placeholder={`Search ${title.toLowerCase()}`}

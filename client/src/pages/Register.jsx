@@ -150,19 +150,19 @@ export default function Register() {
   };
 
   return (
-    <div className="grid min-h-screen bg-homa-cream lg:grid-cols-[45%_55%]">
-      <aside className="sakura-pattern flex min-h-[260px] flex-col items-center justify-center bg-homa-red px-6 py-12 text-center text-white lg:min-h-screen">
+    <div className="flex min-h-screen flex-col bg-homa-cream md:flex-row">
+      <aside className="sakura-pattern flex h-[180px] flex-col items-center justify-center bg-homa-red px-6 py-8 text-center text-white md:h-auto md:flex-[0.45]">
         <HomaLogo variant="white" size="lg" />
-        <p className="mt-6 max-w-sm font-heading text-2xl italic leading-snug text-white">
+        <p className="mt-4 max-w-sm font-heading text-lg italic leading-snug text-white md:mt-6 md:text-2xl">
           Your journey to beautiful skin starts here.
         </p>
-        <p className="mt-10 font-body text-[10px] font-bold uppercase tracking-[0.25em] text-white/50">
+        <p className="mt-4 font-body text-[10px] font-bold uppercase tracking-[0.25em] text-white/50 md:mt-10">
           Japanese Health & Beauty Store
         </p>
       </aside>
 
-      <section className="flex items-center justify-center px-5 py-12 md:px-12">
-        <div className="w-full max-w-2xl rounded-[24px] bg-white p-8 shadow-[0_24px_80px_rgba(209,0,0,0.12)] md:p-12">
+      <section className="flex flex-1 items-center justify-center md:flex-[0.55] md:px-12 md:py-12">
+        <div className="w-full max-w-2xl bg-white p-6 md:m-8 md:rounded-3xl md:p-12 md:shadow-[0_24px_80px_rgba(209,0,0,0.12)]">
           <h1 className="font-heading text-3xl font-semibold text-homa-black">Create Account</h1>
           <p className="mt-3 font-body text-sm text-homa-grey">
             Choose email or phone verification, then enter the code to finish registration.
@@ -170,7 +170,7 @@ export default function Register() {
 
           {step === 'register' ? (
             <form onSubmit={onRegister} className="mt-8 space-y-5">
-              <div className="grid gap-5 md:grid-cols-2">
+              <div className="grid gap-5 sm:grid-cols-2">
               <Input label="Name" name="name" value={form.name} onChange={onChange} placeholder="John Doe" />
               <Input label="Phone number" name="phoneNumber" value={form.phoneNumber} onChange={onChange} placeholder="+97798XXXXXXX" required />
               <Input label="Password" name="password" type="password" value={form.password} onChange={onChange} placeholder="At least 8 characters" />
@@ -191,8 +191,8 @@ export default function Register() {
 
               <div className="rounded-2xl border border-[#F0E8E8] bg-homa-blush/45 p-4">
                 <p className="mb-3 font-body text-sm font-semibold text-homa-black">Verification method</p>
-                <div className="flex gap-4">
-                  <label className="flex items-center gap-2 font-body text-sm text-homa-black">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  <label className="touch-target justify-start rounded-xl border border-[#F0E8E8] bg-white px-3 font-body text-sm text-homa-black">
                   <input
                     type="radio"
                     name="verificationMethod"
@@ -203,7 +203,7 @@ export default function Register() {
                   />
                   Email
                 </label>
-                <label className="flex items-center gap-2 font-body text-sm text-homa-black">
+                <label className="touch-target justify-start rounded-xl border border-[#F0E8E8] bg-white px-3 font-body text-sm text-homa-black">
                   <input
                     type="radio"
                     name="verificationMethod"

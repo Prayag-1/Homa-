@@ -302,14 +302,14 @@ export default function AdminOrders() {
             {data?.total || 0} total
           </span>
         </div>
-        <div className="flex flex-wrap items-center gap-3">
-          <select className="admin-select w-[180px]" value={filters.status} onChange={(event) => updateFilter('status', event.target.value)}>
+        <div className="flex w-full flex-wrap items-center gap-3 sm:w-auto">
+          <select className="admin-select w-full sm:w-[180px]" value={filters.status} onChange={(event) => updateFilter('status', event.target.value)}>
             <option value="">All order status</option>
             {ORDER_STATUSES.map((status) => (
               <option key={status} value={status}>{status}</option>
             ))}
           </select>
-          <select className="admin-select w-[190px]" value={filters.paymentStatus} onChange={(event) => updateFilter('paymentStatus', event.target.value)}>
+          <select className="admin-select w-full sm:w-[190px]" value={filters.paymentStatus} onChange={(event) => updateFilter('paymentStatus', event.target.value)}>
             <option value="">All payment status</option>
             <option value="paid">Paid</option>
             <option value="pending">Pending</option>

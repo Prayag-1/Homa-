@@ -1,18 +1,23 @@
 import { useCallback, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
-import { Menu, ChevronLeft, ChevronRight } from 'lucide-react';
-import FilterSidebar from '../components/product/FilterSidebar';
+import { ChevronLeft, ChevronRight, SlidersHorizontal } from 'lucide-react';
+import FilterSidebar, {
+  FilterSidebarContent,
+  getActiveFilterCount,
+  sortOptions,
+} from '../components/product/FilterSidebar';
 import ProductCard from '../components/product/ProductCard';
 import ProductCardSkeleton from '../components/product/ProductCardSkeleton';
 import EmptyState from '../components/common/EmptyState';
+import BottomSheet from '../components/common/BottomSheet';
+import { Badge } from '../components/ui/Badge';
 import { useProducts } from '../hooks/useProducts';
 
 const Catalog = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [filterDrawerOpen, setFilterDrawerOpen] = useState(false);
 
-  // Build filters object from URL params
   const brandParam = searchParams.get('brand') || undefined;
   const categoryParam = searchParams.get('category') || undefined;
   const skinTypeParam = searchParams.get('skinType') || undefined;
@@ -21,6 +26,7 @@ const Catalog = () => {
   const searchParam = searchParams.get('search') || undefined;
   const sortParam = searchParams.get('sort') || undefined;
   const pageParam = searchParams.get('page') || 1;
+
   const filters = useMemo(() => ({
     brand: brandParam,
     skinType: skinTypeParam,
@@ -39,8 +45,10 @@ const Catalog = () => {
   const total = data?.total || 0;
   const currentPage = Number(filters.page);
   const totalPages = data?.totalPages || 1;
+  const activeFilterCount = getActiveFilterCount(searchParams);
+  const startProduct = total > 0 ? (currentPage - 1) * 12 + 1 : 0;
+  const endProduct = Math.min(currentPage * 12, total);
 
-  // Generate page numbers (show max 5 page buttons)
   const generatePageNumbers = () => {
     const pages = [];
     let start = Math.max(1, currentPage - 2);
@@ -51,8 +59,8 @@ const Catalog = () => {
       else start = Math.max(1, end - 4);
     }
 
-    for (let i = start; i <= end; i++) {
-      pages.push(i);
+    for (let page = start; page <= end; page += 1) {
+      pages.push(page);
     }
     return pages;
   };
@@ -68,20 +76,26 @@ const Catalog = () => {
     setSearchParams(new URLSearchParams());
   };
 
+  const handleSortChange = (event) => {
+    const newParams = new URLSearchParams(searchParams);
+    if (event.target.value) {
+      newParams.set('sort', event.target.value);
+    } else {
+      newParams.delete('sort');
+    }
+    newParams.set('page', '1');
+    setSearchParams(newParams);
+  };
+
   const renderProduct = useCallback((product) => (
     <ProductCard key={product._id} product={product} />
   ), []);
 
-  // Calculate product range being shown
-  const startProduct = (currentPage - 1) * 12 + 1;
-  const endProduct = Math.min(currentPage * 12, total);
-
-  // Generate dynamic SEO title and description
   const seoTitle = categoryParam
-    ? `${categoryParam} — Shop HOMA Beauty`
+    ? `${categoryParam} - Shop HOMA Beauty`
     : brandParam
-    ? `${brandParam} Products — HOMA Beauty`
-    : 'Shop All Products — HOMA Beauty';
+    ? `${brandParam} Products - HOMA Beauty`
+    : 'Shop All Products - HOMA Beauty';
 
   const seoDescription = categoryParam
     ? `Shop authentic Japanese ${categoryParam} products in Nepal. Certified, direct-import skincare from HOMA Beauty.`
@@ -94,7 +108,8 @@ const Catalog = () => {
         <meta name="description" content={seoDescription} />
         <link rel="canonical" href={`${window.location.origin}/shop`} />
       </Helmet>
-      <div className="sakura-pattern bg-homa-red px-5 py-12 text-white md:px-12">
+
+      <div className="sakura-pattern bg-homa-red px-5 py-8 text-white md:px-12 md:py-12">
         <div className="mx-auto max-w-7xl">
           <div className="mb-5 font-body text-xs text-white/75">
             <span>Home</span>
@@ -104,63 +119,85 @@ const Catalog = () => {
           <p className="font-body text-[11px] font-bold uppercase tracking-[0.22em] text-white/70">
             Our Collection
           </p>
-          <h1 className="mt-3 font-heading text-5xl font-semibold text-white">
+          <h1 className="text-h1 mt-3 font-heading font-semibold text-white">
             All Products
           </h1>
-          <p className="mt-3 font-body text-sm text-white/70">
+
+          <div className="mt-5 flex flex-col gap-3 lg:hidden">
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => setFilterDrawerOpen(true)}
+                className="touch-target flex items-center gap-2 rounded-full border border-white/70 px-4 py-2 font-body text-sm font-semibold text-white transition-colors hover:bg-white/10"
+              >
+                <SlidersHorizontal size={16} />
+                Filters
+                {activeFilterCount > 0 && <Badge color="red">{activeFilterCount}</Badge>}
+              </button>
+              <select
+                value={searchParams.get('sort') || '-createdAt'}
+                onChange={handleSortChange}
+                className="min-h-[44px] min-w-0 flex-1 rounded-full border border-white/70 bg-white/10 px-4 py-2 font-body text-sm text-white outline-none"
+                aria-label="Sort products"
+              >
+                {sortOptions.map((option) => (
+                  <option key={option.value} value={option.value} className="text-homa-black">
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <p className="font-body text-xs text-white/70">
+              Showing {startProduct}-{endProduct} of {total}
+            </p>
+          </div>
+
+          <p className="mt-3 hidden font-body text-sm text-white/70 lg:block">
             {total} products available
           </p>
         </div>
       </div>
 
-      <div className="mx-auto max-w-7xl px-5 py-8 md:px-12">
-        {/* Mobile Filter Toggle */}
-        <div className="mb-6 flex items-center justify-between lg:hidden">
-          <button
-            type="button"
-            onClick={() => setFilterDrawerOpen(true)}
-            className="flex items-center gap-2 rounded-pill border border-homa-red px-4 py-2 text-homa-red transition-colors hover:bg-homa-red hover:text-white"
-          >
-            <Menu size={18} />
-            <span className="font-body text-sm">Filters</span>
-          </button>
-          <span className="font-body text-xs text-homa-grey">
-            Showing {startProduct}–{endProduct} of {total}
-          </span>
-        </div>
-
-        {/* Layout: Sidebar + Grid */}
+      <div className="mx-auto max-w-7xl px-0 py-8 md:px-12">
         <div className="flex gap-8">
-          {/* Desktop Sidebar */}
           <div className="hidden w-80 flex-shrink-0 lg:block">
-            <FilterSidebar isOpen={true} />
+            <FilterSidebar />
           </div>
 
-          {/* Mobile Sidebar Drawer */}
-          {filterDrawerOpen && (
-            <div
-              className="fixed inset-0 z-30 bg-homa-black/45 lg:hidden"
-              onClick={() => setFilterDrawerOpen(false)}
-            >
-              <div onClick={(e) => e.stopPropagation()}>
-                <FilterSidebar
-                  isOpen={filterDrawerOpen}
-                  onClose={() => setFilterDrawerOpen(false)}
-                />
-              </div>
+          <BottomSheet
+            isOpen={filterDrawerOpen}
+            onClose={() => setFilterDrawerOpen(false)}
+            title="Filters"
+            snapHeight="full"
+          >
+            <div className="mb-4 flex justify-end">
+              <button
+                type="button"
+                onClick={handleClearFilters}
+                className="font-body text-sm font-semibold text-homa-red"
+              >
+                Clear All
+              </button>
             </div>
-          )}
+            <FilterSidebarContent includeSort={false} />
+            <div className="sticky bottom-0 -mx-5 mt-6 border-t border-[#F0E8E8] bg-white px-5 py-4 safe-bottom">
+              <button
+                type="button"
+                onClick={() => setFilterDrawerOpen(false)}
+                className="touch-target w-full rounded-pill bg-homa-red font-body text-sm font-bold uppercase tracking-[0.1em] text-white"
+              >
+                Apply Filters
+              </button>
+            </div>
+          </BottomSheet>
 
-          {/* Product Grid */}
-          <div className="flex-1">
-            {/* Product Count - Desktop only */}
-            <div className="hidden lg:block mb-6 text-right">
+          <div className="min-w-0 flex-1">
+            <div className="mb-6 hidden text-right lg:block">
               <p className="font-body text-sm text-homa-grey">
-                Showing {startProduct}–{endProduct} of {total} products
+                Showing {startProduct}-{endProduct} of {total} products
               </p>
             </div>
 
-            {/* Error State */}
             {isError && (
               <div className="py-16 text-center">
                 <p className="mb-4 font-body text-homa-grey">
@@ -176,16 +213,14 @@ const Catalog = () => {
               </div>
             )}
 
-            {/* Loading State */}
             {isLoading && (
-              <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {Array.from({ length: 12 }).map((_, i) => (
-                  <ProductCardSkeleton key={i} />
+              <div className="grid grid-cols-2 gap-3 px-4 md:grid-cols-3 md:gap-4 md:px-6 lg:grid-cols-4 lg:gap-6 lg:px-8">
+                {Array.from({ length: 12 }).map((_, index) => (
+                  <ProductCardSkeleton key={index} />
                 ))}
               </div>
             )}
 
-            {/* Empty State */}
             {!isLoading && products.length === 0 && (
               <EmptyState
                 icon={null}
@@ -196,51 +231,72 @@ const Catalog = () => {
               />
             )}
 
-            {/* Product Grid */}
             {!isLoading && products.length > 0 && (
-              <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+              <div className="grid grid-cols-2 gap-3 px-4 md:grid-cols-3 md:gap-4 md:px-6 lg:grid-cols-4 lg:gap-6 lg:px-8">
                 {products.map(renderProduct)}
               </div>
             )}
 
-            {/* Pagination */}
             {!isLoading && products.length > 0 && totalPages > 1 && (
-              <div className="mt-12 flex items-center justify-center gap-2">
-                {/* Previous Button */}
-                <button
-                  type="button"
-                  onClick={() => handlePageChange(currentPage - 1)}
-                  disabled={currentPage === 1}
-                  className="rounded-pill border border-[#F0E8E8] bg-white p-2 text-homa-black transition-colors hover:border-homa-red hover:text-homa-red disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  <ChevronLeft size={18} />
-                </button>
-
-                {/* Page Numbers */}
-                {generatePageNumbers().map((page) => (
+              <div className="mt-12">
+                <div className="flex items-center justify-center gap-3 sm:hidden">
                   <button
-                    key={page}
                     type="button"
-                    onClick={() => handlePageChange(page)}
-                    className={`h-10 w-10 rounded-pill font-body text-sm ${
-                      currentPage === page
-                        ? 'bg-homa-red text-white'
-                        : 'border border-[#F0E8E8] bg-white text-homa-black hover:border-homa-red hover:text-homa-red'
-                    } transition-colors`}
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    className="touch-target rounded-pill border border-[#F0E8E8] bg-white text-homa-black transition-colors hover:border-homa-red hover:text-homa-red disabled:cursor-not-allowed disabled:opacity-50"
+                    aria-label="Previous page"
                   >
-                    {page}
+                    <ChevronLeft size={18} />
                   </button>
-                ))}
+                  <span className="font-body text-sm font-semibold text-homa-black">
+                    {currentPage} of {totalPages}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                    className="touch-target rounded-pill border border-[#F0E8E8] bg-white text-homa-black transition-colors hover:border-homa-red hover:text-homa-red disabled:cursor-not-allowed disabled:opacity-50"
+                    aria-label="Next page"
+                  >
+                    <ChevronRight size={18} />
+                  </button>
+                </div>
 
-                {/* Next Button */}
-                <button
-                  type="button"
-                  onClick={() => handlePageChange(currentPage + 1)}
-                  disabled={currentPage === totalPages}
-                  className="rounded-pill border border-[#F0E8E8] bg-white p-2 text-homa-black transition-colors hover:border-homa-red hover:text-homa-red disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  <ChevronRight size={18} />
-                </button>
+                <div className="hidden items-center justify-center gap-2 sm:flex">
+                  <button
+                    type="button"
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    className="rounded-pill border border-[#F0E8E8] bg-white p-2 text-homa-black transition-colors hover:border-homa-red hover:text-homa-red disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <ChevronLeft size={18} />
+                  </button>
+
+                  {generatePageNumbers().map((page) => (
+                    <button
+                      key={page}
+                      type="button"
+                      onClick={() => handlePageChange(page)}
+                      className={`h-10 w-10 rounded-pill font-body text-sm ${
+                        currentPage === page
+                          ? 'bg-homa-red text-white'
+                          : 'border border-[#F0E8E8] bg-white text-homa-black hover:border-homa-red hover:text-homa-red'
+                      } transition-colors`}
+                    >
+                      {page}
+                    </button>
+                  ))}
+
+                  <button
+                    type="button"
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                    className="rounded-pill border border-[#F0E8E8] bg-white p-2 text-homa-black transition-colors hover:border-homa-red hover:text-homa-red disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <ChevronRight size={18} />
+                  </button>
+                </div>
               </div>
             )}
           </div>

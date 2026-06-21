@@ -7,11 +7,12 @@ const {
 } = require('../utils/queryHelpers');
 
 const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const publicBrandFilter = () => ({ isActive: { $ne: false } });
 
 exports.getPublicBrands = async (req, res, next) => {
   try {
     const { safeLimit, skip } = validatePagination(req.query.page, req.query.limit, 50, 50);
-    const brands = await Brand.find({ isActive: true })
+    const brands = await Brand.find(publicBrandFilter())
       .select('name slug description logo sortOrder')
       .sort({ sortOrder: 1, name: 1 })
       .skip(skip)

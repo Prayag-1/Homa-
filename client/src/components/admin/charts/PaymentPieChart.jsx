@@ -19,11 +19,11 @@ const methodLabel = (method = '') => {
 };
 
 export default function PaymentPieChart({ data }) {
-  if (data === undefined) return <div className="admin-skeleton h-[300px] w-full" />;
+  if (data === undefined) return <div className="admin-skeleton h-[260px] w-full" />;
 
   if (!data.length) {
     return (
-      <div className="flex h-[300px] items-center justify-center text-sm" style={{ color: 'var(--admin-muted)' }}>
+      <div className="flex h-[260px] items-center justify-center text-sm" style={{ color: 'var(--admin-muted)' }}>
         No data for this period
       </div>
     );
@@ -33,7 +33,7 @@ export default function PaymentPieChart({ data }) {
 
   return (
     <div>
-      <ResponsiveContainer width="100%" height={240}>
+      <ResponsiveContainer width="100%" height={220}>
         <PieChart>
           <Pie
             data={data}
@@ -41,7 +41,7 @@ export default function PaymentPieChart({ data }) {
             nameKey="_id"
             cx="50%"
             cy="50%"
-            outerRadius={78}
+            outerRadius={68}
             label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
           >
             {data.map((item) => (

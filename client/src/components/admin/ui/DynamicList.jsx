@@ -54,7 +54,7 @@ export default function DynamicList({
           </div>
         ))}
       </div>
-      <div className="mt-2 flex gap-2">
+      <div className="mt-2 flex flex-col gap-2 sm:flex-row">
         <input
           className="admin-input"
           value={input}
@@ -70,7 +70,7 @@ export default function DynamicList({
         />
         <button
           type="button"
-          className="admin-button"
+          className="admin-button sm:w-auto"
           onClick={addItem}
           disabled={isMaxed}
         >

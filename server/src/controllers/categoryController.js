@@ -7,11 +7,12 @@ const {
 } = require('../utils/queryHelpers');
 
 const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const publicCategoryFilter = () => ({ isActive: { $ne: false } });
 
 exports.getPublicCategories = async (req, res, next) => {
   try {
     const { safeLimit, skip } = validatePagination(req.query.page, req.query.limit, 50, 50);
-    const categories = await Category.find({ isActive: true })
+    const categories = await Category.find(publicCategoryFilter())
       .select('name slug description image sortOrder')
       .sort({ sortOrder: 1, name: 1 })
       .skip(skip)

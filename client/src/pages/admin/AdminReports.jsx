@@ -87,16 +87,16 @@ export default function AdminReports() {
             Sales, payment, category, and order performance.
           </p>
         </div>
-        <div className="flex flex-wrap items-start gap-3">
+        <div className="flex w-full flex-wrap items-start gap-3 sm:w-auto">
           <DateRangePicker value={dateRange} onChange={setDateRange} />
-          <button className="admin-button admin-button-primary mt-[42px]" type="button" onClick={handleExport} disabled={exporting}>
+          <button className="admin-button admin-button-primary sm:mt-[42px]" type="button" onClick={handleExport} disabled={exporting}>
             {exporting ? <Spinner size="sm" color="currentColor" /> : <Download size={16} />}
             Export CSV
           </button>
         </div>
       </div>
 
-      <div className="mb-5 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <div className="mb-5 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <SummaryCard icon={TrendingUp} label="Total Revenue" value={formatPrice(summary.totalRevenue)} loading={overview.isLoading} />
         <SummaryCard icon={ShoppingCart} label="Total Orders" value={Number(summary.totalOrders || 0).toLocaleString()} loading={overview.isLoading} />
         <SummaryCard icon={Calculator} label="Average Order Value" value={formatPrice(summary.averageOrder)} loading={overview.isLoading} />
@@ -124,7 +124,7 @@ export default function AdminReports() {
         </section>
         <section className="admin-card p-4">
           <h3 className="mb-4 font-bold">Top Products</h3>
-          <div className="overflow-x-auto">
+          <div className="admin-table-wrap">
             <table className="w-full min-w-[520px] border-collapse text-sm">
               <thead>
                 <tr className="border-b text-left" style={{ borderColor: 'var(--admin-border)', color: 'var(--admin-muted)' }}>
@@ -163,7 +163,7 @@ export default function AdminReports() {
 
       <section className="admin-card p-4">
         <h3 className="mb-4 font-bold">Order Status</h3>
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-5">
           {statusLabels.map((status) => {
             const style = statusStyles[status];
             return (

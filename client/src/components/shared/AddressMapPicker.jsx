@@ -243,7 +243,7 @@ export default function AddressMapPicker({
         {editable && onAddressSelect && (
           <button
             type="button"
-            className={`w-full whitespace-nowrap rounded-full border px-4 py-2 text-xs font-medium transition sm:w-auto ${buttonClass}`}
+            className={`min-h-[44px] w-full whitespace-nowrap rounded-full border px-4 py-2 text-xs font-medium transition sm:w-auto ${buttonClass}`}
             onClick={() => {
               if (label) onAddressSelect(label);
             }}

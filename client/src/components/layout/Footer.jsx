@@ -65,7 +65,7 @@ function LinkColumn({ title, links }) {
 function FooterSkeleton() {
   return (
     <footer className="sakura-pattern bg-homa-red px-5 py-12 text-white md:px-12 md:py-16">
-      <div className="mx-auto grid max-w-7xl grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4">
+      <div className="mx-auto grid max-w-7xl grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
         {Array.from({ length: 4 }).map((_, index) => (
           <div key={index} className="space-y-4">
             <div className="h-5 w-28 animate-pulse bg-white/10" />
@@ -93,7 +93,7 @@ export default function Footer() {
   return (
     <footer className="text-white">
       <div className="sakura-pattern bg-homa-red px-5 py-12 md:px-12 md:py-16">
-        <div className="mx-auto grid max-w-7xl grid-cols-1 gap-10 md:grid-cols-2 lg:grid-cols-4">
+        <div className="mx-auto grid max-w-7xl grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
           <div>
             <Link to="/" aria-label="HOMA home">
               <HomaLogo variant="white" size="md" />
@@ -112,7 +112,7 @@ export default function Footer() {
                       href={url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/20 text-white transition duration-200 hover:opacity-70"
+                      className="touch-target rounded-full border border-white/20 text-white transition duration-200 hover:opacity-70"
                       aria-label={platform}
                     >
                       <Icon className="h-5 w-5" />
@@ -164,8 +164,8 @@ export default function Footer() {
       </div>
 
       <div className="border-t border-white/15 bg-homa-red-dark px-5 py-4 md:px-12">
-        <div className="mx-auto grid max-w-7xl grid-cols-1 items-center gap-4 text-center font-body text-xs text-white/80 md:grid-cols-3">
-          <div className="md:text-left">{footer.copyright || 'Copyright HOMA. All rights reserved.'}</div>
+        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 text-center font-body text-xs text-white/80 sm:flex-row sm:gap-0 sm:text-left">
+          <div>{footer.copyright || 'Copyright HOMA. All rights reserved.'}</div>
           <div className="flex flex-wrap items-center justify-center gap-2">
             {footer.showPaymentIcons && (
               <>
@@ -175,7 +175,7 @@ export default function Footer() {
               </>
             )}
           </div>
-          <div className="md:text-right">Made with {'\u2665'} in Nepal</div>
+          <div className="sm:text-right">Made with {'\u2665'} in Nepal</div>
         </div>
       </div>
     </footer>

@@ -238,7 +238,7 @@ export default function BlogListPage() {
       )}
 
       {!isError && isLoading && !blogs.length && (
-        <div className="admin-card overflow-hidden">
+        <div className="admin-card admin-table-wrap">
           <table className="w-full min-w-[1120px] border-collapse">
             <thead>
               <tr className="bg-[#191C2A] text-left text-[11px] font-bold uppercase tracking-[0.06em] text-[var(--admin-muted)]">
@@ -262,7 +262,7 @@ export default function BlogListPage() {
       )}
 
       {!isError && blogs.length > 0 && (
-        <div className="admin-card overflow-hidden">
+        <div className="admin-card admin-table-wrap">
           <table className="w-full min-w-[1120px] border-collapse">
             <thead>
               <tr className="bg-[#191C2A] text-left text-[11px] font-bold uppercase tracking-[0.06em] text-[var(--admin-muted)]">

@@ -587,7 +587,7 @@ export default function TransformationStoryFormPage() {
                     ].map((option) => (
                       <label
                         key={option.value}
-                        className={`flex cursor-pointer items-center justify-center border px-3 py-2 text-sm font-semibold transition-colors ${
+                        className={`flex min-h-[44px] cursor-pointer items-center justify-center border px-3 py-2 text-sm font-semibold transition-colors ${
                           watchedStatus === option.value
                             ? 'border-[var(--admin-accent)] bg-[#24283A] text-[var(--admin-text)]'
                             : 'border-[var(--admin-border)] bg-[#171A25] text-[var(--admin-muted)] hover:text-[var(--admin-text)]'

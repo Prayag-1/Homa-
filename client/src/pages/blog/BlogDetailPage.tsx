@@ -32,7 +32,7 @@ function renderMarkdownLike(content = '') {
   const flushParagraph = (index) => {
     if (paragraph.length === 0) return;
     nodes.push(
-      <p key={`p-${index}-${nodes.length}`} className="text-[17px] leading-8 text-black/78 whitespace-pre-wrap">
+      <p key={`p-${index}-${nodes.length}`} className="text-base leading-8 text-black/78 whitespace-pre-wrap md:text-[17px]">
         {paragraph.join('\n')}
       </p>,
     );
@@ -44,7 +44,7 @@ function renderMarkdownLike(content = '') {
     nodes.push(
       <ul key={`ul-${index}-${nodes.length}`} className="space-y-2 pl-5">
         {listItems.map((item, itemIndex) => (
-          <li key={`li-${index}-${itemIndex}`} className="list-disc text-[17px] leading-8 text-black/78">
+          <li key={`li-${index}-${itemIndex}`} className="list-disc text-base leading-8 text-black/78 md:text-[17px]">
             {item}
           </li>
         ))}
@@ -192,7 +192,7 @@ export default function BlogDetailPage() {
         <title>{blog?.title ? `${blog.title} | Blog` : 'Blog | Homa'}</title>
       </Helmet>
 
-      <section className="mx-auto max-w-[720px] px-4 py-10 md:py-14">
+      <section className="mx-auto max-w-[680px] px-5 py-10 md:px-0 md:py-14">
         <Link
           to="/blog"
           className="inline-flex items-center gap-2 text-sm font-medium text-black/70 transition-colors hover:text-black"
@@ -275,7 +275,7 @@ export default function BlogDetailPage() {
                 <div className="space-y-6 pt-2">
                   {isHtmlContent(blog.content) ? (
                     <div
-                      className="space-y-5 text-[17px] leading-8 text-black/78"
+                      className="space-y-5 text-base leading-8 text-black/78 md:text-[17px]"
                       dangerouslySetInnerHTML={{ __html: sanitizeHtml(blog.content) }}
                     />
                   ) : (

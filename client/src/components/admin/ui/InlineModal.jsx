@@ -39,7 +39,7 @@ export default function InlineModal({
           <motion.div
             className="admin-modal"
             style={{
-              maxWidth: width,
+              maxWidth: `min(${width}, calc(100vw - 24px))`,
               maxHeight: 'calc(100vh - 48px)',
               overflow: 'hidden',
             }}

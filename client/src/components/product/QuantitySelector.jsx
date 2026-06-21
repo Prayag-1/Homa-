@@ -35,12 +35,12 @@ const QuantitySelector = ({
         type="button"
         onClick={handleDecrement}
         disabled={disabled || value === min}
-        className="border border-[#E0D8D8] bg-white p-2 transition-colors hover:border-homa-red hover:bg-homa-blush disabled:cursor-not-allowed disabled:opacity-50"
+        className="touch-target border border-[#E0D8D8] bg-white transition-colors hover:border-homa-red hover:bg-homa-blush disabled:cursor-not-allowed disabled:opacity-50"
       >
         <Minus size={16} className="text-homa-black" />
       </button>
 
-      <div className="flex w-12 items-center justify-center border-b border-t border-[#E0D8D8] py-2 font-heading text-lg text-homa-black">
+      <div className="flex min-h-[44px] w-12 items-center justify-center border-b border-t border-[#E0D8D8] py-2 font-heading text-lg text-homa-black">
         {value}
       </div>
 
@@ -48,7 +48,7 @@ const QuantitySelector = ({
         type="button"
         onClick={handleIncrement}
         disabled={disabled || value === max}
-        className="border border-[#E0D8D8] bg-white p-2 transition-colors hover:border-homa-red hover:bg-homa-blush disabled:cursor-not-allowed disabled:opacity-50"
+        className="touch-target border border-[#E0D8D8] bg-white transition-colors hover:border-homa-red hover:bg-homa-blush disabled:cursor-not-allowed disabled:opacity-50"
       >
         <Plus size={16} className="text-homa-black" />
       </button>

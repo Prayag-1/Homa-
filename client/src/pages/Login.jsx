@@ -50,19 +50,19 @@ export default function Login() {
   };
 
   return (
-    <div className="grid min-h-screen bg-homa-cream lg:grid-cols-[45%_55%]">
-      <aside className="sakura-pattern flex min-h-[260px] flex-col items-center justify-center bg-homa-red px-6 py-12 text-center text-white lg:min-h-screen">
+    <div className="flex min-h-screen flex-col bg-homa-cream md:flex-row">
+      <aside className="sakura-pattern flex h-[180px] flex-col items-center justify-center bg-homa-red px-6 py-8 text-center text-white md:h-auto md:flex-[0.45]">
         <HomaLogo variant="white" size="lg" />
-        <p className="mt-6 max-w-sm font-heading text-2xl italic leading-snug text-white">
+        <p className="mt-4 max-w-sm font-heading text-lg italic leading-snug text-white md:mt-6 md:text-2xl">
           Your journey to beautiful skin starts here.
         </p>
-        <p className="mt-10 font-body text-[10px] font-bold uppercase tracking-[0.25em] text-white/50">
+        <p className="mt-4 font-body text-[10px] font-bold uppercase tracking-[0.25em] text-white/50 md:mt-10">
           Japanese Health & Beauty Store
         </p>
       </aside>
 
-      <section className="flex items-center justify-center px-5 py-12 md:px-12">
-        <div className="w-full max-w-md rounded-[24px] bg-white p-8 shadow-[0_24px_80px_rgba(209,0,0,0.12)] md:p-12">
+      <section className="flex flex-1 items-center justify-center md:flex-[0.55] md:px-12 md:py-12">
+        <div className="w-full max-w-md bg-white p-6 md:m-8 md:rounded-3xl md:p-12 md:shadow-[0_24px_80px_rgba(209,0,0,0.12)]">
           <h1 className="font-heading text-3xl font-semibold text-homa-black">Welcome Back</h1>
           <p className="mt-3 font-body text-sm text-homa-grey">Use your email or phone number to sign in.</p>
 

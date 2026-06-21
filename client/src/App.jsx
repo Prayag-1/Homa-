@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { BrowserRouter, Navigate, Routes, Route, useLocation } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'react-hot-toast';
@@ -89,8 +89,26 @@ const routeFallback = (
 
 function AppRoutes() {
   const [cartOpen, setCartOpen] = useState(false);
+  const [headerHeight, setHeaderHeight] = useState(72);
+  const headerRef = useRef(null);
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith('/admin');
+  const hideSiteChrome = isAdminRoute || ['/login', '/register'].includes(location.pathname);
+
+  useEffect(() => {
+    if (hideSiteChrome || !headerRef.current) return undefined;
+
+    setHeaderHeight(headerRef.current.getBoundingClientRect().height);
+
+    if (typeof ResizeObserver === 'undefined') return undefined;
+
+    const resizeObserver = new ResizeObserver((entries) => {
+      setHeaderHeight(entries[0].contentRect.height);
+    });
+
+    resizeObserver.observe(headerRef.current);
+    return () => resizeObserver.disconnect();
+  }, [hideSiteChrome]);
 
   useEffect(() => {
     const handleCartOpen = () => setCartOpen(true);
@@ -100,9 +118,15 @@ function AppRoutes() {
 
   return (
     <>
-      {!isAdminRoute && <AnnouncementBar />}
-      {!isAdminRoute && <Navbar onCartOpen={() => setCartOpen(true)} />}
-      {!isAdminRoute && <div style={{ height: '72px' }} aria-hidden="true" />}
+      {!hideSiteChrome && (
+        <>
+          <div ref={headerRef} className="fixed left-0 right-0 top-0 z-50 w-full">
+            <AnnouncementBar />
+            <Navbar onCartOpen={() => setCartOpen(true)} />
+          </div>
+          <div style={{ height: headerHeight }} aria-hidden="true" />
+        </>
+      )}
       <main>
         <Suspense fallback={routeFallback}>
           <Routes>
@@ -152,8 +176,8 @@ function AppRoutes() {
           </Routes>
         </Suspense>
       </main>
-      {!isAdminRoute && <Footer />}
-      {!isAdminRoute && <CartDrawer isOpen={cartOpen} onClose={() => setCartOpen(false)} />}
+      {!hideSiteChrome && <Footer />}
+      {!hideSiteChrome && <CartDrawer isOpen={cartOpen} onClose={() => setCartOpen(false)} />}
       <WhatsAppButton />
       <Toaster position="top-right" />
     </>

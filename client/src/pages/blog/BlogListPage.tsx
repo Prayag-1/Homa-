@@ -243,7 +243,7 @@ export default function BlogListPage() {
         )}
 
         {!isError && isLoading && (
-          <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
             {Array.from({ length: 6 }).map((_, index) => (
               <BlogCardSkeleton key={`blog-skeleton-${index}`} />
             ))}
@@ -270,7 +270,7 @@ export default function BlogListPage() {
 
         {!isError && blogs.length > 0 && (
           <>
-            <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
               {blogs.map((blog) => (
                 <BlogCard key={blog.id} blog={blog} />
               ))}

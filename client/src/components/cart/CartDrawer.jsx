@@ -4,6 +4,7 @@ import { ShoppingBag, X } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 import QuantitySelector from '../product/QuantitySelector';
 import { formatPrice } from '../../utils/formatPrice';
+import { getResponsiveImageProps } from '../../utils/cloudinaryUrl';
 
 export default function CartDrawer({ isOpen, onClose }) {
   const navigate = useNavigate();
@@ -30,7 +31,7 @@ export default function CartDrawer({ isOpen, onClose }) {
           />
 
           <motion.aside
-            className="fixed right-0 top-0 z-[80] flex h-full w-full flex-col bg-white shadow-[-4px_0_32px_rgba(0,0,0,0.1)] sm:max-w-[420px]"
+            className="fixed right-0 top-0 z-[80] flex h-full w-full flex-col bg-white shadow-[-4px_0_32px_rgba(0,0,0,0.1)] sm:w-[420px]"
             initial={{ x: '100%' }}
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
@@ -49,7 +50,7 @@ export default function CartDrawer({ isOpen, onClose }) {
               <button
                 type="button"
                 onClick={onClose}
-                className="p-2 text-white transition-opacity hover:opacity-70"
+                className="touch-target text-white transition-opacity hover:opacity-70"
                 aria-label="Close cart"
               >
                 <X size={20} />
@@ -86,15 +87,9 @@ export default function CartDrawer({ isOpen, onClose }) {
                       const itemTotal = Number(item.price || 0) * Number(item.quantity || 0);
 
                       return (
-                        <div key={id} className="flex gap-4 border-b border-[#F0E8E8] px-6 py-4">
+                        <div key={id} className="flex gap-3 border-b border-[#F0E8E8] px-4 py-4 sm:gap-4 sm:px-6">
                           <Link to={`/products/${id}`} onClick={onClose} className="h-[60px] w-[60px] flex-shrink-0 overflow-hidden rounded-lg bg-homa-blush">
-                            <img
-                              src={image}
-                              alt={item.name}
-                              className="h-full w-full object-cover"
-                              loading="lazy"
-                              decoding="async"
-                            />
+                            <img {...getResponsiveImageProps(image, item.name, '60px')} className="h-full w-full object-cover" />
                           </Link>
 
                           <div className="min-w-0 flex-1">
@@ -114,7 +109,7 @@ export default function CartDrawer({ isOpen, onClose }) {
                               <button
                                 type="button"
                                 onClick={() => removeItem(id)}
-                                className="p-1 text-homa-grey transition hover:text-homa-red"
+                                className="touch-target -mr-2 -mt-2 text-homa-grey transition hover:text-homa-red"
                                 aria-label={`Remove ${item.name}`}
                               >
                                 <X size={18} />
@@ -139,7 +134,10 @@ export default function CartDrawer({ isOpen, onClose }) {
                   </div>
                 </div>
 
-                <footer className="bg-homa-blush px-6 py-5">
+                <footer
+                  className="sticky bottom-0 bg-white px-6 py-5 shadow-[0_-4px_12px_rgba(0,0,0,0.06)] sm:bg-homa-blush sm:shadow-none"
+                  style={{ paddingBottom: 'env(safe-area-inset-bottom, 16px)' }}
+                >
                   <div className="space-y-2 font-body text-[13px]">
                     <div className="flex justify-between text-homa-grey">
                       <span>Subtotal</span>
@@ -159,7 +157,7 @@ export default function CartDrawer({ isOpen, onClose }) {
                   <Link
                     to="/checkout"
                     onClick={onClose}
-                    className="mt-5 block w-full rounded-pill bg-homa-red py-4 text-center font-body text-sm font-bold uppercase tracking-[0.1em] text-white transition-colors hover:bg-homa-red-dark"
+                    className="touch-target mt-5 w-full rounded-pill bg-homa-red py-4 text-center font-body text-sm font-bold uppercase tracking-[0.1em] text-white transition-colors hover:bg-homa-red-dark"
                   >
                     Proceed to Checkout
                   </Link>

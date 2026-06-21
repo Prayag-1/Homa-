@@ -8,16 +8,16 @@ import {
   YAxis,
 } from 'recharts';
 
-const chartHeight = 300;
+const chartHeight = 260;
 
 export default function RevenueLineChart({ data }) {
   if (data === undefined) {
-    return <div className="admin-skeleton h-[300px] w-full" />;
+    return <div className="admin-skeleton h-[260px] w-full" />;
   }
 
   if (!data.length) {
     return (
-      <div className="flex h-[300px] items-center justify-center text-sm" style={{ color: 'var(--admin-muted)' }}>
+      <div className="flex h-[260px] items-center justify-center text-sm" style={{ color: 'var(--admin-muted)' }}>
         No data for this period
       </div>
     );
