@@ -5,8 +5,9 @@ import { useAuthContext } from '../context/AuthContext';
 import { createOrder, validateCoupon } from '../services/orderService';
 import { formatPrice } from '../utils/formatPrice';
 import { toast } from 'react-hot-toast';
-import { ArrowLeft, CreditCard, ShoppingBag, Truck, CheckCircle2, Ticket } from 'lucide-react';
+import { ArrowLeft, CreditCard, ShoppingBag, Truck, CheckCircle2, Ticket, ChevronDown } from 'lucide-react';
 import { AddressMapPicker } from '../components/shared';
+import { getResponsiveImageProps } from '../utils/cloudinaryUrl';
 import { z } from 'zod';
 
 const checkoutSchema = z.object({
@@ -42,6 +43,7 @@ export default function Checkout() {
   // Payment State
   const [paymentMethod, setPaymentMethod] = useState('esewa');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [summaryOpen, setSummaryOpen] = useState(false);
 
   // Pre-fill user details if available
   useEffect(() => {
@@ -110,7 +112,7 @@ export default function Checkout() {
 
 
   const handlePlaceOrder = async (e) => {
-    e.preventDefault();
+    e?.preventDefault();
 
     const parsed = checkoutSchema.safeParse({
       shippingAddress: shippingDetails,
@@ -180,7 +182,7 @@ export default function Checkout() {
   }
 
   return (
-    <div className="min-h-screen bg-[#fafaf9] py-12">
+    <div className="min-h-screen bg-[#fafaf9] py-8 pb-28 md:py-12 md:pb-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Back Link */}
         <div className="mb-8">
@@ -195,9 +197,56 @@ export default function Checkout() {
 
         <h1 className="font-heading text-4xl text-black mb-10">Checkout</h1>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+        <div className="lg:hidden border border-gray-200 rounded-xl mb-6 bg-white overflow-hidden">
+          <button
+            type="button"
+            onClick={() => setSummaryOpen((current) => !current)}
+            className="touch-target w-full flex justify-between items-center p-4 text-left"
+          >
+            <span className="font-body text-sm font-semibold text-black">
+              Order Summary ({itemCount} items)
+            </span>
+            <span className="flex items-center gap-2 font-bold text-black">
+              {formatPrice(grandTotalFinal)}
+              <ChevronDown size={18} className={`transition-transform ${summaryOpen ? 'rotate-180' : ''}`} />
+            </span>
+          </button>
+          {summaryOpen && (
+            <div className="px-4 pb-4">
+              <div className="max-h-[180px] overflow-y-auto divide-y divide-gray-100 mb-4">
+                {items.map((item) => {
+                  const id = item._id || item.id;
+                  const image = item.images?.[0]?.url || item.image || '/placeholder.jpg';
+                  return (
+                    <div key={id} className="flex gap-3 py-3">
+                      <div className="h-14 w-12 flex-shrink-0 overflow-hidden bg-gray-50 border border-gray-100 rounded-lg">
+                        <img {...getResponsiveImageProps(image, item.name, '48px')} className="h-full w-full object-cover" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <h4 className="font-body text-sm font-medium text-black truncate">{item.name}</h4>
+                        <p className="text-xs text-gray-500 mt-1">Qty: {item.quantity}</p>
+                      </div>
+                      <p className="font-body text-sm font-semibold text-black">
+                        {formatPrice(item.price * item.quantity)}
+                      </p>
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="space-y-2 border-t border-gray-100 pt-4 text-sm">
+                <div className="flex justify-between text-gray-600"><span>Subtotal</span><span>{formatPrice(subtotal)}</span></div>
+                {discountAmount > 0 && <div className="flex justify-between text-red-600"><span>Discount</span><span>-{formatPrice(discountAmount)}</span></div>}
+                <div className="flex justify-between text-gray-600"><span>VAT (13%)</span><span>{formatPrice(vatAmountFinal)}</span></div>
+                <div className="flex justify-between text-gray-600"><span>Delivery</span><span>{deliveryCharge === 0 ? 'Free' : formatPrice(deliveryCharge)}</span></div>
+                <div className="flex justify-between border-t border-gray-100 pt-3 font-bold text-black"><span>Total</span><span>{formatPrice(grandTotalFinal)}</span></div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="flex flex-col lg:flex-row gap-8 lg:gap-10">
           {/* Left: Shipping & Payment Info */}
-          <div className="lg:col-span-7 space-y-8">
+          <div className="flex-1 space-y-8">
             {/* Shipping Details Card */}
             <div className="bg-white rounded-2xl border border-gray-150 p-6 shadow-sm">
               <div className="flex items-center gap-3 mb-6">
@@ -224,7 +273,7 @@ export default function Checkout() {
                   />
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label htmlFor="city" className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
                       City
@@ -290,11 +339,11 @@ export default function Checkout() {
                 <h2 className="font-heading text-xl text-black">Payment Method</h2>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-3">
                 {/* eSewa Option */}
                 <div
                   onClick={() => setPaymentMethod('esewa')}
-                  className={`flex flex-col justify-between border-2 rounded-xl p-5 cursor-pointer select-none transition-all ${
+                  className={`flex min-h-[64px] flex-col justify-between border-2 rounded-xl p-5 cursor-pointer select-none transition-all ${
                     paymentMethod === 'esewa'
                       ? 'border-green-600 bg-green-50/20'
                       : 'border-gray-200 bg-white hover:border-gray-300'
@@ -309,7 +358,7 @@ export default function Checkout() {
                         paymentMethod === 'esewa' ? 'border-green-600 bg-green-600 text-white' : 'border-gray-300'
                       }`}
                     >
-                      {paymentMethod === 'esewa' && <div className="h-2 w-2 rounded-full bg-white"></div>}
+                      {paymentMethod === 'esewa' && <CheckCircle2 size={13} />}
                     </div>
                   </div>
                   <p className="text-xs text-gray-500 leading-relaxed mb-4">
@@ -327,7 +376,7 @@ export default function Checkout() {
                 {/* COD Option */}
                 <div
                   onClick={() => setPaymentMethod('cod')}
-                  className={`flex flex-col justify-between border-2 rounded-xl p-5 cursor-pointer select-none transition-all ${
+                  className={`flex min-h-[64px] flex-col justify-between border-2 rounded-xl p-5 cursor-pointer select-none transition-all ${
                     paymentMethod === 'cod'
                       ? 'border-black bg-gray-50/50'
                       : 'border-gray-200 bg-white hover:border-gray-300'
@@ -342,7 +391,7 @@ export default function Checkout() {
                         paymentMethod === 'cod' ? 'border-black bg-black text-white' : 'border-gray-300'
                       }`}
                     >
-                      {paymentMethod === 'cod' && <div className="h-2 w-2 rounded-full bg-white"></div>}
+                      {paymentMethod === 'cod' && <CheckCircle2 size={13} />}
                     </div>
                   </div>
                   <p className="text-xs text-gray-500 leading-relaxed mb-4">
@@ -378,7 +427,7 @@ export default function Checkout() {
           </div>
 
           {/* Right: Cart Summary */}
-          <div className="lg:col-span-5 space-y-6">
+          <div className="hidden lg:block lg:w-[40%] space-y-6">
             <div className="bg-white rounded-2xl border border-gray-150 p-6 shadow-sm sticky top-6">
               <div className="flex items-center gap-3 mb-6">
                 <div className="p-2 bg-red-50 text-red-600 rounded-lg">
@@ -395,7 +444,7 @@ export default function Checkout() {
                   return (
                     <div key={id} className="flex gap-4 py-4 first:pt-0 last:pb-0">
                       <div className="h-16 w-14 flex-shrink-0 overflow-hidden bg-gray-50 border border-gray-100 rounded-lg">
-                        <img src={image} alt={item.name} className="h-full w-full object-cover" />
+                        <img {...getResponsiveImageProps(image, item.name, '56px')} className="h-full w-full object-cover" />
                       </div>
                       <div className="min-w-0 flex-1">
                         <h4 className="font-body text-sm font-medium text-black truncate">{item.name}</h4>
@@ -510,6 +559,23 @@ export default function Checkout() {
             </div>
           </div>
         </div>
+      </div>
+      <div
+        className="fixed bottom-0 left-0 right-0 z-40 border-t border-gray-200 bg-white p-4 safe-bottom lg:hidden"
+        style={{
+          transform: items.length > 0 ? 'translateY(0)' : 'translateY(100%)',
+          transition: 'transform 0.3s ease',
+          pointerEvents: items.length > 0 ? 'auto' : 'none',
+        }}
+      >
+        <button
+          type="button"
+          onClick={handlePlaceOrder}
+          disabled={isSubmitting}
+          className="touch-target w-full rounded-xl bg-black font-body text-sm font-semibold text-white transition-colors hover:bg-gray-900 disabled:bg-gray-800 disabled:cursor-not-allowed"
+        >
+          {isSubmitting ? 'Processing Order...' : `${paymentMethod === 'esewa' ? 'Pay with eSewa' : 'Place Order'} - ${formatPrice(grandTotalFinal)}`}
+        </button>
       </div>
     </div>
   );

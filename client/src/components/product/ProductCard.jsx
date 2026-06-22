@@ -1,18 +1,20 @@
 import { Link } from 'react-router-dom';
-import { Heart } from 'lucide-react';
+import { Heart, ShoppingBag } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { memo, useContext, useState } from 'react';
 import { CartContext } from '../../context/CartContext';
 import { useWishlist } from '../../hooks/useWishlist';
+import { useIsMobile } from '../../hooks/useMediaQuery';
 import StarRating from './StarRating';
 import { formatPrice } from '../../utils/formatPrice';
-import { optimizeImage } from '../../utils/cloudinaryUrl';
+import { getResponsiveImageProps } from '../../utils/cloudinaryUrl';
 
 const ProductCard = ({ product, showQuickAdd = true, showRemoveFromWishlist = false }) => {
   const { addItem } = useContext(CartContext);
   const { isInWishlist, toggle } = useWishlist();
   const [hoverImage, setHoverImage] = useState(false);
   const [showQuickAddBtn, setShowQuickAddBtn] = useState(false);
+  const isMobile = useIsMobile();
 
   const inWishlist = isInWishlist(product._id);
   const outOfStock = product.stock === 0;
@@ -52,10 +54,7 @@ const ProductCard = ({ product, showQuickAdd = true, showRemoveFromWishlist = fa
         >
           {/* Main Image */}
           <img
-            src={optimizeImage(firstImage, 600) || '/placeholder.jpg'}
-            alt={product.name}
-            loading="lazy"
-            decoding="async"
+            {...getResponsiveImageProps(firstImage, product.name)}
             className="h-full w-full object-cover transition-transform duration-[400ms] ease-out"
             style={{
               transform: hoverImage && !outOfStock ? 'scale(1.06)' : 'scale(1)',
@@ -66,9 +65,10 @@ const ProductCard = ({ product, showQuickAdd = true, showRemoveFromWishlist = fa
           <motion.button
             type="button"
             onClick={handleWishlistToggle}
-            className="absolute right-3 top-3 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white shadow-[0_2px_8px_rgba(0,0,0,0.1)] transition-all hover:shadow-[0_4px_12px_rgba(0,0,0,0.14)]"
+            className="touch-target absolute right-2 top-2 z-10 rounded-full bg-white shadow-[0_2px_8px_rgba(0,0,0,0.1)] transition-all hover:shadow-[0_4px_12px_rgba(0,0,0,0.14)] md:right-3 md:top-3"
             whileTap={{ scale: 1.3 }}
             transition={{ type: 'tween', duration: 0.2 }}
+            aria-label={inWishlist ? 'Remove from wishlist' : 'Add to wishlist'}
           >
             <Heart
               size={20}
@@ -86,7 +86,18 @@ const ProductCard = ({ product, showQuickAdd = true, showRemoveFromWishlist = fa
           )}
 
           {/* Quick Add Button */}
-          {showQuickAdd && showQuickAddBtn && !outOfStock && (
+          {showQuickAdd && isMobile && !outOfStock && (
+            <button
+              type="button"
+              onClick={handleQuickAdd}
+              className="touch-target absolute bottom-2 right-2 z-10 rounded-full bg-white text-homa-red shadow-md transition-colors hover:bg-homa-blush"
+              aria-label="Quick add to cart"
+            >
+              <ShoppingBag size={18} />
+            </button>
+          )}
+
+          {showQuickAdd && !isMobile && showQuickAddBtn && !outOfStock && (
             <motion.button
               type="button"
               onClick={handleQuickAdd}
@@ -100,7 +111,7 @@ const ProductCard = ({ product, showQuickAdd = true, showRemoveFromWishlist = fa
             </motion.button>
           )}
 
-          {showRemoveFromWishlist && showQuickAddBtn && (
+          {showRemoveFromWishlist && !isMobile && showQuickAddBtn && (
             <motion.button
               type="button"
               onClick={handleWishlistToggle}
@@ -115,12 +126,12 @@ const ProductCard = ({ product, showQuickAdd = true, showRemoveFromWishlist = fa
           )}
         </div>
 
-        <div className="p-4">
+        <div className="p-3 md:p-4">
           <p className="mb-1 font-body text-[11px] font-bold uppercase tracking-[0.1em] text-homa-red">
             {product.brand}
           </p>
 
-          <h3 className="mb-3 line-clamp-2 font-heading text-base leading-snug text-homa-black">
+          <h3 className="mb-3 line-clamp-2 font-heading text-sm leading-snug text-homa-black md:text-base">
             {product.name}
           </h3>
 

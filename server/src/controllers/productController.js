@@ -8,12 +8,13 @@ const {
 } = require('../utils/queryHelpers');
 
 const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const publicProductFilter = () => ({ isActive: { $ne: false } });
 
 exports.getProducts = async (req, res, next) => {
   try {
     const { brand, skinType, category, minPrice, maxPrice, search, page = 1, limit = 12, sort = '-createdAt' } = req.query;
 
-    const filter = { isActive: true };
+    const filter = publicProductFilter();
     const safeBrand = sanitizeString(brand, 100);
     const safeSkinType = sanitizeString(skinType, 50);
     const safeCategory = sanitizeString(category, 100);
@@ -83,7 +84,7 @@ exports.getProducts = async (req, res, next) => {
 
 exports.getProduct = async (req, res, next) => {
   try {
-    const product = await Product.findOne({ _id: req.params.id, isActive: true }).select('-__v');
+    const product = await Product.findOne({ _id: req.params.id, ...publicProductFilter() }).select('-__v');
 
     if (!product) {
       return next(new ApiError(404, 'Product not found'));
@@ -104,7 +105,7 @@ exports.getProduct = async (req, res, next) => {
 
 exports.getNewArrivals = async (req, res, next) => {
   try {
-    const products = await Product.find({ isNewArrival: true, isActive: true })
+    const products = await Product.find({ isNewArrival: true, ...publicProductFilter() })
       .select('-__v')
       .limit(8)
       .sort({ createdAt: -1 })
@@ -122,7 +123,7 @@ exports.getNewArrivals = async (req, res, next) => {
 
 exports.getBestSellers = async (req, res, next) => {
   try {
-    const products = await Product.find({ isBestSeller: true, isActive: true })
+    const products = await Product.find({ isBestSeller: true, ...publicProductFilter() })
       .select('-__v')
       .limit(8)
       .sort({ createdAt: -1 })
@@ -153,7 +154,7 @@ exports.searchSuggestions = async (req, res, next) => {
     const safeQuery = escapeRegex(String(q));
     const suggestions = await Product.find(
       {
-        isActive: true,
+        ...publicProductFilter(),
         $or: [
           { name: { $regex: safeQuery, $options: 'i' } },
           { brand: { $regex: safeQuery, $options: 'i' } },

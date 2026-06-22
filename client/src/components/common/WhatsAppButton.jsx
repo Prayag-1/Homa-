@@ -13,6 +13,7 @@ export default function WhatsAppButton() {
 
   const hiddenRoutes = ['/checkout', '/admin'];
   const shouldHide = hiddenRoutes.some((route) => location.pathname.startsWith(route));
+  const shouldOffsetForStickyBar = location.pathname.startsWith('/products/');
 
   useEffect(() => {
     const timer = setTimeout(() => setVisible(true), 2000);
@@ -28,7 +29,7 @@ export default function WhatsAppButton() {
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0 }}
         transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-        style={{ position: 'fixed', bottom: '24px', right: '24px', zIndex: 40 }}
+        style={{ position: 'fixed', bottom: shouldOffsetForStickyBar ? '88px' : '24px', right: '24px', zIndex: 40 }}
       >
         <AnimatePresence>
           {showTooltip && (

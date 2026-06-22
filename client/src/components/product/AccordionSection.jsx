@@ -17,9 +17,9 @@ const AccordionSection = ({ items = [] }) => {
           <button
             type="button"
             onClick={() => toggleSection(idx)}
-            className="flex w-full items-center justify-between px-5 py-4 text-left transition-colors hover:bg-homa-blush/50"
+            className="flex min-h-[48px] w-full items-center justify-between px-4 py-3 text-left transition-colors hover:bg-homa-blush/50 md:px-5 md:py-4"
           >
-            <span className={`font-body text-[15px] font-semibold ${openIndex === idx ? 'text-homa-red' : 'text-homa-black'}`}>
+            <span className={`font-body text-sm font-semibold md:text-[15px] ${openIndex === idx ? 'text-homa-red' : 'text-homa-black'}`}>
               {item.title}
             </span>
             {openIndex === idx ? (
@@ -42,7 +42,7 @@ const AccordionSection = ({ items = [] }) => {
                 }}
                 className="overflow-hidden"
               >
-                <div className="px-5 pb-5 pt-1 font-body text-sm leading-7 text-homa-grey">
+                <div className="px-0 py-3 font-body text-sm leading-7 text-homa-grey md:px-5 md:pb-5 md:pt-1">
                   {typeof item.content === 'string' ? (
                     <p>{item.content}</p>
                   ) : (

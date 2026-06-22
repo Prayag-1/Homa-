@@ -250,9 +250,9 @@ export default function TransformationStoriesPage() {
           </span>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex w-full flex-wrap items-center gap-3 sm:w-auto">
           <input
-            className="admin-input w-[260px]"
+            className="admin-input w-full sm:w-[260px]"
             value={searchInput}
             onChange={(event) => setSearchInput(event.target.value)}
             placeholder="Search stories, customers, categories..."
@@ -278,7 +278,7 @@ export default function TransformationStoriesPage() {
             key={option.value}
             type="button"
             onClick={() => handleStatusChange(option.value)}
-            className={`rounded-full border px-4 py-2 text-sm font-medium transition-colors ${
+            className={`min-h-[44px] rounded-full border px-4 py-2 text-sm font-medium transition-colors ${
               status === option.value
                 ? "border-[var(--admin-accent)] bg-[#24283A] text-[var(--admin-text)]"
                 : "border-[var(--admin-border)] bg-[#171A25] text-[var(--admin-muted)] hover:text-[var(--admin-text)]"

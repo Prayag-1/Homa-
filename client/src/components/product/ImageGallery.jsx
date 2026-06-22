@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
-import { optimizeImage } from '../../utils/cloudinaryUrl';
+import { getResponsiveImageProps, optimizeImage } from '../../utils/cloudinaryUrl';
+import { useIsMobile } from '../../hooks/useMediaQuery';
 
 const ImageGallery = ({ images = [] }) => {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+  const isMobile = useIsMobile();
 
   const mainImage = optimizeImage(images[selectedIndex]?.url, 1000);
 
@@ -29,8 +31,83 @@ const ImageGallery = ({ images = [] }) => {
     );
   }
 
+  if (isMobile) {
+    return (
+      <div className="-mx-5">
+        <div
+          className="flex snap-x snap-mandatory overflow-x-auto scrollbar-width-none"
+          style={{ scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}
+          onScroll={(event) => {
+            const width = event.currentTarget.clientWidth;
+            if (width > 0) {
+              setSelectedIndex(Math.round(event.currentTarget.scrollLeft / width));
+            }
+          }}
+        >
+          {images.map((image, index) => (
+            <button
+              key={image.url || index}
+              type="button"
+              onClick={() => setIsLightboxOpen(true)}
+              className="w-full flex-none snap-start bg-white"
+              style={{ aspectRatio: '1/1' }}
+            >
+              <img
+                {...getResponsiveImageProps(image.url, `Product image ${index + 1}`, '100vw')}
+                loading={index === 0 ? 'eager' : 'lazy'}
+                className="h-full w-full object-cover"
+              />
+            </button>
+          ))}
+        </div>
+        {images.length > 1 && (
+          <div className="mt-3 flex justify-center gap-2">
+            {images.map((image, index) => (
+              <span
+                key={image.url || index}
+                className="h-2 w-2 rounded-full transition-colors"
+                style={{ backgroundColor: selectedIndex === index ? '#D10000' : '#E0D8D8' }}
+              />
+            ))}
+          </div>
+        )}
+
+        <AnimatePresence>
+          {isLightboxOpen && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 z-50 flex items-center justify-center bg-homa-black/95"
+              onKeyDown={handleKeyDown}
+              onClick={() => setIsLightboxOpen(false)}
+            >
+              <button
+                type="button"
+                className="touch-target absolute right-4 top-4 rounded-full text-white transition-colors hover:bg-white/10"
+                onClick={() => setIsLightboxOpen(false)}
+                aria-label="Close fullscreen image"
+              >
+                <X size={24} />
+              </button>
+              <img
+                src={mainImage}
+                alt="Fullscreen"
+                loading="eager"
+                decoding="async"
+                className="max-h-screen max-w-full object-contain"
+                onClick={(event) => event.stopPropagation()}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex gap-3">
+    <div className="flex w-full gap-3 md:w-1/2">
       {/* Main Image */}
       <div className="flex-1">
         <button
@@ -70,10 +147,7 @@ const ImageGallery = ({ images = [] }) => {
               style={{ aspectRatio: '1/1' }}
             >
               <img
-                src={optimizeImage(img.url, 200)}
-                alt={`Thumbnail ${idx}`}
-                loading="lazy"
-                decoding="async"
+                {...getResponsiveImageProps(img.url, `Thumbnail ${idx}`, '80px')}
                 className="h-full w-full object-cover"
               />
             </button>
@@ -95,8 +169,9 @@ const ImageGallery = ({ images = [] }) => {
           >
             <button
               type="button"
-              className="absolute right-4 top-4 rounded-full p-2 text-white transition-colors hover:bg-white/10"
+              className="touch-target absolute right-4 top-4 rounded-full text-white transition-colors hover:bg-white/10"
               onClick={() => setIsLightboxOpen(false)}
+              aria-label="Close fullscreen image"
             >
               <X size={24} />
             </button>

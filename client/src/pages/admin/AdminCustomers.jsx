@@ -99,7 +99,7 @@ function CustomerDrawer({ customerId, onClose }) {
                   </div>
                 </section>
 
-                <section className="grid grid-cols-2 gap-3">
+                <section className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   <div className="border p-4" style={{ borderColor: 'var(--admin-border)' }}>
                     <div className="text-xs uppercase" style={{ color: 'var(--admin-muted)' }}>Membership</div>
                     <div className="mt-3"><TierBadge tier={customer?.membershipTier} /></div>

@@ -7,6 +7,7 @@ import logoSvg from "../../logosvg.svg";
 import { useCart } from "../../context/CartContext";
 import { useAuth } from "../../hooks/useAuth";
 import { useScrollDirection } from "../../hooks/useScrollDirection";
+import { useIsMobile } from "../../hooks/useMediaQuery";
 
 const mainLinks = [
   { to: "/", label: "Home" },
@@ -29,9 +30,9 @@ const navClass =
 const iconClass =
   "text-homa-black transition-colors duration-200 hover:text-homa-red";
 const mobileLinkClass =
-  "font-heading text-[32px] font-normal leading-tight text-white transition-opacity duration-200 hover:opacity-80";
+  "touch-target min-h-[48px] justify-center rounded-xl px-4 font-heading text-[22px] font-normal leading-tight text-white transition-colors duration-200 hover:bg-white/10";
 const mobileSubLinkClass =
-  "font-body text-base font-medium uppercase tracking-[0.14em] text-white transition-opacity duration-200 hover:opacity-80";
+  "touch-target min-h-[44px] justify-center rounded-xl px-4 font-body text-sm font-semibold uppercase tracking-[0.14em] text-white transition-colors duration-200 hover:bg-white/10";
 
 function ActiveDot({ active }) {
   if (!active) return null;
@@ -52,6 +53,7 @@ export default function Navbar({ onCartOpen }) {
   const { itemCount } = useCart();
   const { user, logout } = useAuth();
   const { isTop } = useScrollDirection();
+  const isMobile = useIsMobile();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -65,6 +67,13 @@ export default function Navbar({ onCartOpen }) {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    document.body.style.overflow = mobileOpen ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [mobileOpen]);
 
   const isActive = (path) => {
     if (path === "/") return location.pathname === "/";
@@ -97,7 +106,7 @@ export default function Navbar({ onCartOpen }) {
   const CartButton = ({ mobile = false }) => (
     <button
       type="button"
-      className={`relative inline-flex ${iconClass}`}
+      className={`touch-target relative ${iconClass}`}
       onClick={onCartOpen}
       aria-label="Open cart"
     >
@@ -113,7 +122,7 @@ export default function Navbar({ onCartOpen }) {
   return (
     <>
       <motion.header
-        className="fixed left-0 right-0 top-0 z-50 w-full"
+        className="relative w-full"
         animate={{
           backgroundColor: isTop
             ? "rgba(249, 245, 242, 0)"
@@ -133,10 +142,36 @@ export default function Navbar({ onCartOpen }) {
         }}
       >
         <div className="mx-auto flex h-[72px] max-w-7xl items-center justify-between px-5 md:px-12">
+          {isMobile && searchOpen ? (
+            <div className="flex w-full items-center gap-2">
+              <Search size={20} className="shrink-0 text-homa-black" />
+              <input
+                autoFocus
+                className="h-11 min-w-0 flex-1 bg-transparent font-body text-base text-homa-black outline-none placeholder:text-homa-grey"
+                value={searchValue}
+                onChange={(event) => setSearchValue(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") submitSearch();
+                  if (event.key === "Escape") closeSearch();
+                }}
+                placeholder="Search products..."
+                aria-label="Search products"
+              />
+              <button
+                type="button"
+                className={`touch-target ${iconClass}`}
+                onClick={closeSearch}
+                aria-label="Close search"
+              >
+                <X size={20} />
+              </button>
+            </div>
+          ) : (
+            <>
           <Link to="/" aria-label="HOMA home" className="shrink-0">
             <HomaLogo
               variant="red"
-              size="sm"
+              size={isMobile ? "sm" : "md"}
               imageSrc={logoSvg}
               showText={false}
             />
@@ -208,7 +243,7 @@ export default function Navbar({ onCartOpen }) {
           <div className="hidden items-center gap-5 md:flex">
             <button
               type="button"
-              className={`inline-flex ${iconClass}`}
+              className={`touch-target ${iconClass}`}
               onClick={() => setSearchOpen((current) => !current)}
               aria-label="Search products"
             >
@@ -216,7 +251,7 @@ export default function Navbar({ onCartOpen }) {
             </button>
             <Link
               to="/wishlist"
-              className={`inline-flex ${iconClass}`}
+              className={`touch-target ${iconClass}`}
               aria-label="Wishlist"
             >
               <Heart size={20} />
@@ -252,10 +287,18 @@ export default function Navbar({ onCartOpen }) {
             )}
           </div>
 
-          <div className="flex items-center gap-5 md:hidden">
+          <div className="flex items-center gap-2 md:hidden">
             <button
               type="button"
-              className={`inline-flex ${iconClass}`}
+              className={`touch-target ${iconClass}`}
+              onClick={() => setSearchOpen(true)}
+              aria-label="Search products"
+            >
+              <Search size={22} />
+            </button>
+            <button
+              type="button"
+              className={`touch-target ${iconClass}`}
               onClick={() => setMobileOpen(true)}
               aria-label="Open menu"
             >
@@ -263,10 +306,12 @@ export default function Navbar({ onCartOpen }) {
             </button>
             <CartButton mobile />
           </div>
+            </>
+          )}
         </div>
 
         <AnimatePresence>
-          {searchOpen && (
+          {searchOpen && !isMobile && (
             <motion.div
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: 56, opacity: 1 }}
@@ -290,7 +335,7 @@ export default function Navbar({ onCartOpen }) {
                 />
                 <button
                   type="button"
-                  className={iconClass}
+                  className={`touch-target ${iconClass}`}
                   onClick={closeSearch}
                   aria-label="Close search"
                 >
@@ -305,7 +350,8 @@ export default function Navbar({ onCartOpen }) {
       <AnimatePresence>
         {mobileOpen && (
           <motion.div
-            className="sakura-pattern fixed inset-0 z-[60] flex bg-homa-red md:hidden"
+            className="sakura-pattern safe-bottom safe-top fixed inset-0 z-[60] flex flex-col overflow-hidden bg-homa-red md:hidden"
+            style={{ height: '100dvh' }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -313,14 +359,14 @@ export default function Navbar({ onCartOpen }) {
           >
             <button
               type="button"
-              className="absolute right-6 top-6 z-10 text-white transition-opacity duration-200 hover:opacity-80"
+              className="touch-target absolute right-4 top-4 z-10 rounded-full text-white transition-colors duration-200 hover:bg-white/10"
               onClick={closeMobile}
               aria-label="Close menu"
             >
-              <X size={28} />
+              <X size={24} />
             </button>
 
-            <nav className="m-auto flex flex-col items-center gap-6">
+            <nav className="relative z-10 flex min-h-0 flex-1 flex-col items-center gap-1 overflow-y-auto px-5 pb-6 pt-16">
               {[
                 ...mainLinks,
                 ...moreLinks,
@@ -338,7 +384,7 @@ export default function Navbar({ onCartOpen }) {
                 >
                   <Link
                     to={link.to}
-                    className={mobileLinkClass}
+                    className={`${mobileLinkClass} w-full max-w-sm`}
                     onClick={closeMobile}
                   >
                     {link.label}
@@ -347,7 +393,7 @@ export default function Navbar({ onCartOpen }) {
               ))}
               <button
                 type="button"
-                className={mobileSubLinkClass}
+                className={`${mobileSubLinkClass} mt-2 w-full max-w-sm`}
                 onClick={() => {
                   closeMobile();
                   setSearchOpen(true);
@@ -358,7 +404,7 @@ export default function Navbar({ onCartOpen }) {
               {user ? (
                 <button
                   type="button"
-                  className={mobileSubLinkClass}
+                  className={`${mobileSubLinkClass} w-full max-w-sm`}
                   onClick={handleLogout}
                 >
                   Logout
@@ -366,7 +412,7 @@ export default function Navbar({ onCartOpen }) {
               ) : (
                 <Link
                   to="/login"
-                  className={mobileSubLinkClass}
+                  className={`${mobileSubLinkClass} w-full max-w-sm`}
                   onClick={closeMobile}
                 >
                   Login

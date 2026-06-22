@@ -93,7 +93,7 @@ function OptionGroup({ title, icon: Icon, name, value, onChange, options, hint }
           <p className="mt-1 text-sm text-black/55">{hint}</p>
         </div>
       </div>
-      <div className="mt-4 flex flex-wrap gap-2">
+      <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2">
         {options.map((option) => {
           const active = value === option.value;
           return (
@@ -101,7 +101,7 @@ function OptionGroup({ title, icon: Icon, name, value, onChange, options, hint }
               key={option.value}
               type="button"
               onClick={() => onChange(name, option.value)}
-              className={`rounded-full border px-4 py-2 text-sm font-medium transition-colors ${
+              className={`touch-target min-h-[56px] w-full justify-start rounded-xl border px-4 py-2 text-left text-sm font-medium transition-colors ${
                 active
                   ? 'border-black bg-black text-white'
                   : 'border-black/10 bg-white text-black hover:border-black/20 hover:bg-black hover:text-white'
@@ -270,7 +270,7 @@ export default function SkinQuizPage() {
       </Helmet>
 
       <section className="border-b border-black/10 bg-white/70 backdrop-blur">
-        <div className="mx-auto max-w-7xl px-4 py-12 md:py-16">
+        <div className="mx-auto max-w-7xl px-5 py-10 md:py-16">
           <p className="text-xs uppercase tracking-[0.35em] text-black/45">Personalized routine</p>
           <h1 className="mt-4 max-w-3xl font-heading text-5xl leading-tight text-black md:text-7xl">
             Skin quiz that suggests products.
@@ -281,7 +281,7 @@ export default function SkinQuizPage() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-4 py-10 md:py-14">
+      <section className="mx-auto max-w-7xl px-5 py-8 pb-28 md:py-14 md:pb-14">
         <form
           onSubmit={(event) => {
             event.preventDefault();
@@ -322,19 +322,19 @@ export default function SkinQuizPage() {
               />
             </div>
 
-            <div className="mt-6 flex flex-wrap gap-3">
+            <div className="fixed bottom-0 left-0 right-0 z-40 grid grid-cols-2 gap-3 border-t border-black/10 bg-white p-4 safe-bottom md:static md:mt-6 md:flex md:flex-wrap md:border-0 md:bg-transparent md:p-0">
               <button
                 type="button"
                 onClick={goBack}
                 disabled={currentStep === 0}
-                className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-white px-6 py-3 text-sm font-medium text-black transition hover:border-black/20 hover:bg-black hover:text-white disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-white disabled:hover:text-black"
+                className="touch-target inline-flex items-center justify-center gap-2 rounded-full border border-black/10 bg-white px-6 py-3 text-sm font-medium text-black transition hover:border-black/20 hover:bg-black hover:text-white disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-white disabled:hover:text-black"
               >
                 Back
               </button>
               <button
                 type="submit"
                 disabled={!canAdvance}
-                className="inline-flex items-center gap-2 rounded-full bg-black px-6 py-3 text-sm font-medium text-white transition hover:bg-black/85 disabled:cursor-not-allowed disabled:opacity-50"
+                className="touch-target inline-flex items-center justify-center gap-2 rounded-full bg-black px-6 py-3 text-sm font-medium text-white transition hover:bg-black/85 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {isLastStep ? 'See suggestions' : 'Next'}
                 <ArrowRight size={15} />
@@ -342,7 +342,7 @@ export default function SkinQuizPage() {
               <button
                 type="button"
                 onClick={resetQuiz}
-                className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-white px-6 py-3 text-sm font-medium text-black transition hover:border-black/20 hover:bg-black hover:text-white"
+                className="touch-target col-span-2 inline-flex items-center justify-center gap-2 rounded-full border border-black/10 bg-white px-6 py-3 text-sm font-medium text-black transition hover:border-black/20 hover:bg-black hover:text-white md:col-span-1"
               >
                 Reset quiz
               </button>

@@ -6,7 +6,7 @@ const EmptyState = ({
   onAction,
 }) => {
   return (
-    <div className="flex flex-col items-center justify-center py-16 px-4">
+    <div className="flex flex-col items-center justify-center px-4 py-12 sm:py-16">
       {Icon && (
         <div className="mb-4">
           <Icon size={48} className="text-gray-400" />
@@ -25,7 +25,7 @@ const EmptyState = ({
         <button
           type="button"
           onClick={onAction}
-          className="px-6 py-2 bg-black text-white font-body text-sm font-medium rounded-full hover:bg-gray-900 transition-colors"
+          className="touch-target px-6 py-2 bg-black text-white font-body text-sm font-medium rounded-full hover:bg-gray-900 transition-colors"
         >
           {actionLabel}
         </button>

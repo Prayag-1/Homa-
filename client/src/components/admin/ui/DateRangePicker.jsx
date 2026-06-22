@@ -70,9 +70,9 @@ export default function DateRangePicker({ value, onChange }) {
           </button>
         ))}
       </div>
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 sm:flex sm:flex-wrap">
         <input
-          className="admin-input w-[150px]"
+          className="admin-input w-full sm:w-[150px]"
           type="date"
           value={draft.from}
           max={draft.to || today()}
@@ -80,7 +80,7 @@ export default function DateRangePicker({ value, onChange }) {
         />
         <span style={{ color: 'var(--admin-muted)' }}>-</span>
         <input
-          className="admin-input w-[150px]"
+          className="admin-input w-full sm:w-[150px]"
           type="date"
           value={draft.to}
           min={draft.from}

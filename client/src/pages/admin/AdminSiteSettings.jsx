@@ -133,13 +133,13 @@ function SocialField({ platform, value, onChange }) {
   const isUrl = /^https?:\/\//i.test(value);
   const valid = !hasValue || (isUrl && config.pattern.test(value));
   return (
-    <div className="flex items-center gap-2">
-      <div className="flex h-[38px] w-[38px] items-center justify-center border" style={{ borderColor: 'var(--admin-border)' }}>
+    <div className="flex min-w-0 items-center gap-2">
+      <div className="flex h-11 w-11 shrink-0 items-center justify-center border" style={{ borderColor: 'var(--admin-border)' }}>
         <Icon size={17} />
       </div>
       <input className="admin-input" value={value || ''} onChange={(event) => onChange(event.target.value)} placeholder={`https://${platform}.com/homa`} />
       {hasValue && (
-        <div className="flex h-[38px] w-[38px] items-center justify-center">
+        <div className="flex h-11 w-11 shrink-0 items-center justify-center">
           {valid ? <Check size={18} className="text-emerald-300" /> : <X size={18} className="text-red-300" />}
         </div>
       )}
@@ -365,14 +365,14 @@ export default function AdminSiteSettings() {
                   </Field>
                   <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     <Field label="Background Color">
-                      <div className="flex gap-2">
-                        <input className="h-[38px] w-[54px] border-0 bg-transparent p-0" type="color" value={announcement.bgColor} onChange={(event) => setAnnouncement((current) => ({ ...current, bgColor: event.target.value }))} />
+                      <div className="flex min-w-0 gap-2">
+                        <input className="h-11 w-14 shrink-0 border-0 bg-transparent p-0" type="color" value={announcement.bgColor} onChange={(event) => setAnnouncement((current) => ({ ...current, bgColor: event.target.value }))} />
                         <input className="admin-input" value={announcement.bgColor} onChange={(event) => setAnnouncement((current) => ({ ...current, bgColor: event.target.value }))} />
                       </div>
                     </Field>
                     <Field label="Text Color">
-                      <div className="flex gap-2">
-                        <input className="h-[38px] w-[54px] border-0 bg-transparent p-0" type="color" value={announcement.textColor} onChange={(event) => setAnnouncement((current) => ({ ...current, textColor: event.target.value }))} />
+                      <div className="flex min-w-0 gap-2">
+                        <input className="h-11 w-14 shrink-0 border-0 bg-transparent p-0" type="color" value={announcement.textColor} onChange={(event) => setAnnouncement((current) => ({ ...current, textColor: event.target.value }))} />
                         <input className="admin-input" value={announcement.textColor} onChange={(event) => setAnnouncement((current) => ({ ...current, textColor: event.target.value }))} />
                       </div>
                     </Field>

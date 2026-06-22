@@ -13,9 +13,9 @@ const stats = [
 ];
 
 const testimonials = [
-  { quote: 'My routine finally feels simple, premium, and consistent.', name: 'Aarati Shrestha' },
-  { quote: 'The textures are light, elegant, and perfect for daily use.', name: 'Mina Gurung' },
-  { quote: 'HOMA made Japanese skincare easy to discover in Nepal.', name: 'Priya Thapa' },
+  { quote: 'My routine finally feels simple, premium, and consistent.', name: 'Diya Poudel' },
+  { quote: 'The textures are light, elegant, and perfect for daily use.', name: 'Prayag Nepal' },
+  { quote: 'HOMA made Japanese skincare easy to discover in Nepal.', name: 'Adarsh Sapkota' },
 ];
 
 function SectionHeader({ label, title, light = false }) {
@@ -24,7 +24,7 @@ function SectionHeader({ label, title, light = false }) {
       <p className={`font-body text-[11px] font-bold uppercase tracking-[0.22em] ${light ? 'text-white/70' : 'text-homa-red'}`}>
         {label}
       </p>
-      <h2 className={`mt-3 font-heading text-4xl font-semibold leading-tight ${light ? 'text-white' : 'text-homa-black'}`}>
+      <h2 className={`text-h2 mt-3 font-heading font-semibold ${light ? 'text-white' : 'text-homa-black'}`}>
         {title}
       </h2>
     </div>

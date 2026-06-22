@@ -14,7 +14,7 @@ function BadgeComponent({ text, children, color = 'grey', className = '' }) {
   return (
     <span
       className={[
-        'inline-block rounded-pill px-2.5 py-[3px] font-body text-[11px] font-semibold uppercase tracking-[0.08em]',
+        'inline-block max-w-full break-words rounded-pill px-2.5 py-[3px] font-body text-[11px] font-semibold uppercase tracking-[0.08em]',
         colorMap[color] || colorMap.grey,
         className,
       ].join(' ')}

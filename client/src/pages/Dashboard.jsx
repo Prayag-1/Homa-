@@ -10,6 +10,7 @@ import {
   ChevronDown, ChevronUp, Download, Eye, ShieldAlert, LogOut, CheckCircle2 
 } from 'lucide-react';
 import { AddressMapPicker } from '../components/shared';
+import { getResponsiveImageProps } from '../utils/cloudinaryUrl';
 
 const profileSchema = z.object({
   name: z.string().trim().min(1, 'Name is required').max(80, 'Name is too long'),
@@ -33,6 +34,11 @@ export default function Dashboard() {
   const [activeTab, setActiveTab] = useState('overview'); // overview, orders, profile
   const [expandedOrders, setExpandedOrders] = useState({});
   const [downloadingInvoice, setDownloadingInvoice] = useState({});
+  const tabs = [
+    { id: 'overview', label: 'Overview', icon: User },
+    { id: 'orders', label: `Orders${orders.length > 0 ? ` (${orders.length})` : ''}`, icon: ShoppingBag },
+    { id: 'profile', label: 'Edit Profile', icon: Edit2 },
+  ];
 
   // Profile Form State
   const [isEditing, setIsEditing] = useState(false);
@@ -204,7 +210,7 @@ export default function Dashboard() {
   }, 0);
 
   return (
-    <div className="min-h-screen bg-[#fafaf9] py-12">
+    <div className="min-h-screen bg-[#fafaf9] py-8 md:py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Main Header */}
@@ -218,7 +224,7 @@ export default function Dashboard() {
             <span className="font-heading text-3xl text-black">Profile</span>
             <button
               onClick={handleLogout}
-              className="inline-flex items-center justify-center gap-2 border border-red-200 hover:bg-red-50 text-red-600 font-body text-xs font-semibold px-5 py-3 rounded-xl transition-all"
+              className="touch-target inline-flex items-center justify-center gap-2 border border-red-200 hover:bg-red-50 text-red-600 font-body text-xs font-semibold px-5 py-3 rounded-xl transition-all"
             >
               <LogOut size={14} />
               Logout
@@ -226,11 +232,31 @@ export default function Dashboard() {
           </div>
         </div>
 
+        <div className="scroll-x-mobile mb-6 border-b border-gray-200 px-0 py-3 lg:hidden">
+          {tabs.map((tab) => {
+            const Icon = tab.icon;
+            const active = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => { setActiveTab(tab.id); setIsEditing(false); }}
+                className={`touch-target whitespace-nowrap rounded-full px-4 py-2 font-body text-sm font-semibold ${
+                  active ? 'bg-homa-red text-white' : 'bg-gray-100 text-gray-600'
+                }`}
+              >
+                <Icon size={15} />
+                {tab.label}
+              </button>
+            );
+          })}
+        </div>
+
         {/* Dashboard grid layout */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           
           {/* Left Column: Navigation Sidebar */}
-          <div className="lg:col-span-3 space-y-6">
+          <div className="hidden lg:col-span-3 lg:block space-y-6">
             
             {/* Membership Card */}
             <div className={`relative rounded-3xl border overflow-hidden p-6 bg-gradient-to-tr ${getTierTheme(user.membershipTier)} shadow-md`}>
@@ -258,7 +284,7 @@ export default function Dashboard() {
             <div className="bg-white rounded-2xl border border-gray-150 p-4 shadow-sm space-y-1">
               <button
                 onClick={() => { setActiveTab('overview'); setIsEditing(false); }}
-                className={`w-full text-left px-4 py-3 rounded-xl text-sm font-semibold transition-all flex items-center gap-3 ${
+                className={`touch-target w-full justify-start text-left px-4 py-3 rounded-xl text-sm font-semibold transition-all flex items-center gap-3 ${
                   activeTab === 'overview' ? 'bg-black text-white' : 'text-gray-600 hover:bg-gray-50 hover:text-black'
                 }`}
               >
@@ -267,7 +293,7 @@ export default function Dashboard() {
               </button>
               <button
                 onClick={() => { setActiveTab('orders'); setIsEditing(false); }}
-                className={`w-full text-left px-4 py-3 rounded-xl text-sm font-semibold transition-all flex items-center gap-3 ${
+                className={`touch-target w-full justify-start text-left px-4 py-3 rounded-xl text-sm font-semibold transition-all flex items-center gap-3 ${
                   activeTab === 'orders' ? 'bg-black text-white' : 'text-gray-600 hover:bg-gray-50 hover:text-black'
                 }`}
               >
@@ -281,7 +307,7 @@ export default function Dashboard() {
               </button>
               <button
                 onClick={() => { setActiveTab('profile'); setIsEditing(false); }}
-                className={`w-full text-left px-4 py-3 rounded-xl text-sm font-semibold transition-all flex items-center gap-3 ${
+                className={`touch-target w-full justify-start text-left px-4 py-3 rounded-xl text-sm font-semibold transition-all flex items-center gap-3 ${
                   activeTab === 'profile' ? 'bg-black text-white' : 'text-gray-600 hover:bg-gray-50 hover:text-black'
                 }`}
               >
@@ -305,7 +331,7 @@ export default function Dashboard() {
                   className="space-y-6"
                 >
                   {/* Grid Stats */}
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6">
                     <div className="bg-white rounded-2xl border border-gray-150 p-5 shadow-sm">
                       <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Total Orders</p>
                       <h4 className="text-3xl font-heading font-bold mt-2 text-black">{orders.length}</h4>
@@ -335,7 +361,7 @@ export default function Dashboard() {
                       </h3>
                       <button
                         onClick={() => setActiveTab('profile')}
-                        className="text-xs font-semibold hover:underline text-black"
+                        className="touch-target text-xs font-semibold hover:underline text-black"
                       >
                         Edit Profile
                       </button>
@@ -386,7 +412,7 @@ export default function Dashboard() {
                         <p className="text-sm text-gray-500 mb-4">No default shipping address configured yet.</p>
                         <button
                           onClick={() => { setActiveTab('profile'); setIsEditing(true); }}
-                          className="px-5 py-2.5 bg-black hover:bg-gray-950 text-white rounded-xl text-xs font-semibold transition-all"
+                          className="touch-target px-5 py-2.5 bg-black hover:bg-gray-950 text-white rounded-xl text-xs font-semibold transition-all"
                         >
                           Configure Address
                         </button>
@@ -438,7 +464,7 @@ export default function Dashboard() {
                             {/* Order summary bar */}
                             <div
                               onClick={() => toggleOrderExpand(order._id)}
-                              className="px-6 py-5 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 cursor-pointer hover:bg-gray-50/50 transition-colors"
+                              className="px-4 py-4 md:px-6 md:py-5 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 cursor-pointer hover:bg-gray-50/50 transition-colors"
                             >
                               <div className="space-y-1">
                                 <div className="flex items-center gap-2.5">
@@ -477,7 +503,7 @@ export default function Dashboard() {
                                     {order.orderStatus}
                                   </span>
                                 </div>
-                                <div className="p-1.5 rounded-lg bg-gray-50 text-gray-500 hover:text-black">
+                                <div className="touch-target rounded-lg bg-gray-50 text-gray-500 hover:text-black">
                                   {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                                 </div>
                               </div>
@@ -494,7 +520,7 @@ export default function Dashboard() {
                                   <button
                                     onClick={() => handleDownloadInvoice(order._id, order.invoiceNumber)}
                                     disabled={downloadingInvoice[order._id] || !order.invoiceNumber}
-                                    className="inline-flex items-center gap-2 bg-black hover:bg-gray-900 disabled:bg-gray-200 text-white disabled:text-gray-400 text-xs font-semibold px-4 py-2.5 rounded-xl transition-colors"
+                                    className="touch-target inline-flex items-center gap-2 bg-black hover:bg-gray-900 disabled:bg-gray-200 text-white disabled:text-gray-400 text-xs font-semibold px-4 py-2.5 rounded-xl transition-colors"
                                   >
                                     {downloadingInvoice[order._id] ? (
                                       <>
@@ -516,7 +542,7 @@ export default function Dashboard() {
                                     <div key={item._id} className="flex justify-between items-center text-xs">
                                       <div className="flex items-center gap-3">
                                         <div className="h-12 w-10 flex-shrink-0 bg-white border border-gray-100 rounded overflow-hidden">
-                                          <img src={item.image || '/placeholder.jpg'} alt={item.name} className="h-full w-full object-cover" />
+                                          <img {...getResponsiveImageProps(item.image || '/placeholder.jpg', item.name, '40px')} className="h-full w-full object-cover" />
                                         </div>
                                         <div>
                                           <p className="font-medium text-gray-800">{item.name}</p>

@@ -23,7 +23,7 @@ export default function Wishlist() {
 
       <div className="max-w-7xl mx-auto px-4 pb-16">
         {isLoading && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-2 gap-3 px-4 md:grid-cols-3 md:gap-4 md:px-0 lg:grid-cols-4 lg:gap-6">
             {Array.from({ length: 6 }).map((_, index) => (
               <ProductCardSkeleton key={index} />
             ))}
@@ -38,7 +38,7 @@ export default function Wishlist() {
             <button
               type="button"
               onClick={() => window.location.reload()}
-              className="px-6 py-2 bg-black text-white font-body text-sm font-medium hover:bg-gray-900 transition-colors"
+              className="touch-target px-6 py-2 bg-black text-white font-body text-sm font-medium hover:bg-gray-900 transition-colors"
             >
               Retry
             </button>
@@ -55,7 +55,7 @@ export default function Wishlist() {
         )}
 
         {!isLoading && !isError && products.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-2 gap-3 px-4 md:grid-cols-3 md:gap-4 md:px-0 lg:grid-cols-4 lg:gap-6">
             {products.map((product) => (
               <ProductCard
                 key={product._id}

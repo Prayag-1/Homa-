@@ -9,11 +9,11 @@ import {
 } from 'recharts';
 
 export default function CategoryBarChart({ data }) {
-  if (data === undefined) return <div className="admin-skeleton h-[300px] w-full" />;
+  if (data === undefined) return <div className="admin-skeleton h-[260px] w-full" />;
 
   if (!data.length) {
     return (
-      <div className="flex h-[300px] items-center justify-center text-sm" style={{ color: 'var(--admin-muted)' }}>
+      <div className="flex h-[260px] items-center justify-center text-sm" style={{ color: 'var(--admin-muted)' }}>
         No data for this period
       </div>
     );
@@ -22,7 +22,7 @@ export default function CategoryBarChart({ data }) {
   const chartData = data.map((item) => ({ ...item, category: item._id || 'Uncategorized' }));
 
   return (
-    <ResponsiveContainer width="100%" height={300}>
+    <ResponsiveContainer width="100%" height={260}>
       <BarChart data={chartData} layout="vertical" margin={{ left: 20, right: 20 }}>
         <CartesianGrid strokeDasharray="3 3" stroke="#3D1515" />
         <XAxis
