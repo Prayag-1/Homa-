@@ -97,7 +97,7 @@ export default function Distributors() {
       <section className="border-b border-black/10 bg-white/70 backdrop-blur">
         <div className="mx-auto max-w-7xl px-4 py-10 md:py-14">
           <p className="text-xs uppercase tracking-[0.35em] text-black/45">Authorized Dealers</p>
-          <h1 className="mt-4 font-display text-4xl leading-tight text-black md:text-6xl">
+          <h1 className="mt-4 font-heading text-4xl leading-tight text-black md:text-6xl">
             Find a trusted distributor near you.
           </h1>
           <p className="mt-4 max-w-3xl text-sm leading-7 text-black/65 md:text-base">
@@ -214,7 +214,7 @@ export default function Distributors() {
 
         {!isError && !isLoading && filteredDistributors.length === 0 && (
           <div className="mx-auto flex max-w-2xl flex-col items-center justify-center rounded-[2rem] border border-black/10 bg-white/80 px-6 py-16 text-center shadow-sm">
-            <h2 className="font-display text-3xl text-black">No dealers found</h2>
+            <h2 className="font-heading text-3xl text-black">No dealers found</h2>
             <p className="mt-3 max-w-md text-sm leading-7 text-black/65">
               Try a different search term or clear the current filter.
             </p>

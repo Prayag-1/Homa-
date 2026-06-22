@@ -272,7 +272,7 @@ export default function SkinQuizPage() {
       <section className="border-b border-black/10 bg-white/70 backdrop-blur">
         <div className="mx-auto max-w-7xl px-4 py-12 md:py-16">
           <p className="text-xs uppercase tracking-[0.35em] text-black/45">Personalized routine</p>
-          <h1 className="mt-4 max-w-3xl font-display text-5xl leading-tight text-black md:text-7xl">
+          <h1 className="mt-4 max-w-3xl font-heading text-5xl leading-tight text-black md:text-7xl">
             Skin quiz that suggests products.
           </h1>
           <p className="mt-5 max-w-3xl text-base leading-7 text-black/65 md:text-lg">

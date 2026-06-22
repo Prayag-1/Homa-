@@ -78,7 +78,7 @@ export default function ProductAuthenticityPage() {
         <div className="mx-auto max-w-7xl px-4 py-14 md:py-20">
           <div className="max-w-3xl">
             <p className="text-xs uppercase tracking-[0.35em] text-black/45">Authenticity guide</p>
-            <h1 className="mt-4 font-display text-5xl leading-tight text-black md:text-7xl">
+            <h1 className="mt-4 font-heading text-5xl leading-tight text-black md:text-7xl">
               How to verify a product is authentic.
             </h1>
             <p className="mt-5 text-base leading-7 text-black/65 md:text-lg">
@@ -120,7 +120,7 @@ export default function ProductAuthenticityPage() {
         <div className="rounded-[2rem] border border-black/10 bg-[#292828] p-6 text-white shadow-[0_24px_80px_rgba(41,40,40,0.12)] md:p-8">
           <div className="max-w-3xl">
             <p className="text-xs uppercase tracking-[0.35em] text-white/45">Japanese quality standards</p>
-            <h2 className="mt-3 font-display text-3xl md:text-4xl">Quality signals we highlight</h2>
+            <h2 className="mt-3 font-heading text-3xl md:text-4xl">Quality signals we highlight</h2>
             <p className="mt-3 text-sm leading-6 text-white/70 md:text-base">
               These are the key proof points to look for when evaluating imported Japanese beauty products.
             </p>

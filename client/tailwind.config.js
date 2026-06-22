@@ -24,9 +24,9 @@ export default {
         },
       },
       fontFamily: {
-        heading: ['"Playfair Display"', 'Georgia', 'serif'],
-        display: ['"Playfair Display"', 'Georgia', 'serif'],
-        body: ['"DM Sans"', 'system-ui', 'sans-serif'],
+        body: ['var(--font-body)'],
+        heading: ['var(--font-heading)'],
+        accent: ['var(--font-accent)'],
       },
       borderRadius: {
         pill: '9999px',

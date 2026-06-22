@@ -215,7 +215,7 @@ export default function Dashboard() {
             </p>
           </div>
           <div className="flex items-center gap-3 self-start md:self-auto">
-            <span className="font-display text-3xl text-black">Profile</span>
+            <span className="font-heading text-3xl text-black">Profile</span>
             <button
               onClick={handleLogout}
               className="inline-flex items-center justify-center gap-2 border border-red-200 hover:bg-red-50 text-red-600 font-body text-xs font-semibold px-5 py-3 rounded-xl transition-all"
@@ -239,7 +239,7 @@ export default function Dashboard() {
                   <span className="text-[10px] font-bold uppercase tracking-widest opacity-75">
                     HOMA Membership
                   </span>
-                  <h3 className="font-display text-2xl font-bold mt-1">
+                  <h3 className="font-heading text-2xl font-bold mt-1">
                     {user.membershipTier || 'Bronze'}
                   </h3>
                 </div>
@@ -247,7 +247,7 @@ export default function Dashboard() {
               </div>
               <div className="space-y-1">
                 <p className="text-[10px] uppercase tracking-wider opacity-60">Loyalty Balance</p>
-                <p className="text-3xl font-bold font-display">{user.loyaltyPoints || 0} pts</p>
+                <p className="text-3xl font-bold font-heading">{user.loyaltyPoints || 0} pts</p>
               </div>
               <div className="absolute right-0 bottom-0 translate-x-4 translate-y-4 opacity-10 pointer-events-none">
                 <Award size={150} />
@@ -308,19 +308,19 @@ export default function Dashboard() {
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                     <div className="bg-white rounded-2xl border border-gray-150 p-5 shadow-sm">
                       <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Total Orders</p>
-                      <h4 className="text-3xl font-display font-bold mt-2 text-black">{orders.length}</h4>
+                      <h4 className="text-3xl font-heading font-bold mt-2 text-black">{orders.length}</h4>
                       <p className="text-[10px] text-gray-500 mt-1">Placed in total</p>
                     </div>
                     <div className="bg-white rounded-2xl border border-gray-150 p-5 shadow-sm">
                       <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Items Purchased</p>
-                      <h4 className="text-3xl font-display font-bold mt-2 text-black">{totalPurchasedQty}</h4>
+                      <h4 className="text-3xl font-heading font-bold mt-2 text-black">{totalPurchasedQty}</h4>
                       <p className="text-[10px] text-gray-500 mt-1">Confirmed orders</p>
                     </div>
                     <div className="bg-white rounded-2xl border border-gray-150 p-5 shadow-sm">
                       <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Skin Type</p>
                       <div className="flex items-center gap-2 mt-2">
                         <Droplets size={22} className="text-blue-500" />
-                        <h4 className="text-xl font-display font-bold text-black">{user.skinType || 'Not specified'}</h4>
+                        <h4 className="text-xl font-heading font-bold text-black">{user.skinType || 'Not specified'}</h4>
                       </div>
                       <p className="text-[10px] text-gray-500 mt-1">Tailored catalog settings</p>
                     </div>
@@ -329,7 +329,7 @@ export default function Dashboard() {
                   {/* Summary Profile Info Card */}
                   <div className="bg-white rounded-2xl border border-gray-150 p-6 shadow-sm">
                     <div className="flex items-center justify-between border-b border-gray-100 pb-5 mb-6">
-                      <h3 className="font-display text-xl text-black flex items-center gap-2.5">
+                      <h3 className="font-heading text-xl text-black flex items-center gap-2.5">
                         <User size={18} className="text-gray-400" />
                         Personal Profile
                       </h3>
@@ -367,7 +367,7 @@ export default function Dashboard() {
                   {/* Default Delivery Address Card */}
                   <div className="bg-white rounded-2xl border border-gray-150 p-6 shadow-sm">
                     <div className="flex items-center justify-between border-b border-gray-100 pb-5 mb-6">
-                      <h3 className="font-display text-xl text-black flex items-center gap-2.5">
+                      <h3 className="font-heading text-xl text-black flex items-center gap-2.5">
                         <MapPin size={18} className="text-gray-400" />
                         Default Shipping Address
                       </h3>
@@ -405,7 +405,7 @@ export default function Dashboard() {
                   exit={{ opacity: 0, y: -15 }}
                   className="space-y-6"
                 >
-                  <h2 className="font-display text-2xl text-black mb-4">Order History</h2>
+                  <h2 className="font-heading text-2xl text-black mb-4">Order History</h2>
 
                   {ordersLoading ? (
                     <div className="space-y-4">
@@ -580,7 +580,7 @@ export default function Dashboard() {
                   exit={{ opacity: 0, y: -15 }}
                   className="bg-white rounded-2xl border border-gray-150 p-6 md:p-8 shadow-sm"
                 >
-                  <h2 className="font-display text-2xl text-black mb-6">Profile Settings</h2>
+                  <h2 className="font-heading text-2xl text-black mb-6">Profile Settings</h2>
 
                   <form onSubmit={handleProfileSubmit} className="space-y-6">
                     

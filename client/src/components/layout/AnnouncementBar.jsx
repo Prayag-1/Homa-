@@ -1,36 +1,33 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowRight, X } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 import { usePublicSettings } from "../../hooks/useSiteSettings";
-
-const storageKeyFor = (version) =>
-  `homa_announcement_seen_${version || "default"}`;
 
 export default function AnnouncementBar() {
   const { data: settings } = usePublicSettings();
   const announcement = settings?.announcementBar;
-  const version = settings?.version || "default";
-  const storageKey = useMemo(() => storageKeyFor(version), [version]);
+  const location = useLocation();
   const [dismissed, setDismissed] = useState(false);
+  const isHomePage = location.pathname === "/";
 
   useEffect(() => {
-    if (!announcement?.isActive) {
+    if (!announcement?.isActive || !isHomePage) {
       setDismissed(false);
       return;
     }
 
-    setDismissed(localStorage.getItem(storageKey) === "true");
-  }, [announcement?.isActive, storageKey]);
+    setDismissed(false);
+  }, [announcement?.isActive, isHomePage, location.key]);
 
   useEffect(() => {
-    if (!announcement?.isActive || dismissed) return undefined;
+    if (!announcement?.isActive || dismissed || !isHomePage) return undefined;
 
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
 
     const handleKeyDown = (event) => {
       if (event.key === "Escape") {
-        localStorage.setItem(storageKey, "true");
         setDismissed(true);
       }
     };
@@ -41,12 +38,11 @@ export default function AnnouncementBar() {
       document.body.style.overflow = previousOverflow;
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [announcement?.isActive, dismissed, storageKey]);
+  }, [announcement?.isActive, dismissed, isHomePage]);
 
-  const visible = announcement?.isActive && !dismissed;
+  const visible = announcement?.isActive && isHomePage && !dismissed;
 
   const dismiss = () => {
-    localStorage.setItem(storageKey, "true");
     setDismissed(true);
   };
 
@@ -122,8 +118,8 @@ export default function AnnouncementBar() {
                     {announcement?.text || "Announcement preview"}
                   </h2>
                   <p className="max-w-md text-sm leading-6 text-white/90">
-                    This popup is shown once on this browser when the app opens.
-                    It stays dismissed until the announcement content changes.
+                    This popup is shown on every home-page visit unless you
+                    close it for the current visit.
                   </p>
                 </div>
 

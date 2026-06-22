@@ -13,7 +13,7 @@ const EmptyState = ({
         </div>
       )}
 
-      <h3 className="font-display text-2xl text-black mb-2 text-center">
+      <h3 className="font-heading text-2xl text-black mb-2 text-center">
         {title}
       </h3>
 

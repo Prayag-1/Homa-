@@ -61,7 +61,7 @@ export default function DistributorMapPage() {
           <div className="mt-6 grid gap-8 lg:grid-cols-[0.9fr_1.1fr]">
             <div className="rounded-[2rem] border border-black/10 bg-white/85 p-7 shadow-sm">
               <p className="text-xs uppercase tracking-[0.35em] text-black/45">Dealer map</p>
-              <h1 className="mt-4 font-display text-4xl leading-tight text-black md:text-6xl">
+              <h1 className="mt-4 font-heading text-4xl leading-tight text-black md:text-6xl">
                 {distributor?.name || 'Distributor not found'}
               </h1>
               {distributor && (

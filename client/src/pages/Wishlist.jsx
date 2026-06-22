@@ -12,7 +12,7 @@ export default function Wishlist() {
     <div className="min-h-screen bg-white">
       <div className="border-b border-gray-200 mb-8">
         <div className="max-w-7xl mx-auto px-4 py-10">
-          <h1 className="font-display text-4xl md:text-5xl text-black mb-2">
+          <h1 className="font-heading text-4xl md:text-5xl text-black mb-2">
             Wishlist
           </h1>
           <p className="font-body text-gray-600">

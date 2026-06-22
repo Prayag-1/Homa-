@@ -59,7 +59,7 @@ export default function About() {
         <div className="grid gap-8 lg:grid-cols-[1.05fr_0.95fr]">
           <div className="rounded-[2.25rem] border border-black/10 bg-white/80 p-8 shadow-[0_24px_80px_rgba(26,20,16,0.10)] backdrop-blur md:p-12">
             <p className="text-sm uppercase tracking-[0.35em] text-black/45">About Homa</p>
-            <h1 className="mt-4 max-w-3xl font-display text-5xl leading-tight md:text-7xl">
+            <h1 className="mt-4 max-w-3xl font-heading text-5xl leading-tight md:text-7xl">
               Curated skincare, built for confident everyday use.
             </h1>
             <p className="mt-6 max-w-2xl text-base leading-7 text-black/70 md:text-lg">

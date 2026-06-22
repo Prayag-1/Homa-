@@ -41,7 +41,7 @@ export default function HomaLogo({
         <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1 }}>
           <span
             style={{
-              fontFamily: '"Playfair Display", Georgia, serif',
+              fontFamily: 'var(--font-accent)',
               fontSize: s.text,
               fontWeight: 600,
               color,
@@ -53,7 +53,7 @@ export default function HomaLogo({
           </span>
           <span
             style={{
-              fontFamily: '"DM Sans", sans-serif',
+              fontFamily: 'var(--font-body)',
               fontSize: s.sub,
               color: subColor,
               letterSpacing: '0.15em',

@@ -103,7 +103,7 @@ export default function PaymentSuccess() {
           <div className="mx-auto w-12 h-12 bg-red-50 text-red-600 rounded-full flex items-center justify-center mb-5">
             <AlertCircle size={24} />
           </div>
-          <h1 className="font-display text-2xl text-black mb-3">Verification Error</h1>
+          <h1 className="font-heading text-2xl text-black mb-3">Verification Error</h1>
           <p className="font-body text-sm text-gray-500 mb-6 leading-relaxed">
             {error}
           </p>
@@ -143,7 +143,7 @@ export default function PaymentSuccess() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="font-display text-3xl md:text-4xl text-black"
+            className="font-heading text-3xl md:text-4xl text-black"
           >
             Order Confirmed!
           </motion.h1>

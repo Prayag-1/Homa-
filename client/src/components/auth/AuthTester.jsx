@@ -207,7 +207,7 @@ export default function AuthTester() {
         <div className="mb-10 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
             <p className="mb-2 text-sm uppercase tracking-[0.35em] text-black/50">Backend smoke test</p>
-            <h1 className="font-display text-5xl font-semibold md:text-7xl">Phone auth verifier</h1>
+            <h1 className="font-heading text-5xl font-semibold md:text-7xl">Phone auth verifier</h1>
             <p className="mt-3 max-w-2xl text-base text-black/70">
               Register with phone number, verify the OTP, then log in and confirm protected session endpoints.
             </p>

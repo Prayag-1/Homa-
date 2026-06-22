@@ -68,7 +68,7 @@ function StatusBadge({ status }) {
         fontWeight: 700,
         textTransform: 'uppercase',
         letterSpacing: '0.05em',
-        fontFamily: 'DM Sans, sans-serif',
+        fontFamily: 'var(--font-body)',
       }}
     >
       {status || 'unknown'}

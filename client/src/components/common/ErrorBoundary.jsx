@@ -19,7 +19,7 @@ export default class ErrorBoundary extends Component {
       return (
         <div className="min-h-[60vh] flex items-center justify-center px-4">
           <div className="max-w-md text-center">
-            <h1 className="font-display text-4xl text-black mb-3">
+            <h1 className="font-heading text-4xl text-black mb-3">
               Something went wrong
             </h1>
             <p className="font-body text-gray-600 mb-6">

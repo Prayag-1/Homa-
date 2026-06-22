@@ -45,7 +45,7 @@ export default function WhatsAppButton() {
                 fontSize: '12px',
                 padding: '6px 12px',
                 whiteSpace: 'nowrap',
-                fontFamily: 'DM Sans, sans-serif',
+                fontFamily: 'var(--font-body)',
                 boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
               }}
             >

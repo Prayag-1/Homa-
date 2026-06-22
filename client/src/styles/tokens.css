@@ -1,7 +1,29 @@
 /* HOMA official brand tokens
    Source: Homa Logo Final Files Brand Guide */
 
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap');
+@font-face {
+  font-family: 'Chesna Grotesk';
+  src: url('../assets/fonts/chesnagrotesk-regular.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Chesna Grotesk';
+  src: url('../assets/fonts/chesnagrotesk-medium.otf') format('opentype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Christopher Wells';
+  src: url('../assets/fonts/Christopherwells.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
 
 :root {
   /* Brand colors */
@@ -19,8 +41,9 @@
   --homa-bg-dark: #1A0000;
 
   /* Typography */
-  --font-heading: 'Playfair Display', Georgia, serif;
-  --font-body: 'DM Sans', system-ui, sans-serif;
+  --font-body: 'Chesna Grotesk', sans-serif;
+  --font-heading: 'Chesna Grotesk', sans-serif;
+  --font-accent: 'Christopher Wells', cursive;
 
   /* Legacy aliases mapped to the official palette */
   --color-black: var(--homa-off-black);
@@ -28,7 +51,6 @@
   --color-cream: var(--homa-bg-cream);
   --color-blush: var(--homa-bg-blush);
   --color-white: var(--homa-white);
-  --font-display: var(--font-heading);
 
   /* Spacing scale */
   --space-xs: 4px;
@@ -80,6 +102,10 @@ h1, h2, h3, h4, h5, h6 {
   color: var(--homa-off-black);
   line-height: 1.2;
   font-weight: 600;
+}
+
+.font-accent {
+  font-family: var(--font-accent);
 }
 
 .sakura-pattern {

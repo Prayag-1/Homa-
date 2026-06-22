@@ -1,4 +1,3 @@
-import { Link } from 'react-router-dom';
 import ProductCard from '../components/product/ProductCard';
 import ProductCardSkeleton from '../components/product/ProductCardSkeleton';
 import HeroCarousel from '../components/home/HeroCarousel';
@@ -43,42 +42,14 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-homa-cream">
-      <section className="sakura-pattern grid min-h-[85vh] items-center bg-homa-red px-5 py-16 text-white md:px-12 lg:grid-cols-2 lg:py-20">
-        <div className="mx-auto w-full max-w-7xl lg:col-span-2 lg:grid lg:grid-cols-2 lg:items-center lg:gap-12">
-          <div>
-            <p className="font-body text-[11px] font-bold uppercase tracking-[0.25em] text-white/70">
-              Japanese Health & Beauty Store
-            </p>
-            <h1 className="mt-5 max-w-2xl font-heading text-[40px] font-semibold leading-[1.1] text-white md:text-[64px]">
-              Authentic Japanese Skincare, Delivered to Nepal.
-            </h1>
-            <p className="mt-4 max-w-xl font-body text-base leading-7 text-white/85">
-              Curated skincare, beauty rituals, and trusted essentials for youthful, healthy skin.
-            </p>
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <Link
-                to="/shop"
-                className="rounded-pill bg-white px-8 py-4 text-center font-body text-sm font-bold uppercase tracking-[0.12em] text-homa-red transition hover:scale-[1.02]"
-              >
-                Shop Now
-              </Link>
-              <Link
-                to="/skin-quiz"
-                className="rounded-pill border-2 border-white px-8 py-4 text-center font-body text-sm font-bold uppercase tracking-[0.12em] text-white transition hover:scale-[1.02] hover:bg-white/10"
-              >
-                Take Skin Quiz
-              </Link>
-            </div>
-          </div>
-
-          <div className="mt-12 flex justify-center lg:mt-0">
-            <HeroCarousel banners={heroBanners} />
-          </div>
-        </div>
+      <section className="relative h-[85vh] overflow-hidden bg-homa-red">
+        <HeroCarousel banners={heroBanners} variant="background" fullWidth minimal />
       </section>
 
       <div className="overflow-hidden bg-homa-black py-4 text-white">
         <div className="animate-[marquee_24s_linear_infinite] whitespace-nowrap font-body text-xs font-bold uppercase tracking-[0.15em]">
+          Authentic Japanese Products - Delivered Across Nepal - Sugi Pharmacy Certified - Skin Health & Beauty -
+          Authentic Japanese Products - Delivered Across Nepal - Sugi Pharmacy Certified - Skin Health & Beauty -
           Authentic Japanese Products - Delivered Across Nepal - Sugi Pharmacy Certified - Skin Health & Beauty -
           Authentic Japanese Products - Delivered Across Nepal - Sugi Pharmacy Certified - Skin Health & Beauty -
         </div>

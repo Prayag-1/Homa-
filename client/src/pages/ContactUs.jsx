@@ -157,7 +157,7 @@ export default function ContactUsPage() {
           <div className="space-y-6">
             <div className="rounded-[2rem] border border-black/10 bg-white/85 p-8 shadow-[0_24px_80px_rgba(26,20,16,0.10)] backdrop-blur md:p-10">
               <p className="text-sm uppercase tracking-[0.35em] text-black/45">Get in touch</p>
-              <h1 className="mt-4 max-w-xl font-display text-5xl leading-tight md:text-7xl">
+              <h1 className="mt-4 max-w-xl font-heading text-5xl leading-tight md:text-7xl">
                 Contact the Homa team.
               </h1>
               <p className="mt-6 max-w-2xl text-base leading-7 text-black/70 md:text-lg">

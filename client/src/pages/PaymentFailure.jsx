@@ -21,7 +21,7 @@ export default function PaymentFailure() {
             <AlertTriangle size={32} />
           </motion.div>
 
-          <h1 className="font-display text-3xl text-black mb-3">Payment Failed</h1>
+          <h1 className="font-heading text-3xl text-black mb-3">Payment Failed</h1>
           
           <p className="font-body text-sm text-gray-500 mb-6 leading-relaxed">
             We couldn't process your payment. This could be due to insufficient wallet balance, authorization timeouts, or cancellation of the transaction.

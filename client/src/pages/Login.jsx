@@ -53,7 +53,7 @@ export default function Login() {
     <div className="grid min-h-screen bg-homa-cream lg:grid-cols-[45%_55%]">
       <aside className="sakura-pattern flex min-h-[260px] flex-col items-center justify-center bg-homa-red px-6 py-12 text-center text-white lg:min-h-screen">
         <HomaLogo variant="white" size="lg" />
-        <p className="mt-6 max-w-sm font-heading text-2xl italic leading-snug text-white">
+        <p className="mt-6 max-w-sm font-accent text-2xl italic leading-snug text-white">
           Your journey to beautiful skin starts here.
         </p>
         <p className="mt-10 font-body text-[10px] font-bold uppercase tracking-[0.25em] text-white/50">

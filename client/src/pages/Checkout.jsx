@@ -193,7 +193,7 @@ export default function Checkout() {
           </Link>
         </div>
 
-        <h1 className="font-display text-4xl text-black mb-10">Checkout</h1>
+        <h1 className="font-heading text-4xl text-black mb-10">Checkout</h1>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
           {/* Left: Shipping & Payment Info */}
@@ -204,7 +204,7 @@ export default function Checkout() {
                 <div className="p-2 bg-red-50 text-red-600 rounded-lg">
                   <Truck size={20} />
                 </div>
-                <h2 className="font-display text-xl text-black">Shipping Address</h2>
+                <h2 className="font-heading text-xl text-black">Shipping Address</h2>
               </div>
 
               <div className="space-y-4">
@@ -287,7 +287,7 @@ export default function Checkout() {
                 <div className="p-2 bg-red-50 text-red-600 rounded-lg">
                   <CreditCard size={20} />
                 </div>
-                <h2 className="font-display text-xl text-black">Payment Method</h2>
+                <h2 className="font-heading text-xl text-black">Payment Method</h2>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -384,7 +384,7 @@ export default function Checkout() {
                 <div className="p-2 bg-red-50 text-red-600 rounded-lg">
                   <ShoppingBag size={20} />
                 </div>
-                <h2 className="font-display text-xl text-black">Order Summary</h2>
+                <h2 className="font-heading text-xl text-black">Order Summary</h2>
               </div>
 
               {/* Items List */}
