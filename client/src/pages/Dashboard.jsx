@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { getMyOrders, downloadInvoice } from '../services/orderService';
+import { getMyReturnRequests, createReturnRequest } from '../services/returnService';
 import { formatPrice } from '../utils/formatPrice';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-hot-toast';
@@ -34,6 +36,12 @@ export default function Dashboard() {
   const [activeTab, setActiveTab] = useState('overview'); // overview, orders, profile
   const [expandedOrders, setExpandedOrders] = useState({});
   const [downloadingInvoice, setDownloadingInvoice] = useState({});
+  const [returnRequests, setReturnRequests] = useState([]);
+  const [isReturnModalOpen, setIsReturnModalOpen] = useState(false);
+  const [selectedOrderForReturn, setSelectedOrderForReturn] = useState(null);
+  const [returnReason, setReturnReason] = useState('');
+  const [returnDetails, setReturnDetails] = useState('');
+  const [submittingReturn, setSubmittingReturn] = useState(false);
   const tabs = [
     { id: 'overview', label: 'Overview', icon: User },
     { id: 'orders', label: `Orders${orders.length > 0 ? ` (${orders.length})` : ''}`, icon: ShoppingBag },
@@ -82,23 +90,57 @@ export default function Dashboard() {
     }
   }, [user]);
 
-  // Fetch Order History
+  // Fetch Order History and Return Requests
   useEffect(() => {
-    const fetchOrders = async () => {
+    const fetchData = async () => {
       try {
         setOrdersLoading(true);
-        const res = await getMyOrders();
-        setOrders(res.data);
+        const [ordersRes, returnsRes] = await Promise.all([
+          getMyOrders(),
+          getMyReturnRequests(),
+        ]);
+        setOrders(ordersRes.data);
+        setReturnRequests(returnsRes.data || []);
       } catch (err) {
-        toast.error('Failed to load order history');
+        toast.error('Failed to load order/return history');
       } finally {
         setOrdersLoading(false);
       }
     };
     if (user) {
-      fetchOrders();
+      fetchData();
     }
   }, [user]);
+
+  const handleReturnSubmit = async (e) => {
+    e.preventDefault();
+    if (!selectedOrderForReturn || !returnReason) return;
+    setSubmittingReturn(true);
+    try {
+      await createReturnRequest({
+        orderId: selectedOrderForReturn._id,
+        reason: returnReason,
+        details: returnDetails,
+      });
+      toast.success('Return request submitted successfully!');
+      setIsReturnModalOpen(false);
+      setReturnReason('');
+      setReturnDetails('');
+      setSelectedOrderForReturn(null);
+      
+      // Re-fetch data
+      const [ordersRes, returnsRes] = await Promise.all([
+        getMyOrders(),
+        getMyReturnRequests(),
+      ]);
+      setOrders(ordersRes.data);
+      setReturnRequests(returnsRes.data || []);
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to submit return request');
+    } finally {
+      setSubmittingReturn(false);
+    }
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -456,6 +498,7 @@ export default function Dashboard() {
                     <div className="space-y-4">
                       {orders.map((order) => {
                         const isExpanded = !!expandedOrders[order._id];
+                        const associatedReturn = returnRequests.find((r) => (r.order?._id || r.order) === order._id);
                         return (
                           <div
                             key={order._id}
@@ -516,24 +559,51 @@ export default function Dashboard() {
                                   <div className="text-xs text-gray-500">
                                     <p>Payment Method: <span className="font-semibold uppercase">{order.paymentMethod}</span></p>
                                     {order.paymentRef && <p className="mt-1">Transaction Ref: <span className="font-mono">{order.paymentRef}</span></p>}
-                                  </div>
-                                  <button
-                                    onClick={() => handleDownloadInvoice(order._id, order.invoiceNumber)}
-                                    disabled={downloadingInvoice[order._id] || !order.invoiceNumber}
-                                    className="touch-target inline-flex items-center gap-2 bg-black hover:bg-gray-900 disabled:bg-gray-200 text-white disabled:text-gray-400 text-xs font-semibold px-4 py-2.5 rounded-xl transition-colors"
-                                  >
-                                    {downloadingInvoice[order._id] ? (
-                                      <>
-                                        <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-gray-400 border-t-transparent"></div>
-                                        Fetching PDF...
-                                      </>
-                                    ) : (
-                                      <>
-                                        <Download size={13} />
-                                        Download Bill / Invoice
-                                      </>
+                                    {associatedReturn && (
+                                      <p className="mt-2 text-xs font-semibold">
+                                        Return Request:{' '}
+                                        <span className={`inline-flex px-2 py-0.5 rounded font-bold uppercase text-[9px] ${
+                                          associatedReturn.status === 'accepted'
+                                            ? 'bg-green-50 text-green-700'
+                                            : associatedReturn.status === 'rejected'
+                                            ? 'bg-red-50 text-red-700'
+                                            : 'bg-amber-50 text-amber-700'
+                                        }`}>
+                                          {associatedReturn.status}
+                                        </span>
+                                      </p>
                                     )}
-                                  </button>
+                                  </div>
+                                  <div className="flex flex-wrap gap-2">
+                                    {order.orderStatus === 'delivered' && !associatedReturn && (
+                                      <button
+                                        onClick={() => {
+                                          setSelectedOrderForReturn(order);
+                                          setIsReturnModalOpen(true);
+                                        }}
+                                        className="touch-target inline-flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition-colors"
+                                      >
+                                        Return Order
+                                      </button>
+                                    )}
+                                    <button
+                                      onClick={() => handleDownloadInvoice(order._id, order.invoiceNumber)}
+                                      disabled={downloadingInvoice[order._id] || !order.invoiceNumber}
+                                      className="touch-target inline-flex items-center gap-2 bg-black hover:bg-gray-900 disabled:bg-gray-200 text-white disabled:text-gray-400 text-xs font-semibold px-4 py-2.5 rounded-xl transition-colors"
+                                    >
+                                      {downloadingInvoice[order._id] ? (
+                                        <>
+                                          <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-gray-400 border-t-transparent"></div>
+                                          Fetching PDF...
+                                        </>
+                                      ) : (
+                                        <>
+                                          <Download size={13} />
+                                          Download Bill / Invoice
+                                        </>
+                                      )}
+                                    </button>
+                                  </div>
                                 </div>
 
                                 {/* Item Row List */}
@@ -809,7 +879,71 @@ export default function Dashboard() {
             </AnimatePresence>
           </div>
         </div>
-      </div>
+      {/* Return Request Modal */}
+      {isReturnModalOpen && selectedOrderForReturn && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60">
+          <div className="bg-white rounded-3xl p-6 md:p-8 max-w-lg w-full shadow-2xl border border-gray-100 relative">
+            <h3 className="font-heading text-2xl font-bold text-black mb-4">Request Return</h3>
+            <p className="text-xs text-gray-500 mb-6">
+              Order: <span className="font-mono font-semibold text-black">#{selectedOrderForReturn._id?.slice(-8)}</span> ({selectedOrderForReturn.invoiceNumber || 'INV-PENDING'})
+            </p>
+                        <form onSubmit={handleReturnSubmit} className="space-y-6">
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                  Reason for Return
+                </label>
+                <select
+                  value={returnReason}
+                  onChange={(e) => setReturnReason(e.target.value)}
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 focus:border-black transition-all"
+                  required
+                >
+                  <option value="">Select a reason</option>
+                  <option value="Damaged Product">Damaged or defective product</option>
+                  <option value="Incorrect Product">Incorrect product received</option>
+                  <option value="Expired Product">Product near or past expiry date</option>
+                  <option value="Quality Issue">Quality issues or adverse skin reaction</option>
+                  <option value="Other">Other (please specify below)</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                  Additional Details (Optional)
+                </label>
+                <textarea
+                  value={returnDetails}
+                  onChange={(e) => setReturnDetails(e.target.value)}
+                  rows={4}
+                  placeholder="Please provide details about the return request..."
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 focus:border-black transition-all"
+                />
+              </div>
+
+              <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsReturnModalOpen(false);
+                    setSelectedOrderForReturn(null);
+                  }}
+                  className="px-6 py-3 border border-gray-200 text-gray-700 rounded-xl text-sm font-semibold hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={submittingReturn}
+                  className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl text-sm font-semibold transition-colors flex items-center gap-2"
+                >
+                  {submittingReturn ? 'Submitting...' : 'Submit Request'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
+  </div>
   );
 }

@@ -5,7 +5,7 @@ const validateObjectId = require('../middleware/validateObjectId');
 const Order = require('../models/Order');
 const ApiError = require('../utils/ApiError');
 
-const VALID_ORDER_STATUSES = ['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled'];
+const VALID_ORDER_STATUSES = ['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled', 'returned'];
 const VALID_PAYMENT_STATUSES = ['pending', 'paid', 'failed', 'pending_collection', 'collected'];
 
 router.use(protect, adminOnly);

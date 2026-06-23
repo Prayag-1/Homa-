@@ -10,6 +10,7 @@ import {
 import { Link } from 'react-router-dom';
 import HomaLogo from '../common/HomaLogo';
 import { usePublicSettings } from '../../hooks/useSiteSettings';
+import logoSvg from '../../logosvg.svg';
 
 function TikTokIcon(props) {
   return (
@@ -96,7 +97,7 @@ export default function Footer() {
         <div className="mx-auto grid max-w-7xl grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
           <div>
             <Link to="/" aria-label="HOMA home">
-              <HomaLogo variant="white" size="md" />
+              <HomaLogo variant="white" size="md" imageSrc={logoSvg} showText={false} />
             </Link>
             {footer.tagline && (
               <p className="mt-5 max-w-xs font-body text-sm leading-6 text-white/80">{footer.tagline}</p>

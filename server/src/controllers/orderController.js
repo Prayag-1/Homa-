@@ -10,7 +10,7 @@ const { generateInvoicePDF } = require('../utils/invoice');
 const { createOrderSchema } = require('../validators/orderValidators');
 const { calculateLoyaltyPoints } = require('../utils/loyalty');
 
-const VALID_ORDER_STATUSES = new Set(['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled']);
+const VALID_ORDER_STATUSES = new Set(['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled', 'returned']);
 const VALID_PAYMENT_STATUSES = new Set(['pending', 'paid', 'failed', 'pending_collection', 'collected']);
 
 // Environment variables for eSewa

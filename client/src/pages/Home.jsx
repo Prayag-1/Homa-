@@ -22,6 +22,7 @@ function SectionHeader({ label, title, light = false }) {
   return (
     <div className="mb-8">
       <p className={`font-body text-[11px] font-bold uppercase tracking-[0.22em] ${light ? 'text-white/70' : 'text-homa-red'}`}>
+      
         {label}
       </p>
       <h2 className={`text-h2 mt-3 font-heading font-semibold ${light ? 'text-white' : 'text-homa-black'}`}>

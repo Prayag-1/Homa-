@@ -31,6 +31,8 @@ router.use('/user/wishlist',  require('./wishlistRoutes'));
 router.use('/orders',         require('./orderRoutes'));
 // Admin-only order routes.
 router.use('/admin/orders',   require('./adminOrderRoutes'));
+// Return request routes.
+router.use('/returns',        require('./returnRoutes'));
 // Admin-only reporting routes.
 router.use('/admin/reports',   require('./reportsRoutes'));
 // Admin-only customer routes.

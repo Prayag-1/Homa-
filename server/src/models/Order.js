@@ -26,7 +26,7 @@ const orderSchema = new mongoose.Schema(
     },
     paymentMethod: { type: String, enum: ['esewa', 'fonepay', 'cod'], required: true },
     paymentStatus: { type: String, enum: ['pending', 'paid', 'failed', 'pending_collection', 'collected'], default: 'pending' },
-    orderStatus: { type: String, enum: ['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled'], default: 'pending' },
+    orderStatus: { type: String, enum: ['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled', 'returned'], default: 'pending' },
     paymentRef: String,
     paidAt: Date,
     invoiceNumber: { type: String, unique: true, sparse: true },

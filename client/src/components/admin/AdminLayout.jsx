@@ -13,6 +13,7 @@ import {
   Tag,
   X,
   Users,
+  RotateCcw,
 } from 'lucide-react';
 import { useState } from 'react';
 import { NavLink } from 'react-router-dom';
@@ -24,6 +25,7 @@ const navItems = [
   { label: 'Brands', to: '/admin/brands', icon: Tag },
   { label: 'Categories', to: '/admin/categories', icon: Grid3X3 },
   { label: 'Orders', to: '/admin/orders', icon: ShoppingCart },
+  { label: 'Return Requests', to: '/admin/returns', icon: RotateCcw },
   { label: 'Customers', to: '/admin/customers', icon: Users },
   { label: 'Blogs', to: '/admin/blogs', icon: FileText },
   { label: 'Transformation Stories', to: '/admin/transformations', icon: Sparkles },
