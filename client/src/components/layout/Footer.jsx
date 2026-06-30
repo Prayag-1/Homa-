@@ -170,7 +170,7 @@ export default function Footer() {
           <div className="flex flex-wrap items-center justify-center gap-2">
             {footer.showPaymentIcons && (
               <>
-                <span className="rounded-pill bg-white px-3 py-1 font-bold text-homa-red">eSewa</span>
+                <span className="rounded-pill bg-white px-3 py-1 font-bold text-homa-red">QR Pay</span>
                 <span className="rounded-pill bg-white px-3 py-1 font-bold text-homa-red">Fonepay</span>
                 <span className="rounded-pill bg-white px-3 py-1 font-bold text-homa-red">COD</span>
               </>

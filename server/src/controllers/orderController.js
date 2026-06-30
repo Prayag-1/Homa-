@@ -9,9 +9,11 @@ const { calculateOrderTotals } = require('../utils/tax');
 const { generateInvoicePDF } = require('../utils/invoice');
 const { createOrderSchema } = require('../validators/orderValidators');
 const { calculateLoyaltyPoints } = require('../utils/loyalty');
+const { uploadToCloudinary } = require('../middleware/upload');
 
 const VALID_ORDER_STATUSES = new Set(['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled', 'returned']);
 const VALID_PAYMENT_STATUSES = new Set(['pending', 'paid', 'failed', 'pending_collection', 'collected']);
+const VALID_PAYMENT_REVIEW_STATUSES = new Set(['not_required', 'pending', 'approved', 'rejected']);
 
 // Environment variables for eSewa
 const ESEWA_PRODUCT_CODE = process.env.ESEWA_PRODUCT_CODE || 'EPAYTEST';
@@ -39,6 +41,48 @@ function generateEsewaSignature(totalAmount, transactionUuid, productCode, secre
 
 const generateInvoiceNumber = () =>
   `INV-${Date.now()}-${crypto.randomBytes(4).toString('hex').toUpperCase()}`;
+
+const normalizeOrderBody = (body = {}) => {
+  const normalized = { ...body };
+
+  if (typeof normalized.items === 'string') {
+    try {
+      normalized.items = JSON.parse(normalized.items);
+    } catch (error) {
+      throw new ApiError(400, 'Invalid order items payload');
+    }
+  }
+
+  if (typeof normalized.shippingAddress === 'string') {
+    try {
+      normalized.shippingAddress = JSON.parse(normalized.shippingAddress);
+    } catch (error) {
+      throw new ApiError(400, 'Invalid shipping address payload');
+    }
+  }
+
+  if (typeof normalized.couponCode === 'string') {
+    normalized.couponCode = normalized.couponCode.trim().toUpperCase() || undefined;
+  }
+
+  if (typeof normalized.notes === 'string') {
+    normalized.notes = normalized.notes.trim() || undefined;
+  }
+
+  return normalized;
+};
+
+const uploadPaymentProof = async (file) => {
+  if (!file) return null;
+
+  const uploaded = await uploadToCloudinary(file.buffer, 'payments');
+  return {
+    url: uploaded.url,
+    publicId: uploaded.publicId,
+    fileName: file.originalname || '',
+    uploadedAt: new Date(),
+  };
+};
 
 const buildOrderItemsFromDb = async (items) => {
   const quantityByProductId = new Map();
@@ -167,15 +211,24 @@ async function awardLoyaltyPointsForOrder(order) {
 exports.createOrder = async (req, res, next) => {
   try {
     // Validate request body
-    const { error, value } = createOrderSchema.validate(req.body);
+    const normalizedBody = normalizeOrderBody(req.body);
+    const { error, value } = createOrderSchema.validate(normalizedBody);
     if (error) {
       return next(new ApiError(400, error.details[0].message));
     }
 
     const { items, shippingAddress, paymentMethod, couponCode, notes } = value;
 
+    if (paymentMethod === 'esewa') {
+      return next(new ApiError(400, 'eSewa payments are disabled. Please use QR payment or COD.'));
+    }
+
     if (paymentMethod === 'fonepay') {
       return next(new ApiError(400, 'Fonepay payments are not available yet'));
+    }
+
+    if (paymentMethod === 'qr' && !req.file) {
+      return next(new ApiError(400, 'Payment proof is required for QR orders'));
     }
 
     const orderItems = await buildOrderItemsFromDb(items);
@@ -223,6 +276,7 @@ exports.createOrder = async (req, res, next) => {
 
     // Calculate totals using tax util
     const totals = calculateOrderTotals(orderItems, discountAmount, deliveryCharge);
+    const paymentProof = paymentMethod === 'qr' ? await uploadPaymentProof(req.file) : null;
 
     const reservedItems = await reserveStock(orderItems);
     let order;
@@ -241,6 +295,9 @@ exports.createOrder = async (req, res, next) => {
         shippingAddress,
         paymentMethod,
         paymentStatus: 'pending',
+        paymentVerificationStatus: paymentMethod === 'qr' ? 'pending' : 'not_required',
+        paymentProof: paymentProof || undefined,
+        paymentSubmittedAt: paymentProof ? new Date() : undefined,
         orderStatus: 'pending',
         couponCode,
         notes,
@@ -251,42 +308,13 @@ exports.createOrder = async (req, res, next) => {
     }
 
     // Handle payment integration flows
-    if (paymentMethod === 'esewa') {
-      // eSewa payment flow - generate params for frontend form submission
-      // eSewa v2 signature fields: total_amount, transaction_uuid, product_code
-      // Format total amount with 2 decimal places to match exactly what is posted
-      const totalAmountStr = totals.grandTotal.toFixed(2);
-      const transactionUuid = order._id.toString();
-
-      const signature = generateEsewaSignature(
-        totalAmountStr,
-        transactionUuid,
-        ESEWA_PRODUCT_CODE,
-        ESEWA_SECRET_KEY
-      );
-
-      const esewaParams = {
-        amount: totals.taxableAmount.toFixed(2),
-        tax_amount: totals.vatAmount.toFixed(2),
-        total_amount: totalAmountStr,
-        transaction_uuid: transactionUuid,
-        product_code: ESEWA_PRODUCT_CODE,
-        product_service_charge: '0.00',
-        product_delivery_charge: totals.deliveryCharge.toFixed(2),
-        success_url: `${process.env.CLIENT_URL}/payment-success`,
-        failure_url: `${process.env.CLIENT_URL}/payment-failure`,
-        signed_field_names: 'total_amount,transaction_uuid,product_code',
-        signature: signature,
-        esewa_form_url: ESEWA_FORM_URL,
-      };
-
+    if (paymentMethod === 'qr') {
       return res.status(201).json({
         success: true,
-        message: 'Order created. Complete payment via eSewa.',
+        message: 'Order created. Payment proof submitted for review.',
         data: {
           order,
-          paymentRequired: true,
-          esewaParams,
+          paymentRequired: false,
         },
       });
     }
@@ -553,6 +581,74 @@ exports.adminGetOrders = async (req, res, next) => {
       success: true,
       data: orders,
     });
+  } catch (err) {
+    next(err);
+  }
+};
+
+/**
+ * Admin: Review QR payment proof
+ */
+exports.adminReviewOrderPayment = async (req, res, next) => {
+  try {
+    const { reviewStatus, note } = req.body;
+
+    if (!VALID_PAYMENT_REVIEW_STATUSES.has(reviewStatus)) {
+      return next(new ApiError(400, 'Invalid payment review status'));
+    }
+
+    const order = await Order.findById(req.params.id);
+    if (!order) {
+      return next(new ApiError(404, 'Order not found'));
+    }
+
+    if (order.paymentMethod !== 'qr') {
+      return next(new ApiError(400, 'Only QR orders require payment review'));
+    }
+
+    if (reviewStatus === 'approved') {
+      order.paymentVerificationStatus = 'approved';
+      order.paymentStatus = 'paid';
+      order.paymentReviewNote = note || '';
+      order.paymentReviewedBy = req.user._id;
+      order.paymentReviewedAt = new Date();
+      order.paidAt = order.paidAt || new Date();
+      order.orderStatus = 'confirmed';
+      if (!order.invoiceNumber) {
+        order.invoiceNumber = generateInvoiceNumber();
+      }
+      await order.save();
+      await awardLoyaltyPointsForOrder(order);
+
+      return res.json({
+        success: true,
+        message: 'QR payment approved successfully',
+        data: order,
+      });
+    }
+
+    if (reviewStatus === 'rejected') {
+      const wasPending = order.paymentStatus === 'pending';
+      order.paymentVerificationStatus = 'rejected';
+      order.paymentStatus = 'failed';
+      order.paymentReviewNote = note || '';
+      order.paymentReviewedBy = req.user._id;
+      order.paymentReviewedAt = new Date();
+      order.orderStatus = 'cancelled';
+      await order.save();
+
+      if (wasPending) {
+        await releaseStock(order.items);
+      }
+
+      return res.json({
+        success: true,
+        message: 'QR payment rejected successfully',
+        data: order,
+      });
+    }
+
+    return next(new ApiError(400, 'Unsupported payment review action'));
   } catch (err) {
     next(err);
   }

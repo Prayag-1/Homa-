@@ -36,7 +36,7 @@ const createOrderSchema = Joi.object({
   shippingAddress: shippingAddressSchema.required().messages({
     'any.required': 'Shipping address is required',
   }),
-  paymentMethod: Joi.string().valid('esewa', 'fonepay', 'cod').required().messages({
+  paymentMethod: Joi.string().valid('qr', 'esewa', 'fonepay', 'cod').required().messages({
     'any.only': 'Invalid payment method selected',
     'any.required': 'Payment method is required',
   }),

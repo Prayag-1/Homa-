@@ -1,11 +1,38 @@
 import api from './api';
 
+const buildCreateOrderPayload = (orderData = {}) => {
+  const hasPaymentProof = orderData.paymentProofFile instanceof File;
+
+  if (!hasPaymentProof) {
+    return orderData;
+  }
+
+  const formData = new FormData();
+  const appendJson = (key, value) => {
+    if (value === undefined || value === null) return;
+    formData.append(key, typeof value === 'string' ? value : JSON.stringify(value));
+  };
+
+  appendJson('items', orderData.items || []);
+  appendJson('shippingAddress', orderData.shippingAddress || {});
+  appendJson('paymentMethod', orderData.paymentMethod);
+  appendJson('couponCode', orderData.couponCode || '');
+  appendJson('notes', orderData.notes || '');
+  formData.append('paymentProofFile', orderData.paymentProofFile);
+
+  return formData;
+};
+
 /**
  * Place a new order
  * @param {Object} orderData - Shipping details, items, coupon, notes, and payment method
  */
 export const createOrder = async (orderData) => {
-  const { data } = await api.post('/orders', orderData);
+  const payload = buildCreateOrderPayload(orderData);
+  const config = payload instanceof FormData
+    ? { headers: { 'Content-Type': 'multipart/form-data' } }
+    : undefined;
+  const { data } = await api.post('/orders', payload, config);
   return data;
 };
 
@@ -67,4 +94,12 @@ export const downloadInvoice = async (id, invoiceNumber) => {
   // Clean up
   link.parentNode.removeChild(link);
   window.URL.revokeObjectURL(url);
+};
+
+export const reviewOrderPayment = async (id, reviewStatus, note = '') => {
+  const { data } = await api.put(`/admin/orders/${id}/payment`, {
+    reviewStatus,
+    note,
+  });
+  return data;
 };

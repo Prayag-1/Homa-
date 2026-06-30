@@ -4,6 +4,7 @@ const { protect, adminOnly } = require('../middleware/auth');
 const validateObjectId = require('../middleware/validateObjectId');
 const Order = require('../models/Order');
 const ApiError = require('../utils/ApiError');
+const { adminReviewOrderPayment } = require('../controllers/orderController');
 
 const VALID_ORDER_STATUSES = ['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled', 'returned'];
 const VALID_PAYMENT_STATUSES = ['pending', 'paid', 'failed', 'pending_collection', 'collected'];
@@ -37,7 +38,7 @@ router.get('/', async (req, res, next) => {
         .sort('-createdAt')
         .skip((safePage - 1) * safeLimit)
         .limit(safeLimit)
-        .select('_id user items.name items.quantity items.price items.image subtotal discount vatAmount deliveryCharge grandTotal shippingAddress paymentMethod paymentStatus orderStatus paymentRef createdAt')
+        .select('_id user items.name items.quantity items.price items.image subtotal discount vatAmount deliveryCharge grandTotal shippingAddress paymentMethod paymentStatus paymentVerificationStatus paymentProof paymentReviewNote paymentReviewedAt paymentReviewedBy orderStatus paymentRef createdAt')
         .lean(),
       Order.countDocuments(filter),
     ]);
@@ -56,6 +57,8 @@ router.get('/', async (req, res, next) => {
     next(err);
   }
 });
+
+router.put('/:id/payment', validateObjectId(), adminReviewOrderPayment);
 
 router.get('/:id', validateObjectId(), async (req, res, next) => {
   try {

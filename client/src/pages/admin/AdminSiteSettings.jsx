@@ -18,6 +18,7 @@ import Spinner from '../../components/ui/Spinner';
 import {
   useAdminSettings,
   useUpdateAnnouncement,
+  useUpdatePayment,
   useUpdateFooter,
   useUpdateWhatsApp,
 } from '../../hooks/useSiteSettings';
@@ -41,6 +42,14 @@ const emptyAnnouncement = {
   image: { url: '', publicId: '' },
 };
 
+const emptyPayment = {
+  qrTitle: '',
+  qrInstructions: '',
+  beneficiaryName: '',
+  supportNote: '',
+  qrImage: { url: '', publicId: '' },
+};
+
 const normalizeFooter = (footer = {}) => ({
   ...emptyFooter,
   ...footer,
@@ -48,6 +57,15 @@ const normalizeFooter = (footer = {}) => ({
   companyLinks: footer.companyLinks || [],
   contact: { ...emptyFooter.contact, ...(footer.contact || {}) },
   social: { ...emptyFooter.social, ...(footer.social || {}) },
+});
+
+const normalizePayment = (payment = {}) => ({
+  ...emptyPayment,
+  ...payment,
+  qrImage: {
+    ...emptyPayment.qrImage,
+    ...(payment.qrImage || {}),
+  },
 });
 
 function Toggle({ checked, onChange, label }) {
@@ -163,12 +181,17 @@ export default function AdminSiteSettings() {
   const { data: settings, isLoading } = useAdminSettings();
   const updateWhatsApp = useUpdateWhatsApp();
   const updateAnnouncement = useUpdateAnnouncement();
+  const updatePayment = useUpdatePayment();
   const updateFooter = useUpdateFooter();
   const [whatsapp, setWhatsapp] = useState({ phoneNumber: '', prefilledMessage: '', isEnabled: false });
   const [announcement, setAnnouncement] = useState(emptyAnnouncement);
   const [announcementImageFile, setAnnouncementImageFile] = useState(null);
   const [announcementImagePreview, setAnnouncementImagePreview] = useState('');
   const [announcementImageRemoved, setAnnouncementImageRemoved] = useState(false);
+  const [payment, setPayment] = useState(emptyPayment);
+  const [paymentQrFile, setPaymentQrFile] = useState(null);
+  const [paymentQrPreview, setPaymentQrPreview] = useState('');
+  const [paymentQrRemoved, setPaymentQrRemoved] = useState(false);
   const [footer, setFooter] = useState(emptyFooter);
   const [initialSnapshot, setInitialSnapshot] = useState('');
 
@@ -183,14 +206,19 @@ export default function AdminSiteSettings() {
         ...(settings.announcementBar?.image || {}),
       },
     };
+    const nextPayment = normalizePayment(settings.payment);
     const nextFooter = normalizeFooter(settings.footer);
     setWhatsapp(nextWhatsApp);
     setAnnouncement(nextAnnouncement);
     setAnnouncementImageFile(null);
     setAnnouncementImagePreview('');
     setAnnouncementImageRemoved(false);
+    setPayment(nextPayment);
+    setPaymentQrFile(null);
+    setPaymentQrPreview('');
+    setPaymentQrRemoved(false);
     setFooter(nextFooter);
-    setInitialSnapshot(JSON.stringify({ whatsapp: nextWhatsApp, announcement: nextAnnouncement, footer: nextFooter }));
+    setInitialSnapshot(JSON.stringify({ whatsapp: nextWhatsApp, announcement: nextAnnouncement, payment: nextPayment, footer: nextFooter }));
   }, [settings]);
 
   useEffect(
@@ -198,16 +226,21 @@ export default function AdminSiteSettings() {
       if (announcementImagePreview) {
         URL.revokeObjectURL(announcementImagePreview);
       }
+      if (paymentQrPreview) {
+        URL.revokeObjectURL(paymentQrPreview);
+      }
     },
-    [announcementImagePreview],
+    [announcementImagePreview, paymentQrPreview],
   );
 
   const dirty = useMemo(
     () =>
-      initialSnapshot !== JSON.stringify({ whatsapp, announcement, footer }) ||
+      initialSnapshot !== JSON.stringify({ whatsapp, announcement, payment, footer }) ||
       Boolean(announcementImageFile) ||
-      announcementImageRemoved,
-    [announcement, announcementImageFile, announcementImageRemoved, footer, initialSnapshot, whatsapp],
+      Boolean(paymentQrFile) ||
+      announcementImageRemoved ||
+      paymentQrRemoved,
+    [announcement, announcementImageFile, announcementImageRemoved, footer, initialSnapshot, payment, paymentQrFile, paymentQrRemoved, whatsapp],
   );
 
   const waUrl = whatsapp.phoneNumber
@@ -267,9 +300,43 @@ export default function AdminSiteSettings() {
     });
   };
 
+  const handlePaymentQrChange = (file) => {
+    if (!file) return;
+
+    if (paymentQrPreview) {
+      URL.revokeObjectURL(paymentQrPreview);
+    }
+
+    setPaymentQrFile(file);
+    setPaymentQrPreview(URL.createObjectURL(file));
+    setPaymentQrRemoved(false);
+  };
+
+  const removePaymentQrImage = () => {
+    if (paymentQrPreview) {
+      URL.revokeObjectURL(paymentQrPreview);
+    }
+    setPaymentQrFile(null);
+    setPaymentQrPreview('');
+    setPaymentQrRemoved(true);
+    setPayment((current) => ({ ...current, qrImage: { url: '', publicId: '' } }));
+  };
+
+  const savePayment = () => {
+    updatePayment.mutate({
+      qrTitle: payment.qrTitle,
+      qrInstructions: payment.qrInstructions,
+      beneficiaryName: payment.beneficiaryName,
+      supportNote: payment.supportNote,
+      removeQrImage: paymentQrRemoved,
+      qrImageFile: paymentQrFile,
+    });
+  };
+
   const tabs = [
     ['whatsapp', 'WhatsApp'],
     ['announcement', 'Announcement Bar'],
+    ['payment', 'Payments'],
     ['footer', 'Footer'],
   ];
 
@@ -480,6 +547,137 @@ export default function AdminSiteSettings() {
 
                   <button className="admin-button admin-button-primary" type="button" disabled={updateAnnouncement.isPending} onClick={saveAnnouncement}>
                     {updateAnnouncement.isPending ? <Spinner size="sm" color="currentColor" /> : <Save size={16} />}
+                    Save
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'payment' && (
+            <div className="max-w-6xl space-y-6">
+              <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_0.95fr]">
+                <div className="space-y-5">
+                  <Field label="Payment QR Title">
+                    <input
+                      className="admin-input"
+                      value={payment.qrTitle || ''}
+                      onChange={(event) => setPayment((current) => ({ ...current, qrTitle: event.target.value }))}
+                      placeholder="Scan the QR code and upload your proof"
+                    />
+                  </Field>
+                  <Field label="Instructions">
+                    <textarea
+                      className="admin-textarea"
+                      maxLength={300}
+                      value={payment.qrInstructions || ''}
+                      onChange={(event) => setPayment((current) => ({ ...current, qrInstructions: event.target.value }))}
+                      placeholder="Tell customers what to do after scanning the QR code"
+                    />
+                  </Field>
+                  <Field label="Beneficiary Name">
+                    <input
+                      className="admin-input"
+                      value={payment.beneficiaryName || ''}
+                      onChange={(event) => setPayment((current) => ({ ...current, beneficiaryName: event.target.value }))}
+                      placeholder="Account holder or business name"
+                    />
+                  </Field>
+                  <Field label="Support Note">
+                    <textarea
+                      className="admin-textarea"
+                      maxLength={300}
+                      value={payment.supportNote || ''}
+                      onChange={(event) => setPayment((current) => ({ ...current, supportNote: event.target.value }))}
+                      placeholder="Shown under the QR code"
+                    />
+                  </Field>
+                  <div className="rounded-2xl border p-4" style={{ borderColor: 'var(--admin-border)', background: '#171A25' }}>
+                    <div className="mb-3 flex items-center justify-between gap-3">
+                      <div>
+                        <h4 className="font-bold">Payment QR Code</h4>
+                        <p className="text-sm" style={{ color: 'var(--admin-muted)' }}>Upload the QR image customers will scan at checkout.</p>
+                      </div>
+                      {(paymentQrFile || payment.qrImage?.url) && (
+                        <button className="admin-button admin-button-danger" type="button" onClick={removePaymentQrImage}>
+                          <Trash2 size={15} />
+                          Remove
+                        </button>
+                      )}
+                    </div>
+                    <button
+                      type="button"
+                      className="admin-upload-zone !min-h-[220px]"
+                      onClick={() => document.getElementById('payment-qr-input')?.click()}
+                    >
+                      {(paymentQrPreview || payment.qrImage?.url) ? (
+                        <div className="w-full space-y-3">
+                          <img
+                            src={paymentQrPreview || payment.qrImage.url}
+                            alt="Payment QR preview"
+                            className="mx-auto h-52 w-full max-w-[420px] rounded-2xl object-contain bg-white p-3"
+                          />
+                          <span className="font-semibold">Click to replace the QR code</span>
+                        </div>
+                      ) : (
+                        <>
+                          <ImagePlus size={28} />
+                          <span className="font-semibold">Click to upload or drag and drop</span>
+                          <span className="text-xs" style={{ color: 'var(--admin-muted)' }}>
+                            JPEG, PNG, WebP up to 5MB
+                          </span>
+                        </>
+                      )}
+                    </button>
+                    <input
+                      id="payment-qr-input"
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      className="hidden"
+                      onChange={(event) => {
+                        const file = event.target.files?.[0];
+                        if (file) handlePaymentQrChange(file);
+                        event.target.value = '';
+                      }}
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="rounded-3xl border p-4" style={{ borderColor: 'var(--admin-border)', background: '#0E1017' }}>
+                    <div className="mb-3 flex items-center justify-between">
+                      <h4 className="font-bold">Checkout Preview</h4>
+                      <span className="admin-badge admin-badge-warning">QR flow</span>
+                    </div>
+                    <div className="rounded-3xl border p-5" style={{ borderColor: 'var(--admin-border)', background: '#111522' }}>
+                      <div className="mb-4 text-center">
+                        <p className="text-xs uppercase tracking-[0.2em]" style={{ color: 'var(--admin-muted)' }}> {payment.qrTitle || 'Payment QR'} </p>
+                        <h3 className="mt-2 text-xl font-bold">{payment.beneficiaryName || 'HOMA Beauty'}</h3>
+                        <p className="mt-2 text-sm leading-6" style={{ color: 'var(--admin-muted)' }}>
+                          {payment.qrInstructions || 'Customers scan the QR, pay, and upload the receipt before order submission.'}
+                        </p>
+                      </div>
+                      <div className="rounded-2xl bg-white p-4">
+                        {(paymentQrPreview || payment.qrImage?.url) ? (
+                          <img
+                            src={paymentQrPreview || payment.qrImage.url}
+                            alt="Checkout payment QR"
+                            className="mx-auto h-60 w-full max-w-[320px] object-contain"
+                          />
+                        ) : (
+                          <div className="flex min-h-[240px] items-center justify-center rounded-2xl border border-dashed" style={{ borderColor: 'var(--admin-border)' }}>
+                            <p className="text-sm text-gray-500">No QR image uploaded yet.</p>
+                          </div>
+                        )}
+                      </div>
+                      <p className="mt-4 text-sm" style={{ color: 'var(--admin-muted)' }}>
+                        {payment.supportNote || 'Admin will manually verify submitted proof before confirming the order.'}
+                      </p>
+                    </div>
+                  </div>
+
+                  <button className="admin-button admin-button-primary" type="button" disabled={updatePayment.isPending} onClick={savePayment}>
+                    {updatePayment.isPending ? <Spinner size="sm" color="currentColor" /> : <Save size={16} />}
                     Save
                   </button>
                 </div>

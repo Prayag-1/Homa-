@@ -5,7 +5,7 @@ import { verifyEsewaPayment, getOrderDetails, downloadInvoice } from '../service
 import { formatPrice } from '../utils/formatPrice';
 import { motion } from 'framer-motion';
 import { toast } from 'react-hot-toast';
-import { Check, Download, ShoppingBag, Calendar, CreditCard, User, MapPin, AlertCircle, RefreshCw } from 'lucide-react';
+import { Check, Download, ShoppingBag, Calendar, CreditCard, User, MapPin, AlertCircle, RefreshCw, Clock3 } from 'lucide-react';
 
 export default function PaymentSuccess() {
   const [searchParams] = useSearchParams();
@@ -24,7 +24,7 @@ export default function PaymentSuccess() {
 
   useEffect(() => {
     const processOrder = async () => {
-      // 1. If eSewa data parameter is present, verify payment first
+      // 1. If a payment callback payload is present, verify it first
       if (dataParam) {
         if (verificationStarted.current) return;
         verificationStarted.current = true;
@@ -36,7 +36,7 @@ export default function PaymentSuccess() {
           clearCart(); // Clear cart now that payment is confirmed
           toast.success('Payment verified successfully!');
         } catch (err) {
-          setError(err.response?.data?.message || 'Failed to verify payment with eSewa.');
+          setError(err.response?.data?.message || 'Failed to verify payment.');
           toast.error('Payment verification failed.');
         } finally {
           setLoading(false);
@@ -86,7 +86,7 @@ export default function PaymentSuccess() {
           className="h-12 w-12 border-4 border-black border-t-transparent rounded-full mb-4"
         />
         <p className="font-body text-gray-600 text-sm animate-pulse">
-          {dataParam ? 'Verifying payment with eSewa servers...' : 'Loading order details...'}
+          {dataParam ? 'Verifying payment...' : 'Loading order details...'}
         </p>
       </div>
     );
@@ -126,6 +126,13 @@ export default function PaymentSuccess() {
     );
   }
 
+  const isAwaitingReview = order?.paymentVerificationStatus === 'pending' || (order?.paymentMethod === 'qr' && order?.paymentStatus === 'pending');
+  const isPaid = order?.paymentStatus === 'paid';
+  const headerTitle = isAwaitingReview ? 'Payment Submitted' : 'Order Confirmed!';
+  const headerSubtitle = isAwaitingReview
+    ? 'Your QR payment proof has been submitted. Admin will verify it shortly.'
+    : 'Thank you for shopping with HOMA Beauty. Your invoice details are generated below.';
+
   return (
     <div className="min-h-screen bg-[#fafaf9] py-16 px-4">
       <div className="max-w-3xl mx-auto">
@@ -145,7 +152,7 @@ export default function PaymentSuccess() {
             transition={{ delay: 0.1 }}
             className="font-heading text-3xl md:text-4xl text-black"
           >
-            Order Confirmed!
+            {headerTitle}
           </motion.h1>
           <motion.p
             initial={{ opacity: 0, y: 10 }}
@@ -153,7 +160,7 @@ export default function PaymentSuccess() {
             transition={{ delay: 0.2 }}
             className="font-body text-sm text-gray-500 mt-2"
           >
-            Thank you for shopping with HOMA Beauty. Your invoice details are generated below.
+            {headerSubtitle}
           </motion.p>
         </div>
 
@@ -213,11 +220,13 @@ export default function PaymentSuccess() {
               <div>
                 <p className="text-gray-400 font-medium mb-1">Payment Status</p>
                 <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded font-bold uppercase text-[9px] ${
-                  order.paymentStatus === 'paid' 
+                  isPaid
                     ? 'bg-green-50 text-green-700' 
-                    : 'bg-amber-50 text-amber-700'
+                    : isAwaitingReview
+                      ? 'bg-amber-50 text-amber-700'
+                      : 'bg-gray-100 text-gray-700'
                 }`}>
-                  {order.paymentStatus}
+                  {isAwaitingReview ? 'pending review' : order.paymentStatus}
                 </span>
               </div>
               <div>
@@ -306,6 +315,20 @@ export default function PaymentSuccess() {
                 <span>{formatPrice(order.grandTotal)}</span>
               </div>
             </div>
+
+            {isAwaitingReview && (
+              <div className="rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-sm text-amber-900">
+                <div className="flex items-start gap-3">
+                  <Clock3 size={18} className="mt-0.5 shrink-0" />
+                  <div>
+                    <p className="font-semibold">Waiting for admin verification</p>
+                    <p className="mt-1 leading-6">
+                      We received your payment proof. Once approved, your order will move to confirmed and your invoice will be available.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </motion.div>
 

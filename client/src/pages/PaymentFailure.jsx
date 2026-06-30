@@ -24,7 +24,7 @@ export default function PaymentFailure() {
           <h1 className="font-heading text-3xl text-black mb-3">Payment Failed</h1>
           
           <p className="font-body text-sm text-gray-500 mb-6 leading-relaxed">
-            We couldn't process your payment. This could be due to insufficient wallet balance, authorization timeouts, or cancellation of the transaction.
+            We couldn't process your payment. Please check the QR proof, retry the upload, or choose a different payment method.
           </p>
 
           {/* Help Tips */}
@@ -34,7 +34,7 @@ export default function PaymentFailure() {
               What can you do?
             </h4>
             <ul className="space-y-2 text-gray-500 list-disc list-inside">
-              <li>Check your eSewa wallet balance and limits.</li>
+              <li>Make sure the payment screenshot is clear and readable.</li>
               <li>Ensure you have a stable network connection.</li>
               <li>Try again or select <b>Cash on Delivery (COD)</b> at checkout.</li>
             </ul>

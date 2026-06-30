@@ -7,12 +7,14 @@ import {
 } from 'recharts';
 
 const colors = {
+  qr: '#EC4899',
   esewa: '#6EC207',
   fonepay: '#2563EB',
   cod: '#F59E0B',
 };
 
 const methodLabel = (method = '') => {
+  if (method.toLowerCase() === 'qr') return 'QR Payment';
   if (method.toLowerCase() === 'cod') return 'COD';
   if (method.toLowerCase() === 'esewa') return 'eSewa';
   return method || 'Unknown';

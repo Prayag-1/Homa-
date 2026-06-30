@@ -2,6 +2,7 @@ const router = require('express').Router();
 const { protect, adminOnly } = require('../middleware/auth');
 const validateObjectId = require('../middleware/validateObjectId');
 const { paymentLimiter } = require('../middleware/rateLimiters');
+const { uploadPaymentProofImage, validateImageBuffer } = require('../middleware/upload');
 const {
   createOrder,
   verifyEsewaPayment,
@@ -14,7 +15,7 @@ const {
 } = require('../controllers/orderController');
 
 // User Order Routes
-router.post('/', paymentLimiter, protect, createOrder);
+router.post('/', paymentLimiter, protect, uploadPaymentProofImage, validateImageBuffer, createOrder);
 router.post('/verify-esewa', paymentLimiter, protect, verifyEsewaPayment);
 router.post('/validate-coupon', protect, validateCoupon);
 router.get('/my', protect, getMyOrders);

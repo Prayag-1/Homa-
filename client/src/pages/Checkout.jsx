@@ -4,8 +4,9 @@ import { useCart } from '../context/CartContext';
 import { useAuthContext } from '../context/AuthContext';
 import { createOrder, validateCoupon } from '../services/orderService';
 import { formatPrice } from '../utils/formatPrice';
+import { usePublicSettings } from '../hooks/useSiteSettings';
 import { toast } from 'react-hot-toast';
-import { ArrowLeft, CreditCard, ShoppingBag, Truck, CheckCircle2, Ticket, ChevronDown } from 'lucide-react';
+import { ArrowLeft, CreditCard, ShoppingBag, Truck, CheckCircle2, Ticket, ChevronDown, Upload, ScanLine } from 'lucide-react';
 import { AddressMapPicker } from '../components/shared';
 import { getResponsiveImageProps } from '../utils/cloudinaryUrl';
 import { z } from 'zod';
@@ -16,7 +17,7 @@ const checkoutSchema = z.object({
     city: z.string().trim().min(2, 'City is required').max(80),
     phone: z.string().trim().regex(/^\+?[1-9]\d{9,14}$/, 'Please enter a valid phone number'),
   }),
-  paymentMethod: z.enum(['esewa', 'cod']),
+  paymentMethod: z.enum(['qr', 'cod']),
   couponCode: z.string().trim().max(100).optional(),
   notes: z.string().trim().max(500).optional(),
 });
@@ -26,6 +27,7 @@ export default function Checkout() {
   const navigate = useNavigate();
   const { items, itemCount, subtotal, vatAmount, grandTotal, clearCart } = useCart();
   const { user, loading: authLoading } = useAuthContext();
+  const { data: settings } = usePublicSettings();
 
   // Shipping form state
   const [shippingDetails, setShippingDetails] = useState({
@@ -41,7 +43,9 @@ export default function Checkout() {
   const [notes, setNotes] = useState('');
 
   // Payment State
-  const [paymentMethod, setPaymentMethod] = useState('esewa');
+  const [paymentMethod, setPaymentMethod] = useState('qr');
+  const [paymentProofFile, setPaymentProofFile] = useState(null);
+  const [paymentProofPreview, setPaymentProofPreview] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [summaryOpen, setSummaryOpen] = useState(false);
 
@@ -55,6 +59,15 @@ export default function Checkout() {
       });
     }
   }, [user]);
+
+  useEffect(
+    () => () => {
+      if (paymentProofPreview) {
+        URL.revokeObjectURL(paymentProofPreview);
+      }
+    },
+    [paymentProofPreview],
+  );
 
   // Protect route
   useEffect(() => {
@@ -97,6 +110,25 @@ export default function Checkout() {
     toast.success('Coupon removed');
   };
 
+  const handlePaymentProofChange = (file) => {
+    if (!file) return;
+
+    if (paymentProofPreview) {
+      URL.revokeObjectURL(paymentProofPreview);
+    }
+
+    setPaymentProofFile(file);
+    setPaymentProofPreview(URL.createObjectURL(file));
+  };
+
+  const removePaymentProof = () => {
+    if (paymentProofPreview) {
+      URL.revokeObjectURL(paymentProofPreview);
+    }
+    setPaymentProofFile(null);
+    setPaymentProofPreview('');
+  };
+
   // Calculate dynamic totals based on coupon
   const discountAmount = appliedCoupon ? appliedCoupon.discountAmount : 0;
   const deliveryCharge = subtotal > 2000 ? 0 : 100;
@@ -124,6 +156,10 @@ export default function Checkout() {
       return toast.error(parsed.error.issues[0]?.message || 'Please check your checkout details');
     }
 
+    if (paymentMethod === 'qr' && !paymentProofFile) {
+      return toast.error('Please upload your payment proof before submitting the order');
+    }
+
     setIsSubmitting(true);
     try {
       const orderItems = items.map((item) => ({
@@ -135,37 +171,13 @@ export default function Checkout() {
         items: orderItems,
         ...parsed.data,
         notes: parsed.data.notes || undefined,
+        paymentProofFile: paymentMethod === 'qr' ? paymentProofFile : undefined,
       };
 
       const res = await createOrder(orderData);
-
-      if (paymentMethod === 'esewa') {
-        const { esewaParams } = res.data;
-        toast.loading('Redirecting to eSewa payment page...');
-
-        // Programmatically submit POST form to eSewa portal
-        const form = document.createElement('form');
-        form.setAttribute('method', 'POST');
-        form.setAttribute('action', esewaParams.esewa_form_url);
-
-        for (const key in esewaParams) {
-          if (key !== 'esewa_form_url') {
-            const input = document.createElement('input');
-            input.setAttribute('type', 'hidden');
-            input.setAttribute('name', key);
-            input.setAttribute('value', esewaParams[key]);
-            form.appendChild(input);
-          }
-        }
-
-        document.body.appendChild(form);
-        form.submit();
-      } else if (paymentMethod === 'cod') {
-        // Cash on delivery - order created directly
-        clearCart();
-        toast.success('Order placed successfully!');
-        navigate(`/payment-success?orderId=${res.data.order._id}`);
-      }
+      clearCart();
+      toast.success(paymentMethod === 'qr' ? 'Payment proof submitted successfully!' : 'Order placed successfully!');
+      navigate(`/payment-success?orderId=${res.data.order._id}`);
     } catch (err) {
       const errorMsg = err.response?.data?.message || 'Failed to place order';
       toast.error(errorMsg);
@@ -340,36 +352,35 @@ export default function Checkout() {
               </div>
 
               <div className="grid grid-cols-1 gap-3">
-                {/* eSewa Option */}
+                {/* QR Payment Option */}
                 <div
-                  onClick={() => setPaymentMethod('esewa')}
+                  onClick={() => setPaymentMethod('qr')}
                   className={`flex min-h-[64px] flex-col justify-between border-2 rounded-xl p-5 cursor-pointer select-none transition-all ${
-                    paymentMethod === 'esewa'
+                    paymentMethod === 'qr'
                       ? 'border-green-600 bg-green-50/20'
                       : 'border-gray-200 bg-white hover:border-gray-300'
                   }`}
                 >
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center gap-3">
-                      <span className="font-semibold text-gray-800 text-sm">eSewa Wallet (UAT)</span>
+                      <span className="font-semibold text-gray-800 text-sm">QR Payment</span>
                     </div>
                     <div
                       className={`h-5 w-5 rounded-full border flex items-center justify-center ${
-                        paymentMethod === 'esewa' ? 'border-green-600 bg-green-600 text-white' : 'border-gray-300'
+                        paymentMethod === 'qr' ? 'border-green-600 bg-green-600 text-white' : 'border-gray-300'
                       }`}
                     >
-                      {paymentMethod === 'esewa' && <CheckCircle2 size={13} />}
+                      {paymentMethod === 'qr' && <CheckCircle2 size={13} />}
                     </div>
                   </div>
                   <p className="text-xs text-gray-500 leading-relaxed mb-4">
-                    Pay securely using eSewa. You will be redirected to the secure sandbox payment page to authorize your purchase.
+                    Scan the QR code, pay, and upload the payment screenshot before placing the order.
                   </p>
                   <div className="flex items-center gap-2">
-                    {/* Tiny green brand label */}
-                    <div className="h-6 w-16 bg-green-600 text-white text-[10px] font-bold rounded flex items-center justify-center uppercase tracking-widest">
-                      esewa
+                    <div className="h-6 w-16 bg-black text-white text-[10px] font-bold rounded flex items-center justify-center uppercase tracking-widest">
+                      qr
                     </div>
-                    <span className="text-[10px] text-green-700 bg-green-100 px-2 py-0.5 rounded font-medium">UAT Mode</span>
+                    <span className="text-[10px] text-green-700 bg-green-100 px-2 py-0.5 rounded font-medium">Manual review</span>
                   </div>
                 </div>
 
@@ -404,6 +415,78 @@ export default function Checkout() {
                   </div>
                 </div>
               </div>
+
+              {paymentMethod === 'qr' && (
+                <div className="mt-6 rounded-2xl border border-gray-100 bg-gray-50/60 p-4 space-y-4">
+                  <div className="flex items-start gap-3">
+                    <div className="rounded-xl bg-black p-2 text-white">
+                      <ScanLine size={18} />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-black">{settings?.payment?.qrTitle || 'Scan the QR code and upload proof'}</h3>
+                      <p className="mt-1 text-xs text-gray-600 leading-relaxed">
+                        {settings?.payment?.qrInstructions || 'Pay using the QR code and upload the payment proof screenshot before submitting your order.'}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="rounded-2xl border border-gray-200 bg-white p-4">
+                    {settings?.payment?.qrImage?.url ? (
+                      <img
+                        src={settings.payment.qrImage.url}
+                        alt="Payment QR code"
+                        className="mx-auto h-60 w-full max-w-[320px] object-contain"
+                      />
+                    ) : (
+                      <div className="flex min-h-[220px] items-center justify-center rounded-2xl border border-dashed border-gray-200 bg-gray-50 text-center">
+                        <p className="max-w-xs text-sm text-gray-500">
+                          QR code not configured yet. Please contact support to complete your payment.
+                        </p>
+                      </div>
+                    )}
+                    <p className="mt-3 text-center text-xs font-medium text-gray-500">
+                      Beneficiary: {settings?.payment?.beneficiaryName || 'HOMA Beauty'}
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                      Upload Payment Proof
+                    </label>
+                    <label className="flex min-h-[120px] cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-gray-200 bg-white px-4 py-6 text-center transition hover:border-gray-300">
+                      <Upload size={20} className="text-gray-400" />
+                      <span className="mt-2 font-semibold text-gray-700">
+                        {paymentProofFile ? 'Replace payment proof' : 'Click to upload payment screenshot'}
+                      </span>
+                      <span className="mt-1 text-xs text-gray-500">
+                        JPEG, PNG, or WebP up to 5MB
+                      </span>
+                      <input
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        className="hidden"
+                        onChange={(event) => {
+                          const file = event.target.files?.[0];
+                          if (file) handlePaymentProofChange(file);
+                          event.target.value = '';
+                        }}
+                      />
+                    </label>
+
+                    {paymentProofPreview && (
+                      <div className="mt-3 overflow-hidden rounded-2xl border border-gray-200 bg-white">
+                        <img src={paymentProofPreview} alt="Payment proof preview" className="h-44 w-full object-contain bg-gray-50" />
+                        <div className="flex items-center justify-between gap-3 border-t border-gray-100 px-3 py-2 text-xs">
+                          <span className="truncate text-gray-600">{paymentProofFile?.name}</span>
+                          <button type="button" onClick={removePaymentProof} className="font-semibold text-red-600 hover:text-red-700">
+                            Remove
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
 
               <div className="mt-6 rounded-2xl border border-gray-100 bg-gray-50/60 p-4">
                 <label htmlFor="paymentPhone" className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
@@ -548,7 +631,7 @@ export default function Checkout() {
                 ) : (
                   <>
                     <CheckCircle2 size={18} />
-                    {paymentMethod === 'esewa' ? 'Pay with eSewa' : 'Place COD Order'}
+                    {paymentMethod === 'qr' ? 'Submit Payment Proof' : 'Place COD Order'}
                   </>
                 )}
               </button>
@@ -574,7 +657,7 @@ export default function Checkout() {
           disabled={isSubmitting}
           className="touch-target w-full rounded-xl bg-black font-body text-sm font-semibold text-white transition-colors hover:bg-gray-900 disabled:bg-gray-800 disabled:cursor-not-allowed"
         >
-          {isSubmitting ? 'Processing Order...' : `${paymentMethod === 'esewa' ? 'Pay with eSewa' : 'Place Order'} - ${formatPrice(grandTotalFinal)}`}
+          {isSubmitting ? 'Processing Order...' : `${paymentMethod === 'qr' ? 'Submit Proof' : 'Place Order'} - ${formatPrice(grandTotalFinal)}`}
         </button>
       </div>
     </div>

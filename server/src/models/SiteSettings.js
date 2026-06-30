@@ -27,6 +27,35 @@ const siteSettingsSchema = new mongoose.Schema(
       lastUpdatedAt: { type: Date, default: Date.now },
     },
 
+    // Payments
+    payment: {
+      qrTitle: {
+        type: String,
+        default: 'Scan the QR code and upload your payment proof',
+        maxlength: 200,
+      },
+      qrInstructions: {
+        type: String,
+        default: 'Pay using the QR code below, then upload the payment screenshot before submitting your order.',
+        maxlength: 300,
+      },
+      beneficiaryName: {
+        type: String,
+        default: 'HOMA Beauty',
+        maxlength: 120,
+      },
+      supportNote: {
+        type: String,
+        default: 'All QR payments are reviewed manually by our admin team before confirmation.',
+        maxlength: 300,
+      },
+      qrImage: {
+        url: { type: String, default: '' },
+        publicId: { type: String, default: '' },
+      },
+      lastUpdatedAt: { type: Date, default: Date.now },
+    },
+
     // Footer
     footer: {
       tagline: {

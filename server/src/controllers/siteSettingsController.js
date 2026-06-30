@@ -28,6 +28,7 @@ const getPublicSettings = async (req, res, next) => {
             : null,
       },
       announcementBar: settings.announcementBar,
+      payment: settings.payment,
       footer: settings.footer,
       version: settings.announcementBar?.lastUpdatedAt
         ? new Date(settings.announcementBar.lastUpdatedAt).toISOString()
@@ -184,6 +185,66 @@ const updateAnnouncementBar = async (req, res, next) => {
   }
 };
 
+// PATCH /settings/admin/payment — admin only
+const updatePaymentSettings = async (req, res, next) => {
+  try {
+    const schema = Joi.object({
+      qrTitle: Joi.string().max(200).optional(),
+      qrInstructions: Joi.string().max(300).optional(),
+      beneficiaryName: Joi.string().max(120).optional(),
+      supportNote: Joi.string().max(300).optional(),
+      removeQrImage: Joi.boolean().default(false),
+    });
+
+    const { error, value } = schema.validate(req.body, { stripUnknown: true });
+    if (error) return next(new ApiError(400, error.details[0].message));
+
+    const settings = await SiteSettings.getInstance();
+    const currentPayment = settings.payment || {};
+    const existingQrImage = currentPayment.qrImage || { url: '', publicId: '' };
+    let qrImage = existingQrImage;
+
+    if (req.file) {
+      if (!hasCloudinaryConfig) {
+        return next(new ApiError(400, 'Image upload is not configured. Add Cloudinary credentials to enable payment QR images.'));
+      }
+
+      const uploaded = await uploadToCloudinary(req.file.buffer, 'payment');
+      qrImage = {
+        url: uploaded.url,
+        publicId: uploaded.publicId,
+      };
+      if (existingQrImage.publicId && existingQrImage.publicId !== uploaded.publicId) {
+        await cloudinary.uploader.destroy(existingQrImage.publicId);
+      }
+    } else if (value.removeQrImage) {
+      if (existingQrImage.publicId) {
+        await cloudinary.uploader.destroy(existingQrImage.publicId);
+      }
+      qrImage = { url: '', publicId: '' };
+    }
+
+    settings.payment = {
+      qrTitle: value.qrTitle || currentPayment.qrTitle,
+      qrInstructions: value.qrInstructions || currentPayment.qrInstructions,
+      beneficiaryName: value.beneficiaryName || currentPayment.beneficiaryName,
+      supportNote: value.supportNote || currentPayment.supportNote,
+      qrImage,
+      lastUpdatedAt: new Date(),
+    };
+
+    await settings.save();
+
+    res.json({
+      success: true,
+      data: settings.payment,
+      message: 'Payment settings updated successfully',
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
 // PATCH /settings/admin/footer — admin only
 const updateFooter = async (req, res, next) => {
   try {
@@ -267,5 +328,6 @@ module.exports = {
   getAdminSettings,
   updateWhatsApp,
   updateAnnouncementBar,
+  updatePaymentSettings,
   updateFooter,
 };

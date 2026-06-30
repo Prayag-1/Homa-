@@ -35,6 +35,39 @@ const makeSettingsMutation = (endpoint, successMessage) => () => {
 export const useUpdateWhatsApp = makeSettingsMutation('/settings/admin/whatsapp', 'WhatsApp settings saved');
 export const useUpdateFooter = makeSettingsMutation('/settings/admin/footer', 'Footer saved');
 
+export const useUpdatePayment = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data) => {
+      const formData = new FormData();
+
+      Object.entries(data || {}).forEach(([key, value]) => {
+        if (value === undefined || value === null) return;
+        if (key === 'qrImageFile') {
+          if (value instanceof File) formData.append('paymentQrImageFile', value);
+          return;
+        }
+
+        if (typeof value === 'object') {
+          formData.append(key, JSON.stringify(value));
+          return;
+        }
+
+        formData.append(key, String(value));
+      });
+
+      return api.patch('/settings/admin/payment', formData).then((res) => res.data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['site-settings-admin'] });
+      queryClient.invalidateQueries({ queryKey: ['site-settings-public'] });
+      toast.success('Payment settings saved');
+    },
+    onError: (err) => toast.error(err.response?.data?.message || 'Update failed'),
+  });
+};
+
 export const useUpdateAnnouncement = () => {
   const queryClient = useQueryClient();
 

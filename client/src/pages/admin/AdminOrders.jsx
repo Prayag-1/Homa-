@@ -9,6 +9,7 @@ import AdminTable from '../../components/admin/ui/AdminTable';
 import AdminPagination from '../../components/admin/ui/AdminPagination';
 import Spinner from '../../components/ui/Spinner';
 import { formatPrice } from '../../utils/formatPrice';
+import { reviewOrderPayment } from '../../services/orderService';
 
 const ORDER_STATUSES = ['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled'];
 
@@ -22,15 +23,24 @@ const STATUS_COLORS = {
 };
 
 const PAYMENT_COLORS = {
+  qr: { bg: 'rgba(244, 114, 182, 0.15)', text: '#F9A8D4' },
   esewa: { bg: 'rgba(110, 194, 7, 0.15)', text: '#86EFAC' },
   fonepay: { bg: 'rgba(37, 99, 235, 0.15)', text: '#93C5FD' },
   cod: { bg: 'rgba(245, 158, 11, 0.15)', text: '#FCD34D' },
 };
 
 const paymentLabels = {
+  qr: 'QR Payment',
   esewa: 'eSewa',
   fonepay: 'Fonepay',
   cod: 'COD',
+};
+
+const REVIEW_COLORS = {
+  pending: { bg: '#FEF3C7', text: '#92400E' },
+  approved: { bg: '#DCFCE7', text: '#166534' },
+  rejected: { bg: '#FEE2E2', text: '#991B1B' },
+  not_required: { bg: '#E5E7EB', text: '#374151' },
 };
 
 const useAdminOrders = (filters) =>
@@ -52,6 +62,19 @@ const useUpdateOrderStatus = () => {
       toast.success('Order status updated');
     },
     onError: (err) => toast.error(err.response?.data?.message || 'Failed to update status'),
+  });
+};
+
+const useReviewPayment = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, reviewStatus, note }) => reviewOrderPayment(id, reviewStatus, note),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-orders'] });
+      toast.success('Payment review saved');
+    },
+    onError: (err) => toast.error(err.response?.data?.message || 'Failed to review payment'),
   });
 };
 
@@ -85,6 +108,27 @@ function PaymentBadge({ method }) {
       style={{ background: colors.bg, color: colors.text }}
     >
       {paymentLabels[method] || method || 'Unknown'}
+    </span>
+  );
+}
+
+function ReviewBadge({ status }) {
+  const colors = REVIEW_COLORS[status] || { bg: '#F3F4F6', text: '#374151' };
+
+  return (
+    <span
+      style={{
+        background: colors.bg,
+        color: colors.text,
+        padding: '2px 10px',
+        fontSize: '11px',
+        fontWeight: 700,
+        textTransform: 'uppercase',
+        letterSpacing: '0.05em',
+        fontFamily: 'var(--font-body)',
+      }}
+    >
+      {status || 'unknown'}
     </span>
   );
 }
@@ -126,8 +170,9 @@ function DetailRow({ label, value }) {
   );
 }
 
-function OrderDetailPanel({ order, onClose, updateStatus }) {
+function OrderDetailPanel({ order, onClose, updateStatus, reviewPayment }) {
   const [status, setStatus] = useState(order?.orderStatus || 'pending');
+  const [reviewNote, setReviewNote] = useState(order?.paymentReviewNote || '');
   if (!order) return null;
 
   const saveStatus = async () => {
@@ -198,7 +243,53 @@ function OrderDetailPanel({ order, onClose, updateStatus }) {
               <h4 className="font-bold">Payment</h4>
               <DetailRow label="Method" value={<PaymentBadge method={order.paymentMethod} />} />
               <DetailRow label="Status" value={<StatusBadge status={order.paymentStatus} />} />
+              <DetailRow label="Review" value={<ReviewBadge status={order.paymentVerificationStatus} />} />
               {order.paymentRef && <DetailRow label="Reference" value={order.paymentRef} />}
+              {order.paymentProof?.url && (
+                <div className="space-y-2 pt-2">
+                  <p className="text-sm font-semibold">Submitted Proof</p>
+                  <a href={order.paymentProof.url} target="_blank" rel="noreferrer" className="block overflow-hidden rounded-xl border" style={{ borderColor: 'var(--admin-border)' }}>
+                    <img src={order.paymentProof.url} alt="Payment proof" className="h-auto w-full object-cover" />
+                  </a>
+                  {order.paymentProof.fileName && <p className="text-xs" style={{ color: 'var(--admin-muted)' }}>{order.paymentProof.fileName}</p>}
+                </div>
+              )}
+              {order.paymentMethod === 'qr' && (
+                <div className="space-y-3 pt-2">
+                  <label className="text-sm font-semibold">Review Note</label>
+                  <textarea
+                    className="admin-textarea"
+                    rows={3}
+                    value={reviewNote}
+                    onChange={(event) => setReviewNote(event.target.value)}
+                    placeholder="Optional note for approval or rejection"
+                  />
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                    <button
+                      className="admin-button admin-button-primary"
+                      type="button"
+                      disabled={reviewPayment.isPending}
+                      onClick={() => reviewPayment.mutate(
+                        { id: order._id, reviewStatus: 'approved', note: reviewNote },
+                        { onSuccess: onClose },
+                      )}
+                    >
+                      Approve Payment
+                    </button>
+                    <button
+                      className="admin-button admin-button-danger"
+                      type="button"
+                      disabled={reviewPayment.isPending}
+                      onClick={() => reviewPayment.mutate(
+                        { id: order._id, reviewStatus: 'rejected', note: reviewNote },
+                        { onSuccess: onClose },
+                      )}
+                    >
+                      Reject Payment
+                    </button>
+                  </div>
+                </div>
+              )}
             </section>
 
             <section className="space-y-3 border p-4" style={{ borderColor: 'var(--admin-border)' }}>
@@ -232,6 +323,7 @@ export default function AdminOrders() {
   const [selectedOrder, setSelectedOrder] = useState(null);
   const { data, isLoading } = useAdminOrders(filters);
   const updateStatus = useUpdateOrderStatus();
+  const reviewPayment = useReviewPayment();
   const orders = data?.items || [];
 
   const updateFilter = (key, value) => {
@@ -268,6 +360,11 @@ export default function AdminOrders() {
       key: 'paymentMethod',
       label: 'Payment',
       render: (value) => <PaymentBadge method={value} />,
+    },
+    {
+      key: 'paymentVerificationStatus',
+      label: 'Review',
+      render: (value) => <ReviewBadge status={value} />,
     },
     {
       key: 'orderStatus',
@@ -337,6 +434,7 @@ export default function AdminOrders() {
           order={selectedOrder}
           onClose={() => setSelectedOrder(null)}
           updateStatus={updateStatus}
+          reviewPayment={reviewPayment}
         />
       )}
     </AdminLayout>
