@@ -258,7 +258,7 @@ export default function BlogListPage() {
       )}
 
       {!isError && !isLoading && blogs.length === 0 && (
-        <BlogEmptyState onCreate={() => navigate('/admin/blogs/new')} />
+        < BlogEmptyState onCreate={() => navigate('/admin/blogs/new')} />
       )}
 
       {!isError && blogs.length > 0 && (

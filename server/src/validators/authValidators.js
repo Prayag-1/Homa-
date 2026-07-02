@@ -12,8 +12,15 @@ const email = Joi.string().trim().email().messages({
   'string.email': 'Email must be valid',
 });
 
-const password = Joi.string().min(8).max(128).required().messages({
+const registerPassword = Joi.string().min(8).max(128).required().messages({
   'string.min': 'Password must be at least 8 characters long',
+  'string.empty': 'Password is required',
+  'any.required': 'Password is required',
+});
+
+const loginPassword = Joi.string().min(1).max(128).required().messages({
+  'string.empty': 'Password is required',
+  'any.required': 'Password is required',
 });
 
 const address = Joi.object({
@@ -33,7 +40,7 @@ const registerSchema = Joi.object({
     'any.required': 'Phone number is required',
     'string.empty': 'Phone number is required',
   }),
-  password,
+  password: registerPassword,
   birthday: Joi.date().max('now').required().messages({
     'date.max': 'Birthday must be a past date',
   }),
@@ -42,7 +49,7 @@ const registerSchema = Joi.object({
 
 const loginSchema = Joi.object({
   identifier: Joi.string().trim().required(),
-  password,
+  password: loginPassword,
 });
 
 const verifySchema = Joi.object({

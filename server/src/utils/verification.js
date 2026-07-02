@@ -39,14 +39,25 @@ const sendVerificationCode = async ({ method, target, code }) => {
       throw new Error('Email transport is not configured');
     }
 
-    await transporter.sendMail({
-      from: process.env.EMAIL_FROM || process.env.EMAIL_USER,
-      to: target,
-      subject: 'Your HOMA verification code',
-      text: `Your verification code is ${code}. It expires in 10 minutes.`,
-      html: `<p>Your verification code is <strong>${code}</strong>.</p><p>It expires in 10 minutes.</p>`,
-    });
-    return;
+    try {
+      await transporter.sendMail({
+        from: process.env.EMAIL_FROM || process.env.EMAIL_USER,
+        to: target,
+        subject: 'Your HOMA verification code',
+        text: `Your verification code is ${code}. It expires in 10 minutes.`,
+        html: `<p>Your verification code is <strong>${code}</strong>.</p><p>It expires in 10 minutes.</p>`,
+      });
+      return;
+    } catch (error) {
+      if (process.env.NODE_ENV === 'production') {
+        throw error;
+      }
+
+      process.stdout.write(
+        `[verification:email:fallback] ${target}: ${code} (email delivery failed: ${error.message})\n`,
+      );
+      return;
+    }
   }
 
   const mode = process.env.PHONE_VERIFICATION_MODE || (process.env.NODE_ENV === 'production' ? 'webhook' : 'console');
