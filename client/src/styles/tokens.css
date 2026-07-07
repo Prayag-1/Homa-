@@ -1,29 +1,4 @@
-/* HOMA official brand tokens
-   Source: Homa Logo Final Files Brand Guide */
-
-@font-face {
-  font-family: 'Chesna Grotesk';
-  src: url('../assets/fonts/chesnagrotesk-regular.otf') format('opentype');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Chesna Grotesk';
-  src: url('../assets/fonts/chesnagrotesk-medium.otf') format('opentype');
-  font-weight: 500;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Christopher Wells';
-  src: url('../assets/fonts/Christopherwells.otf') format('opentype');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap');
 
 :root {
   /* Brand colors */
@@ -41,9 +16,9 @@
   --homa-bg-dark: #1A0000;
 
   /* Typography */
-  --font-body: 'Chesna Grotesk', sans-serif;
-  --font-heading: 'Chesna Grotesk', sans-serif;
-  --font-accent: 'Christopher Wells', cursive;
+  --font-body: 'DM Sans', sans-serif;
+  --font-heading: 'Playfair Display', Georgia, serif;
+  --font-accent: 'Playfair Display', Georgia, serif;
 
   /* Legacy aliases mapped to the official palette */
   --color-black: var(--homa-off-black);

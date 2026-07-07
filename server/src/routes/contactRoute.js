@@ -2,6 +2,7 @@
 
 const express = require('express');
 const nodemailer = require('nodemailer');
+const ContactInquiry = require('../models/ContactInquiry');
 
 const router = express.Router();
 
@@ -47,11 +48,12 @@ router.post('/', async (req, res) => {
     return res.status(400).json({ message: 'Invalid email format.' });
   }
 
-  if (!mailHost || !mailUser || !mailPass || !mailFrom) {
-    return res.status(500).json({
-      message: 'Mail service is not configured. Please set SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, and EMAIL_FROM.',
-    });
-  }
+  const inquiry = await ContactInquiry.create({
+    name: safeName,
+    email: safeEmail,
+    subject: safeSubject,
+    message: safeMessage,
+  });
 
   const text = [
     `Name: ${safeName}`,
@@ -98,18 +100,25 @@ router.post('/', async (req, res) => {
   `;
 
   try {
-    await transport.sendMail({
-      from: `"Contact Form" <${mailUser}>`,
-      to: mailFrom,
-      replyTo: `${safeName} <${safeEmail}>`,
-      subject: `[Contact] ${safeSubject}`,
-      text,
-      html,
-    });
+    if (mailHost && mailUser && mailPass && mailFrom) {
+      await transport.sendMail({
+        from: `"Contact Form" <${mailUser}>`,
+        to: mailFrom,
+        replyTo: `${safeName} <${safeEmail}>`,
+        subject: `[Contact] ${safeSubject}`,
+        text,
+        html,
+      });
+      return res.status(200).json({ message: 'Message sent successfully.' });
+    }
 
-    return res.status(200).json({ message: 'Message sent successfully.' });
+    return res.status(200).json({
+      message: 'Message received successfully. Notification email is not configured.',
+    });
   } catch (error) {
-    return res.status(500).json({ message: 'Failed to send message. Please try again later.' });
+    return res.status(200).json({
+      message: 'Message saved successfully, but notification email failed to send.',
+    });
   }
 });
 

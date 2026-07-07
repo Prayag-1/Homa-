@@ -37,6 +37,8 @@ router.use('/returns',        require('./returnRoutes'));
 router.use('/admin/reports',   require('./reportsRoutes'));
 // Admin-only customer routes.
 router.use('/admin/customers', require('./adminCustomerRoutes'));
+// Admin-only contact inquiry routes.
+router.use('/admin/contact-inquiries', require('./adminContactRoutes'));
 // Public settings route plus admin-only settings routes.
 router.use('/settings',        require('./siteSettingsRoutes'));
 // Public banner routes plus admin banner manager routes.

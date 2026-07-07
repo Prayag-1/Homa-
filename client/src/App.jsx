@@ -48,6 +48,7 @@ const TransformationListPage = lazy(() => import('./pages/transformations/Transf
 const TransformationDetailPage = lazy(() => import('./pages/transformations/TransformationDetailPage'));
 const TransformationStoriesPage = lazy(() => import('./pages/admin/TransformationStoriesPage'));
 const TransformationStoryFormPage = lazy(() => import('./pages/admin/TransformationStoryFormPage'));
+const AdminContactInquiries = lazy(() => import('./pages/admin/AdminContactInquiries'));
 const BlogListPage = lazy(() => import('./pages/admin/blogs/BlogListPage'));
 const BlogFormPage = lazy(() => import('./pages/admin/blogs/BlogFormPage'));
 const UserBlogListPage = lazy(() => import('./pages/blog/BlogListPage'));
@@ -169,6 +170,7 @@ function AppRoutes() {
             <Route path="/admin/transformations" element={<AdminRoute><TransformationStoriesPage /></AdminRoute>} />
             <Route path="/admin/transformations/new" element={<AdminRoute><TransformationStoryFormPage /></AdminRoute>} />
             <Route path="/admin/transformations/:id/edit" element={<AdminRoute><TransformationStoryFormPage /></AdminRoute>} />
+            <Route path="/admin/contact-inquiries" element={<AdminRoute><AdminContactInquiries /></AdminRoute>} />
             <Route path="/admin/products/new" element={<AdminRoute><AdminProductForm /></AdminRoute>} />
             <Route path="/admin/products/:id/edit" element={<AdminRoute><AdminProductForm /></AdminRoute>} />
             <Route path="/admin/blogs" element={<AdminRoute><BlogListPage /></AdminRoute>} />

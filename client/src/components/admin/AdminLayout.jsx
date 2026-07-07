@@ -27,6 +27,7 @@ const navItems = [
   { label: 'Orders', to: '/admin/orders', icon: ShoppingCart },
   { label: 'Return Requests', to: '/admin/returns', icon: RotateCcw },
   { label: 'Customers', to: '/admin/customers', icon: Users },
+  { label: 'Contact Inquiries', to: '/admin/contact-inquiries', icon: MessageCircle },
   { label: 'Blogs', to: '/admin/blogs', icon: FileText },
   { label: 'Transformation Stories', to: '/admin/transformations', icon: Sparkles },
   { label: 'Distributors', to: '/admin/distributors', icon: MapPin },
