@@ -11,6 +11,24 @@ const REQUIRED_ENV = [
   "CLOUDINARY_API_KEY",
   "CLOUDINARY_API_SECRET",
 ];
+const PRODUCTION_REQUIRED_ENV = [
+  "ESEWA_MERCHANT_ID",
+  "ESEWA_SECRET_KEY",
+  "ESEWA_PAYMENT_URL",
+  "ESEWA_SUCCESS_URL",
+  "ESEWA_FAILURE_URL",
+  "FONEPAY_MERCHANT_CODE",
+  "FONEPAY_SECRET_KEY",
+  "FONEPAY_RETURN_URL",
+  "HOMA_PAN",
+  "HOMA_NAME",
+  "HOMA_ADDRESS",
+  "EMAIL_HOST",
+  "EMAIL_PORT",
+  "EMAIL_USER",
+  "EMAIL_PASS",
+  "ADMIN_EMAIL",
+];
 const WEAK_SECRETS = [
   "secret",
   "password",
@@ -23,19 +41,23 @@ const WEAK_SECRETS = [
   "change_this",
 ];
 
-for (const key of REQUIRED_ENV) {
+const isProduction = process.env.NODE_ENV === "production";
+const requiredKeys = isProduction
+  ? [...REQUIRED_ENV, ...PRODUCTION_REQUIRED_ENV]
+  : REQUIRED_ENV;
+
+for (const key of requiredKeys) {
   if (!process.env[key]) {
     console.error(`FATAL: Missing required environment variable: ${key}`);
     process.exit(1);
   }
 }
 
-const isProduction = process.env.NODE_ENV === "production";
-
 function ensureStrongSecret(key) {
   const value = process.env[key] || "";
   const weak = WEAK_SECRETS.some((entry) => value.toLowerCase().includes(entry));
-  const tooShort = value.length < 32;
+  const minLength = isProduction ? 64 : 32;
+  const tooShort = value.length < minLength;
 
   if (!weak && !tooShort) return;
 
@@ -45,7 +67,7 @@ function ensureStrongSecret(key) {
       process.exit(1);
     }
 
-    console.error(`FATAL: ${key} must be at least 32 characters.`);
+    console.error(`FATAL: ${key} must be at least ${minLength} characters.`);
     process.exit(1);
   }
 
@@ -63,6 +85,7 @@ ensureStrongSecret("JWT_SECRET");
 ensureStrongSecret("JWT_REFRESH_SECRET");
 
 const express = require("express");
+const mongoose = require("mongoose");
 const cors = require("cors");
 const helmet = require("helmet");
 const compression = require("compression");
@@ -73,6 +96,7 @@ const connectDB = require("./src/config/db");
 const routes = require("./src/routes/index");
 const contactRouter = require("./src/routes/contactRoute");
 const errorHandler = require("./src/middleware/errorHandler");
+const logger = require("./src/utils/logger");
 
 const app = express();
 
@@ -149,7 +173,14 @@ app.use(mongoSanitize({
 }));
 
 // Logging
-if (process.env.NODE_ENV === "development") app.use(morgan("dev"));
+if (process.env.NODE_ENV === "development") {
+  app.use(morgan("dev"));
+} else {
+  app.use(morgan("combined", {
+    stream: logger.stream,
+    skip: (req) => req.url === "/api/v1/health",
+  }));
+}
 
 // Routes
 app.use("/api/v1", routes);
@@ -175,6 +206,20 @@ app.use((req, res) =>
 app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () =>
-  console.log(`HOMA Server running on port ${PORT}`),
-);
+const server = app.listen(PORT, () => {
+  console.log(`HOMA Server running on port ${PORT}`);
+  if (process.send) process.send("ready");
+});
+
+async function gracefulShutdown(signal) {
+  console.log(`Received ${signal}. Gracefully shutting down...`);
+  server.close(async () => {
+    await mongoose.connection.close();
+    console.log("MongoDB connection closed.");
+    process.exit(0);
+  });
+  setTimeout(() => process.exit(1), 10000);
+}
+
+process.on("SIGINT", gracefulShutdown);
+process.on("SIGTERM", gracefulShutdown);

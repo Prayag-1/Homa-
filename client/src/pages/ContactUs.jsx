@@ -17,6 +17,7 @@ import {
 import { Link } from 'react-router-dom';
 import { AddressMapPicker } from '../components/shared';
 import api from '../services/api';
+import { usePublicSettings } from '../hooks/useSiteSettings';
 
 /*
 Required .env variables:
@@ -28,24 +29,6 @@ Required .env variables:
 */
 
 // Register in your router: <Route path="/contact" element={<ContactUsPage />} />
-
-const infoRows = [
-  {
-    label: 'Email',
-    value: 'info@homa.com',
-    icon: Mail,
-  },
-  {
-    label: 'Location',
-    value: 'Kathmandu, Nepal',
-    icon: MapPin,
-  },
-  {
-    label: 'Response time',
-    value: 'Within 24 hours',
-    icon: Clock3,
-  },
-];
 
 const contactWhatsAppHandle = import.meta.env.VITE_WHATSAPP_HANDLE || 'WhatsApp';
 const contactWhatsAppUrl = import.meta.env.VITE_WHATSAPP_URL || '#';
@@ -91,10 +74,29 @@ const initialForm = {
 const bannerBase = 'mb-5 flex items-start gap-3 border px-4 py-3';
 
 export default function ContactUsPage() {
+  const { data: settings } = usePublicSettings();
   const [form, setForm] = useState(initialForm);
   const [status, setStatus] = useState('idle');
   const [feedback, setFeedback] = useState('');
   const [hoveredLink, setHoveredLink] = useState(null);
+  const contact = settings?.footer?.contact || {};
+  const infoRows = [
+    {
+      label: 'Email',
+      value: contact.email || 'Use the contact form',
+      icon: Mail,
+    },
+    {
+      label: 'Location',
+      value: contact.address || 'Kathmandu, Nepal',
+      icon: MapPin,
+    },
+    {
+      label: 'Response time',
+      value: 'Within 24 hours',
+      icon: Clock3,
+    },
+  ];
 
   const isLoading = status === 'loading';
   const isFormValid = [form.name, form.email, form.subject, form.message].every((value) =>

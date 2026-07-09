@@ -172,7 +172,7 @@ export default function Register() {
             <form onSubmit={onRegister} className="mt-8 space-y-5">
               <div className="grid gap-5 sm:grid-cols-2">
                 <Input label="Name" name="name" value={form.name} onChange={onChange} placeholder="John Doe" />
-                <Input label="Phone number" name="phoneNumber" value={form.phoneNumber} onChange={onChange} placeholder="+97798XXXXXXX" required />
+                <Input label="Phone number" name="phoneNumber" value={form.phoneNumber} onChange={onChange} placeholder="International phone number" required />
                 <Input label="Password" name="password" type="password" value={form.password} onChange={onChange} placeholder="At least 8 characters" />
                 <Input label="Birthday" name="birthday" type="date" value={form.birthday} onChange={onChange} />
                 <Input label="Country" name="country" value={form.country} onChange={onChange} />
@@ -223,7 +223,7 @@ export default function Register() {
                       type="email"
                       value={form.email}
                       onChange={onChange}
-                      placeholder="name@email.com"
+                      placeholder="Email address"
                     />
                   )}
                 </div>

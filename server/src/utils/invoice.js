@@ -1,5 +1,10 @@
 const PDFDocument = require('pdfkit');
 
+const sellerName = process.env.HOMA_NAME || 'HOMA Beauty Pvt. Ltd.';
+const sellerAddress = process.env.HOMA_ADDRESS || 'Kathmandu, Nepal';
+const sellerEmail = process.env.ADMIN_EMAIL || '';
+const sellerWebsite = process.env.CLIENT_URL || 'https://homabeauty.com';
+
 /**
  * Generates a styled, professional PDF Invoice using PDFKit
  * @param {Object} order - Order object populated with user details
@@ -64,10 +69,10 @@ const generateInvoicePDF = (order) => {
     .font('Helvetica-Bold')
     .text('SOLD BY:', 350, yInfo)
     .font('Helvetica')
-    .text('HOMA Beauty Pvt. Ltd.', 350, yInfo + 15)
-    .text('Kathmandu, Nepal', 350, yInfo + 27)
-    .text('support@homabeauty.com', 350, yInfo + 39)
-    .text('www.homabeauty.com', 350, yInfo + 51);
+    .text(sellerName, 350, yInfo + 15)
+    .text(sellerAddress, 350, yInfo + 27)
+    .text(sellerEmail || 'N/A', 350, yInfo + 39)
+    .text(sellerWebsite, 350, yInfo + 51);
 
   // --- Items Table ---
   let yTable = 210;

@@ -246,7 +246,7 @@ export default function AdminSiteSettings() {
 
   const waUrl = whatsapp.phoneNumber
     ? `https://wa.me/${whatsapp.phoneNumber.replace(/\D/g, '')}?text=${encodeURIComponent(whatsapp.prefilledMessage || '')}`
-    : 'https://wa.me/977XXXXXXXXXX?text=...';
+    : 'WhatsApp preview unavailable';
 
   const saveFooter = () => {
     const contact = {
@@ -389,7 +389,7 @@ export default function AdminSiteSettings() {
                     className="admin-input"
                     value={whatsapp.phoneNumber || ''}
                     onChange={(event) => setWhatsapp((current) => ({ ...current, phoneNumber: event.target.value }))}
-                    placeholder="+977XXXXXXXXXX"
+                    placeholder="International phone number"
                   />
                   <p className="mt-2 text-xs" style={{ color: 'var(--admin-muted)' }}>International format with country code. Nepal: +977</p>
                 </Field>

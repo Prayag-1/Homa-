@@ -1,15 +1,19 @@
 import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
-
-const WHATSAPP_PHONE = '+977XXXXXXXXXX';
-const WHATSAPP_MESSAGE = 'Hi, I need help with HOMA Beauty';
-const WHATSAPP_URL = `https://wa.me/${WHATSAPP_PHONE.replace(/\D/g, '')}?text=${encodeURIComponent(WHATSAPP_MESSAGE)}`;
+import { usePublicSettings } from '../../hooks/useSiteSettings';
 
 export default function WhatsAppButton() {
   const location = useLocation();
+  const { data: settings } = usePublicSettings();
   const [showTooltip, setShowTooltip] = useState(false);
   const [visible, setVisible] = useState(false);
+  const whatsapp = settings?.whatsapp;
+  const whatsappUrl = whatsapp?.waUrl || (
+    whatsapp?.phoneNumber
+      ? `https://wa.me/${whatsapp.phoneNumber.replace(/\D/g, '')}?text=${encodeURIComponent(whatsapp.prefilledMessage || '')}`
+      : ''
+  );
 
   const hiddenRoutes = ['/checkout', '/admin'];
   const shouldHide = hiddenRoutes.some((route) => location.pathname.startsWith(route));
@@ -20,7 +24,7 @@ export default function WhatsAppButton() {
     return () => clearTimeout(timer);
   }, []);
 
-  if (shouldHide || !visible) return null;
+  if (shouldHide || !visible || !whatsapp?.isEnabled || !whatsappUrl) return null;
 
   return (
     <AnimatePresence>
@@ -68,7 +72,7 @@ export default function WhatsAppButton() {
         </AnimatePresence>
 
         <motion.a
-          href={WHATSAPP_URL}
+          href={whatsappUrl}
           target="_blank"
           rel="noopener noreferrer"
           onMouseEnter={() => setShowTooltip(true)}

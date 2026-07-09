@@ -72,7 +72,7 @@ export default function Login() {
               name="identifier"
               value={form.identifier}
               onChange={onChange}
-              placeholder="name@email.com or +97798XXXXXXX"
+              placeholder="Email address or phone number"
             />
             <Input
               label="Password"

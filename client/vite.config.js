@@ -33,18 +33,11 @@ const env = loadEnv(mode, process.cwd(), '');
       },
       rollupOptions: {
         output: {
-          manualChunks(id) {
-            const normalizedId = id.replace(/\\/g, '/');
-            for (const [chunkName, packages] of Object.entries(chunkGroups)) {
-              if (packages.some((packageName) => normalizedId.includes(`/node_modules/${packageName}/`))) {
-                return chunkName;
-              }
-            }
-            return undefined;
-          },
+          manualChunks: chunkGroups,
         },
       },
       chunkSizeWarningLimit: 500,
+      sourcemap: false,
     },
     server: {
       port: 5173,

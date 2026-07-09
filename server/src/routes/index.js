@@ -1,5 +1,7 @@
 const router = require('express').Router();
+const mongoose = require('mongoose');
 const { generalLimiter } = require('../middleware/rateLimiters');
+const { version } = require('../../package.json');
 
 router.use(generalLimiter);
 
@@ -45,6 +47,13 @@ router.use('/settings',        require('./siteSettingsRoutes'));
 router.use('/banners',         require('./bannerRoutes'));
 
 // Health check
-router.get('/health', (req, res) => res.json({ success: true, message: 'HOMA API is running', timestamp: new Date().toISOString() }));
+router.get('/health', (req, res) => res.json({
+  success: true,
+  status: 'ok',
+  timestamp: new Date().toISOString(),
+  environment: process.env.NODE_ENV,
+  database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
+  version,
+}));
 
 module.exports = router;

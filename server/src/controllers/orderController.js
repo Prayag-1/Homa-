@@ -15,18 +15,10 @@ const VALID_ORDER_STATUSES = new Set(['pending', 'confirmed', 'processing', 'shi
 const VALID_PAYMENT_STATUSES = new Set(['pending', 'paid', 'failed', 'pending_collection', 'collected']);
 const VALID_PAYMENT_REVIEW_STATUSES = new Set(['not_required', 'pending', 'approved', 'rejected']);
 
-// Environment variables for eSewa
-const ESEWA_PRODUCT_CODE = process.env.ESEWA_PRODUCT_CODE || 'EPAYTEST';
-const ESEWA_SECRET_KEY = process.env.ESEWA_SECRET_KEY || '8gBm/:&EnhH.1/q';
-const ESEWA_ENVIRONMENT = process.env.ESEWA_ENVIRONMENT || 'development';
-
-const ESEWA_FORM_URL = ESEWA_ENVIRONMENT === 'production'
-  ? 'https://epay.esewa.com.np/api/epay/main/v2/form'
-  : 'https://rc-epay.esewa.com.np/api/epay/main/v2/form';
-
-const ESEWA_STATUS_URL = ESEWA_ENVIRONMENT === 'production'
-  ? 'https://epay.esewa.com.np/api/epay/transaction/status/'
-  : 'https://rc.esewa.com.np/api/epay/transaction/status/';
+// Environment variables for eSewa. Live/sandbox URLs must be supplied by env.
+const ESEWA_PRODUCT_CODE = process.env.ESEWA_PRODUCT_CODE || process.env.ESEWA_MERCHANT_ID || 'EPAYTEST';
+const ESEWA_SECRET_KEY = process.env.ESEWA_SECRET_KEY;
+const ESEWA_STATUS_URL = process.env.ESEWA_STATUS_URL || '';
 
 /**
  * Helper: Generate eSewa v2 signature
@@ -349,6 +341,9 @@ exports.verifyEsewaPayment = async (req, res, next) => {
     if (!data) {
       return next(new ApiError(400, 'Missing payment response data'));
     }
+    if (!ESEWA_SECRET_KEY) {
+      return next(new ApiError(500, 'eSewa payment verification is not configured'));
+    }
 
     // 1. Decode base64 response from eSewa
     let decoded;
@@ -437,6 +432,9 @@ exports.verifyEsewaPayment = async (req, res, next) => {
 
     // 4. Server-to-server validation check with eSewa Status API for extra security
     try {
+      if (!ESEWA_STATUS_URL) {
+        throw new Error('ESEWA_STATUS_URL is not configured');
+      }
       const url = `${ESEWA_STATUS_URL}?product_code=${product_code}&total_amount=${total_amount}&transaction_uuid=${transaction_uuid}`;
       const response = await fetch(url);
       const statusCheck = await response.json();
