@@ -20,6 +20,7 @@ import {
 import { z } from 'zod';
 import AdminLayout from '../../../components/admin/AdminLayout';
 import Spinner from '../../../components/ui/Spinner';
+import { compressImageFile, MAX_IMAGE_SIZE_LABEL } from '../../../utils/compressImage';
 import { useAdminBlog, useCreateBlog, useUpdateBlog } from '../../../hooks/useAdminBlogs';
 import {
   formatDateTimeLocal,
@@ -579,13 +580,26 @@ export default function BlogFormPage() {
                       className="admin-input pt-[7px]"
                       type="file"
                       accept="image/*"
-                      onChange={(event) => setCoverImageFile(event.target.files?.[0] || null)}
+                      onChange={async (event) => {
+                        const file = event.target.files?.[0] || null;
+                        if (!file) return;
+                        try {
+                          const compressed = await compressImageFile(file);
+                          setCoverImageFile(compressed);
+                        } catch (err) {
+                          window.alert(err.message);
+                        } finally {
+                          event.target.value = '';
+                        }
+                      }}
                       disabled={mutation.isPending}
                     />
                     <Upload size={15} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[var(--admin-muted)]" />
                   </div>
                   <p className="mt-2 text-xs" style={{ color: 'var(--admin-muted)' }}>
                     You can provide either a URL or upload a file. Uploaded files take precedence.
+                    {' '}
+                    Images are compressed to {MAX_IMAGE_SIZE_LABEL} before upload.
                   </p>
                 </div>
 

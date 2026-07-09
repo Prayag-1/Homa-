@@ -15,7 +15,9 @@ const mailFrom = process.env.EMAIL_FROM || process.env.EMAIL_USER;
 const transport = nodemailer.createTransport({
   host: mailHost,
   port: mailPort,
-  secure: mailPort === 465,
+  secure: process.env.SMTP_SECURE
+    ? process.env.SMTP_SECURE === 'true'
+    : mailPort === 465,
   auth: {
     user: mailUser,
     pass: mailPass,

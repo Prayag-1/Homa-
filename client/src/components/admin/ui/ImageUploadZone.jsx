@@ -1,8 +1,11 @@
 import { ArrowLeft, ArrowRight, ImagePlus, X } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import {
+  compressImageFile,
+  IMAGE_UPLOAD_MIME_TYPES,
+  MAX_IMAGE_SIZE_LABEL,
+} from '../../../utils/compressImage';
 
-const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
-const MAX_SIZE = 5 * 1024 * 1024;
 const MAX_IMAGES = 8;
 
 export default function ImageUploadZone({ existingImages = [], onChange }) {
@@ -42,35 +45,33 @@ export default function ImageUploadZone({ existingImages = [], onChange }) {
     });
   }, [items, keptImages, newFiles, onChange]);
 
-  const validateFiles = (files) => {
+  const addFiles = async (fileList) => {
+    const selectedFiles = Array.from(fileList || []);
+    if (!selectedFiles.length) return;
+
     const accepted = [];
     const rejected = [];
     const availableSlots = MAX_IMAGES - items.length;
 
-    files.forEach((file) => {
-      if (!ACCEPTED_TYPES.includes(file.type)) {
+    for (const file of selectedFiles) {
+      if (!IMAGE_UPLOAD_MIME_TYPES.includes(file.type)) {
         rejected.push(`${file.name}: use JPEG, PNG, or WebP.`);
-        return;
-      }
-      if (file.size > MAX_SIZE) {
-        rejected.push(`${file.name}: file must be under 5MB.`);
-        return;
+        continue;
       }
       if (accepted.length >= availableSlots) {
         rejected.push(`${file.name}: maximum ${MAX_IMAGES} images allowed.`);
-        return;
+        continue;
       }
-      accepted.push(file);
-    });
+
+      try {
+        const compressed = await compressImageFile(file);
+        accepted.push(compressed);
+      } catch (err) {
+        rejected.push(`${file.name}: ${err.message}`);
+      }
+    }
 
     setError(rejected[0] || '');
-    return accepted;
-  };
-
-  const addFiles = (fileList) => {
-    const selectedFiles = Array.from(fileList || []);
-    if (!selectedFiles.length) return;
-    const accepted = validateFiles(selectedFiles);
     if (accepted.length) setNewFiles((current) => [...current, ...accepted]);
   };
 
@@ -109,7 +110,7 @@ export default function ImageUploadZone({ existingImages = [], onChange }) {
         <ImagePlus size={24} />
         <span className="font-semibold">Click to upload or drag and drop</span>
         <span className="text-xs" style={{ color: 'var(--admin-muted)' }}>
-          JPEG, PNG, WebP up to 5MB each - Max 8 images
+          JPEG, PNG, WebP up to {MAX_IMAGE_SIZE_LABEL} each - Max 8 images
         </span>
       </button>
       <input

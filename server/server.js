@@ -79,6 +79,9 @@ const app = express();
 // Connect DB
 connectDB();
 
+// Needed so secure cookies and rate limiting behave correctly behind proxies
+app.set("trust proxy", 1);
+
 // Security
 app.disable("x-powered-by");
 app.use(helmet({
@@ -111,8 +114,18 @@ app.use(compression());
 app.use(
   cors({
     origin: (origin, callback) => {
-      const allowed = [process.env.CLIENT_URL];
-      if (!origin || allowed.includes(origin)) {
+      const allowed = new Set(
+        [
+          process.env.CLIENT_URL,
+          process.env.CLIENT_URLS,
+          process.env.ALLOWED_CLIENT_ORIGINS,
+        ]
+          .filter(Boolean)
+          .flatMap((value) => value.split(",").map((item) => item.trim()))
+          .filter(Boolean),
+      );
+
+      if (!origin || allowed.has(origin)) {
         callback(null, true);
       } else {
         callback(new Error(`CORS: Origin ${origin} not allowed`));

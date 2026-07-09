@@ -15,6 +15,7 @@ import {
 import { useEffect, useMemo, useState } from 'react';
 import AdminLayout from '../../components/admin/AdminLayout';
 import Spinner from '../../components/ui/Spinner';
+import { compressImageFile, MAX_IMAGE_SIZE_LABEL } from '../../utils/compressImage';
 import {
   useAdminSettings,
   useUpdateAnnouncement,
@@ -266,16 +267,21 @@ export default function AdminSiteSettings() {
     });
   };
 
-  const handleAnnouncementImageChange = (file) => {
+  const handleAnnouncementImageChange = async (file) => {
     if (!file) return;
 
     if (announcementImagePreview) {
       URL.revokeObjectURL(announcementImagePreview);
     }
 
-    setAnnouncementImageFile(file);
-    setAnnouncementImagePreview(URL.createObjectURL(file));
-    setAnnouncementImageRemoved(false);
+    try {
+      const compressed = await compressImageFile(file);
+      setAnnouncementImageFile(compressed);
+      setAnnouncementImagePreview(URL.createObjectURL(compressed));
+      setAnnouncementImageRemoved(false);
+    } catch (err) {
+      window.alert(err.message);
+    }
   };
 
   const removeAnnouncementImage = () => {
@@ -300,16 +306,21 @@ export default function AdminSiteSettings() {
     });
   };
 
-  const handlePaymentQrChange = (file) => {
+  const handlePaymentQrChange = async (file) => {
     if (!file) return;
 
     if (paymentQrPreview) {
       URL.revokeObjectURL(paymentQrPreview);
     }
 
-    setPaymentQrFile(file);
-    setPaymentQrPreview(URL.createObjectURL(file));
-    setPaymentQrRemoved(false);
+    try {
+      const compressed = await compressImageFile(file);
+      setPaymentQrFile(compressed);
+      setPaymentQrPreview(URL.createObjectURL(compressed));
+      setPaymentQrRemoved(false);
+    } catch (err) {
+      window.alert(err.message);
+    }
   };
 
   const removePaymentQrImage = () => {
@@ -476,7 +487,7 @@ export default function AdminSiteSettings() {
                           <ImagePlus size={28} />
                           <span className="font-semibold">Click to upload or drag and drop</span>
                           <span className="text-xs" style={{ color: 'var(--admin-muted)' }}>
-                            JPEG, PNG, WebP up to 5MB
+                            JPEG, PNG, WebP up to {MAX_IMAGE_SIZE_LABEL}
                           </span>
                         </>
                       )}
@@ -624,7 +635,7 @@ export default function AdminSiteSettings() {
                           <ImagePlus size={28} />
                           <span className="font-semibold">Click to upload or drag and drop</span>
                           <span className="text-xs" style={{ color: 'var(--admin-muted)' }}>
-                            JPEG, PNG, WebP up to 5MB
+                            JPEG, PNG, WebP up to {MAX_IMAGE_SIZE_LABEL}
                           </span>
                         </>
                       )}

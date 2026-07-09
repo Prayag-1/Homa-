@@ -17,10 +17,21 @@ const {
 } = require('../utils/verification');
 const { getMembershipTier } = require('../utils/loyalty');
 
+const isProduction = process.env.NODE_ENV === 'production';
+const normalizeSameSite = (value) => {
+  const normalized = String(value || '').toLowerCase();
+  if (normalized === 'none' || normalized === 'lax' || normalized === 'strict') {
+    return normalized;
+  }
+  return isProduction ? 'none' : 'lax';
+};
+
 const cookieOptions = {
   httpOnly: true,
-  secure: process.env.NODE_ENV === 'production',
-  sameSite: 'strict',
+  secure: process.env.COOKIE_SECURE
+    ? process.env.COOKIE_SECURE === 'true'
+    : isProduction,
+  sameSite: normalizeSameSite(process.env.COOKIE_SAMESITE),
   path: '/api/v1/auth',
   maxAge: 7 * 24 * 60 * 60 * 1000,
 };

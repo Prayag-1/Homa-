@@ -5,6 +5,8 @@ const cloudinary = require('../config/cloudinary');
 const ApiError = require('../utils/ApiError');
 
 const ALLOWED_MIMETYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
+const MAX_IMAGE_SIZE_BYTES = 500 * 1024;
+const MAX_IMAGE_SIZE_LABEL = '500KB';
 
 const storage = multer.memoryStorage();
 
@@ -17,7 +19,7 @@ const fileFilter = (req, file, cb) => {
 };
 
 const limits = {
-  fileSize: 5 * 1024 * 1024,
+  fileSize: MAX_IMAGE_SIZE_BYTES,
   files: 8,
   fields: 20,
   fieldSize: 10 * 1024,
@@ -105,7 +107,7 @@ const uploadProductImages = (req, res, next) => {
 
     if (err instanceof multer.MulterError) {
       if (err.code === 'LIMIT_FILE_SIZE') {
-        return next(new ApiError(400, 'Each image must be 5MB or less'));
+        return next(new ApiError(400, `Each image must be ${MAX_IMAGE_SIZE_LABEL} or less`));
       }
       if (err.code === 'LIMIT_FILE_COUNT') {
         return next(new ApiError(400, 'A maximum of 8 images are allowed'));
@@ -123,7 +125,7 @@ const uploadBlogCoverImage = (req, res, next) => {
 
     if (err instanceof multer.MulterError) {
       if (err.code === 'LIMIT_FILE_SIZE') {
-        return next(new ApiError(400, 'The cover image must be 5MB or less'));
+        return next(new ApiError(400, `The cover image must be ${MAX_IMAGE_SIZE_LABEL} or less`));
       }
       if (err.code === 'LIMIT_FILE_COUNT') {
         return next(new ApiError(400, 'Only one cover image can be uploaded'));
@@ -141,7 +143,7 @@ const uploadAnnouncementImage = (req, res, next) => {
 
     if (err instanceof multer.MulterError) {
       if (err.code === 'LIMIT_FILE_SIZE') {
-        return next(new ApiError(400, 'The announcement image must be 5MB or less'));
+        return next(new ApiError(400, `The announcement image must be ${MAX_IMAGE_SIZE_LABEL} or less`));
       }
       if (err.code === 'LIMIT_FILE_COUNT') {
         return next(new ApiError(400, 'Only one announcement image can be uploaded'));
@@ -159,7 +161,7 @@ const uploadBannerImage = (req, res, next) => {
 
     if (err instanceof multer.MulterError) {
       if (err.code === 'LIMIT_FILE_SIZE') {
-        return next(new ApiError(400, 'The banner image must be 5MB or less'));
+        return next(new ApiError(400, `The banner image must be ${MAX_IMAGE_SIZE_LABEL} or less`));
       }
       if (err.code === 'LIMIT_FILE_COUNT') {
         return next(new ApiError(400, 'Only one banner image can be uploaded'));
@@ -177,7 +179,7 @@ const uploadPaymentQrImage = (req, res, next) => {
 
     if (err instanceof multer.MulterError) {
       if (err.code === 'LIMIT_FILE_SIZE') {
-        return next(new ApiError(400, 'The payment QR image must be 5MB or less'));
+        return next(new ApiError(400, `The payment QR image must be ${MAX_IMAGE_SIZE_LABEL} or less`));
       }
       if (err.code === 'LIMIT_FILE_COUNT') {
         return next(new ApiError(400, 'Only one payment QR image can be uploaded'));
@@ -195,7 +197,7 @@ const uploadPaymentProofImage = (req, res, next) => {
 
     if (err instanceof multer.MulterError) {
       if (err.code === 'LIMIT_FILE_SIZE') {
-        return next(new ApiError(400, 'The payment proof image must be 5MB or less'));
+        return next(new ApiError(400, `The payment proof image must be ${MAX_IMAGE_SIZE_LABEL} or less`));
       }
       if (err.code === 'LIMIT_FILE_COUNT') {
         return next(new ApiError(400, 'Only one payment proof image can be uploaded'));
@@ -213,7 +215,7 @@ const uploadTransformationStoryImages = (req, res, next) => {
 
     if (err instanceof multer.MulterError) {
       if (err.code === 'LIMIT_FILE_SIZE') {
-        return next(new ApiError(400, 'Each image must be 5MB or less'));
+        return next(new ApiError(400, `Each image must be ${MAX_IMAGE_SIZE_LABEL} or less`));
       }
       if (err.code === 'LIMIT_FILE_COUNT') {
         return next(new ApiError(400, 'Only three images can be uploaded'));

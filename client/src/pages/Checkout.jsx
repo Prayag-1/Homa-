@@ -5,6 +5,7 @@ import { useAuthContext } from '../context/AuthContext';
 import { createOrder, validateCoupon } from '../services/orderService';
 import { formatPrice } from '../utils/formatPrice';
 import { usePublicSettings } from '../hooks/useSiteSettings';
+import { compressImageFile, MAX_IMAGE_SIZE_LABEL } from '../utils/compressImage';
 import { toast } from 'react-hot-toast';
 import { ArrowLeft, CreditCard, ShoppingBag, Truck, CheckCircle2, Ticket, ChevronDown, Upload, ScanLine } from 'lucide-react';
 import { AddressMapPicker } from '../components/shared';
@@ -110,15 +111,20 @@ export default function Checkout() {
     toast.success('Coupon removed');
   };
 
-  const handlePaymentProofChange = (file) => {
+  const handlePaymentProofChange = async (file) => {
     if (!file) return;
 
     if (paymentProofPreview) {
       URL.revokeObjectURL(paymentProofPreview);
     }
 
-    setPaymentProofFile(file);
-    setPaymentProofPreview(URL.createObjectURL(file));
+    try {
+      const compressed = await compressImageFile(file);
+      setPaymentProofFile(compressed);
+      setPaymentProofPreview(URL.createObjectURL(compressed));
+    } catch (err) {
+      toast.error(err.message);
+    }
   };
 
   const removePaymentProof = () => {
@@ -459,7 +465,7 @@ export default function Checkout() {
                         {paymentProofFile ? 'Replace payment proof' : 'Click to upload payment screenshot'}
                       </span>
                       <span className="mt-1 text-xs text-gray-500">
-                        JPEG, PNG, or WebP up to 5MB
+                        JPEG, PNG, or WebP up to {MAX_IMAGE_SIZE_LABEL}
                       </span>
                       <input
                         type="file"

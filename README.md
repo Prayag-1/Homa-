@@ -1,6 +1,6 @@
 # HOMA - Japanese Skincare E-Commerce Platform
 
-A production-ready MERN stack monorepo for the HOMA Japanese Skincare project targeting the Nepal market.
+A production-ready MERN stack for the HOMA Japanese Skincare project targeting the Nepal market.
 
 ## Tech Stack
 
@@ -179,3 +179,4 @@ http://localhost:5000/api/v1
 - Email functionality requires SMTP credentials
 - Payment integration (eSewa, FonePay) is configured but not fully implemented
 - All stub routes should be replaced with actual implementations
+ 

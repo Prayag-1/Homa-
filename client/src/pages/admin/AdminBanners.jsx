@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import AdminLayout from '../../components/admin/AdminLayout';
 import Spinner from '../../components/ui/Spinner';
 import { optimizeImage } from '../../utils/cloudinaryUrl';
+import { compressImageFile, MAX_IMAGE_SIZE_LABEL } from '../../utils/compressImage';
 import {
   useAdminBanners,
   useCreateBanner,
@@ -57,11 +58,16 @@ export default function AdminBanners() {
     setImagePreview(banner.imageUrl || '');
   };
 
-  const handleImageChange = (file) => {
+  const handleImageChange = async (file) => {
     if (!file) return;
     if (imagePreview?.startsWith('blob:')) URL.revokeObjectURL(imagePreview);
-    setImageFile(file);
-    setImagePreview(URL.createObjectURL(file));
+    try {
+      const compressed = await compressImageFile(file);
+      setImageFile(compressed);
+      setImagePreview(URL.createObjectURL(compressed));
+    } catch (err) {
+      window.alert(err.message);
+    }
   };
 
   const handleSubmit = (event) => {
@@ -146,7 +152,7 @@ export default function AdminBanners() {
                   <ImagePlus size={28} />
                   <span className="font-semibold">Click to upload or drag and drop</span>
                   <span className="text-xs" style={{ color: 'var(--admin-muted)' }}>
-                    JPEG, PNG, WebP up to 5MB
+                    JPEG, PNG, WebP up to {MAX_IMAGE_SIZE_LABEL}
                   </span>
                 </>
               )}
