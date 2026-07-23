@@ -1,7 +1,7 @@
 const Joi = require('joi');
 const ApiError = require('../utils/ApiError');
 
-const SKIN_TYPES = ['Oily', 'Dry', 'Combination', 'Sensitive', 'Acne-Prone'];
+const SKIN_TYPES = ['Oily', 'Normal', 'Dry', 'Combination', 'Sensitive', 'Acne-Prone'];
 const ARRAY_FIELDS = ['benefits', 'skinTypes', 'certifications', 'keepImages', 'imageOrder'];
 const OBJECT_FIELDS = ['seo'];
 

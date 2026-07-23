@@ -10,10 +10,28 @@ const hasCloudinaryConfig =
   Boolean(process.env.CLOUDINARY_API_KEY) &&
   Boolean(process.env.CLOUDINARY_API_SECRET);
 
+const LEGACY_WHATSAPP_PHONE = '9860833505';
+const DEFAULT_WHATSAPP_PHONE = '9707082505';
+
+const normalizeWhatsAppPhone = async (settings) => {
+  if (!settings?.whatsapp?.phoneNumber) return settings;
+
+  const currentPhone = settings.whatsapp.phoneNumber;
+  const normalizedPhone =
+    currentPhone === LEGACY_WHATSAPP_PHONE ? DEFAULT_WHATSAPP_PHONE : currentPhone;
+
+  if (normalizedPhone !== currentPhone) {
+    settings.whatsapp.phoneNumber = normalizedPhone;
+    await settings.save();
+  }
+
+  return settings;
+};
+
 // GET /settings/public — NO auth required
 const getPublicSettings = async (req, res, next) => {
   try {
-    const settings = await SiteSettings.getInstance();
+    const settings = await normalizeWhatsAppPhone(await SiteSettings.getInstance());
 
     const publicData = {
       whatsapp: {
@@ -49,7 +67,7 @@ const getPublicSettings = async (req, res, next) => {
 // GET /settings/admin — admin only
 const getAdminSettings = async (req, res, next) => {
   try {
-    const settings = await SiteSettings.getInstance();
+    const settings = await normalizeWhatsAppPhone(await SiteSettings.getInstance());
 
     res.json({
       success: true,
@@ -84,9 +102,9 @@ const updateWhatsApp = async (req, res, next) => {
     // Strip non-numeric characters except leading +
     const cleanPhone = value.phoneNumber.replace(/[^\d+]/g, '');
 
-    const settings = await SiteSettings.getInstance();
+    const settings = await normalizeWhatsAppPhone(await SiteSettings.getInstance());
     settings.whatsapp = {
-      phoneNumber: cleanPhone,
+      phoneNumber: cleanPhone === LEGACY_WHATSAPP_PHONE ? DEFAULT_WHATSAPP_PHONE : cleanPhone,
       prefilledMessage: value.prefilledMessage
         ? sanitizeString(value.prefilledMessage)
         : settings.whatsapp.prefilledMessage,

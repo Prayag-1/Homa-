@@ -6,6 +6,7 @@ import {
   LogOut,
   Menu,
   MapPin,
+  MessageCircle,
   Sparkles,
   Package,
   Settings,
