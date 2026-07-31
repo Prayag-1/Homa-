@@ -5,7 +5,6 @@ import {
   ArrowRight,
   CheckCircle,
   Clock3,
-  Facebook,
   Instagram,
   Loader2,
   Mail,
@@ -32,15 +31,9 @@ Required .env variables:
 
 const contactWhatsAppHandle = import.meta.env.VITE_WHATSAPP_HANDLE || 'WhatsApp';
 const contactWhatsAppUrl = import.meta.env.VITE_WHATSAPP_URL || '#';
+const contactEmail = 'info.homanepal@gmail.com';
 
 const socialLinks = [
-  {
-    name: 'Facebook',
-    handle: '@homa.beauty',
-    href: 'https://facebook.com',
-    color: '#1877F2',
-    icon: Facebook,
-  },
   {
     name: 'Instagram',
     handle: '@homa_nepal',
@@ -83,7 +76,7 @@ export default function ContactUsPage() {
   const infoRows = [
     {
       label: 'Email',
-      value: contact.email || 'Use the contact form',
+      value: contactEmail,
       icon: Mail,
     },
     {
@@ -167,16 +160,16 @@ export default function ContactUsPage() {
                 with. We usually reply within one business day.
               </p>
 
-              <div className="mt-8 grid gap-3 sm:grid-cols-3">
+              <div className="mt-8 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
                 {infoRows.map((row) => {
                   const Icon = row.icon;
                   return (
-                    <div key={row.label} className="rounded-2xl border border-black/10 bg-black/5 p-4">
+                    <div key={row.label} className="min-w-0 rounded-2xl border border-black/10 bg-black/5 p-4">
                       <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white border border-black/10">
                         <Icon size={18} className="text-black/75" />
                       </div>
                       <p className="mt-4 text-xs uppercase tracking-[0.25em] text-black/45">{row.label}</p>
-                      <p className="mt-2 text-sm font-medium text-black/80">{row.value}</p>
+                      <p className="mt-2 break-words text-sm font-medium leading-6 text-black/80">{row.value}</p>
                     </div>
                   );
                 })}

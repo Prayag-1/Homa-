@@ -16,7 +16,17 @@ const createAdmin = async () => {
   const existing = await User.findOne({ email: adminEmail });
 
   if (existing) {
-    process.stdout.write(`Admin already exists: ${existing.email}\n`);
+    existing.name = existing.name || 'HOMA Admin';
+    existing.password = adminPassword;
+    existing.role = 'admin';
+    existing.isActive = true;
+    existing.isVerified = true;
+    existing.verificationMethod = existing.verificationMethod || 'email';
+    existing.verification = undefined;
+    await existing.save();
+
+    process.stdout.write(`Admin updated: ${existing.email}\n`);
+    process.stdout.write('Password reset from INITIAL_ADMIN_PASSWORD. Change it after login.\n');
     process.exit(0);
   }
 

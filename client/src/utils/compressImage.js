@@ -1,9 +1,9 @@
-export const MAX_IMAGE_SIZE_BYTES = 500 * 1024;
-export const MAX_IMAGE_SIZE_LABEL = '500 KB';
+export const MAX_IMAGE_SIZE_BYTES = 600 * 1024;
+export const MAX_IMAGE_SIZE_LABEL = '600 KB';
 export const IMAGE_UPLOAD_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
-const QUALITY_STEPS = [0.92, 0.82, 0.72, 0.62, 0.52, 0.45];
-const MAX_DIMENSION_STEPS = [1600, 1400, 1200, 1000, 850];
+const QUALITY_STEPS = [0.94, 0.88, 0.8, 0.72, 0.64, 0.56];
+const MAX_DIMENSION_STEPS = [1800, 1600, 1400, 1200, 1000];
 
 const getBaseName = (name = 'image') => {
   const lastDot = name.lastIndexOf('.');

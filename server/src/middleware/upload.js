@@ -5,8 +5,8 @@ const cloudinary = require('../config/cloudinary');
 const ApiError = require('../utils/ApiError');
 
 const ALLOWED_MIMETYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
-const MAX_IMAGE_SIZE_BYTES = 500 * 1024;
-const MAX_IMAGE_SIZE_LABEL = '500KB';
+const MAX_IMAGE_SIZE_BYTES = 600 * 1024;
+const MAX_IMAGE_SIZE_LABEL = '600KB';
 
 const storage = multer.memoryStorage();
 

@@ -11,6 +11,7 @@ const mailPort = Number(process.env.SMTP_PORT || process.env.EMAIL_PORT || 587);
 const mailUser = process.env.SMTP_USER || process.env.EMAIL_USER;
 const mailPass = process.env.SMTP_PASS || process.env.EMAIL_PASS;
 const mailFrom = process.env.EMAIL_FROM || process.env.EMAIL_USER;
+const contactRecipient = process.env.CONTACT_EMAIL_TO || 'info.homanepal@gmail.com';
 
 const transport = nodemailer.createTransport({
   host: mailHost,
@@ -105,7 +106,7 @@ router.post('/', async (req, res) => {
     if (mailHost && mailUser && mailPass && mailFrom) {
       await transport.sendMail({
         from: `"Contact Form" <${mailUser}>`,
-        to: mailFrom,
+        to: contactRecipient,
         replyTo: `${safeName} <${safeEmail}>`,
         subject: `[Contact] ${safeSubject}`,
         text,
