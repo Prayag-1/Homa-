@@ -34,7 +34,7 @@ export function FilterSidebarContent({ includeSort = true, onClearAll }) {
     .filter((category) => category.isActive !== false)
     .sort((a, b) => (a.sortOrder ?? 9999) - (b.sortOrder ?? 9999));
 
-  const skinTypes = ['Oily', 'Dry', 'Combination', 'Sensitive', 'Acne-Prone'];
+  const skinTypes = ['Oily', 'Normal', 'Dry', 'Combination', 'Sensitive', 'Acne-Prone'];
   const activeFilters = getActiveFilterCount(searchParams);
   const isPositiveNumber = (value) => value === '' || (/^\d+(\.\d+)?$/.test(value) && Number(value) > 0);
 

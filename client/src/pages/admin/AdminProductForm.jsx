@@ -21,7 +21,7 @@ import {
   useUpdateProduct,
 } from '../../hooks/useAdminProducts';
 
-const SKIN_TYPES = ['Oily', 'Dry', 'Combination', 'Sensitive', 'Acne-Prone'];
+const SKIN_TYPES = ['Oily', 'Normal', 'Dry', 'Combination', 'Sensitive', 'Acne-Prone'];
 
 const defaultValues = {
   name: '',

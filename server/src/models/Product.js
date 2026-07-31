@@ -20,7 +20,7 @@ const productSchema = new mongoose.Schema(
         publicId: String,
       },
     ],
-    skinTypes: [{ type: String, enum: ['Oily', 'Dry', 'Combination', 'Sensitive', 'Acne-Prone'] }],
+    skinTypes: [{ type: String, enum: ['Oily', 'Normal', 'Dry', 'Combination', 'Sensitive', 'Acne-Prone'] }],
     certifications: [String],
     isNewArrival: { type: Boolean, default: false },
     isBestSeller: { type: Boolean, default: false },

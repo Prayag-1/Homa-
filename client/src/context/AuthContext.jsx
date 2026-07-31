@@ -3,6 +3,26 @@ import api from '../services/api';
 
 export const AuthContext = createContext();
 
+let restoreSessionPromise = null;
+
+const restoreSessionFromStorage = async () => {
+  if (restoreSessionPromise) {
+    return restoreSessionPromise;
+  }
+
+  restoreSessionPromise = (async () => {
+    const token = localStorage.getItem('accessToken');
+    if (!token) {
+      return null;
+    }
+
+    const me = await api.get('/auth/me');
+    return sanitizeUser(me.data.data.user);
+  })();
+
+  return restoreSessionPromise;
+};
+
 const sanitizeUser = (value) => {
   if (!value || typeof value !== 'object') return null;
   const {
@@ -51,24 +71,37 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let isMounted = true;
+
     const restoreSession = async () => {
       try {
         const token = localStorage.getItem('accessToken');
-        if (token) {
+        if (token && isMounted) {
           setAccessToken(token);
-          const me = await api.get('/auth/me');
-          setUser(sanitizeUser(me.data.data.user));
+        }
+
+        const restoredUser = await restoreSessionFromStorage();
+        if (isMounted) {
+          setUser(restoredUser);
         }
       } catch {
-        localStorage.removeItem('accessToken');
-        setAccessToken(null);
-        setUser(null);
+        if (isMounted) {
+          localStorage.removeItem('accessToken');
+          setAccessToken(null);
+          setUser(null);
+        }
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
 
     restoreSession();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const login = async (identifier, password) => {

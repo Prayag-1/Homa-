@@ -2,6 +2,8 @@ const mongoose = require('mongoose');
 require('dotenv').config();
 const SiteSettings = require('../models/SiteSettings');
 
+const DEFAULT_WHATSAPP_PHONE = '9707082505';
+
 const dbUri = process.env.MONGO_URI;
 
 if (!dbUri) {
@@ -22,7 +24,7 @@ const initSiteSettings = async () => {
 
     const defaultSettings = new SiteSettings({
       whatsapp: {
-        phoneNumber: process.env.DEFAULT_WHATSAPP_PHONE || '',
+        phoneNumber: process.env.DEFAULT_WHATSAPP_PHONE || DEFAULT_WHATSAPP_PHONE,
         prefilledMessage: 'Hi, I need help with HOMA Beauty',
         isEnabled: false,
       },
