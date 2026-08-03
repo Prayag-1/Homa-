@@ -30,7 +30,7 @@ const testimonials = [
   },
   {
     quote: "HOMA made Japanese skincare easy to discover in Nepal.",
-    name: "Nima Lopchen",
+    name: "Aashma Tandukar",
   },
 ];
 

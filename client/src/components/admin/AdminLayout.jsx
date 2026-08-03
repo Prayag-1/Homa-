@@ -1,19 +1,20 @@
-import {
+﻿import {
   BarChart3,
-  Image as ImageIcon,
   FileText,
   Grid3X3,
+  Image as ImageIcon,
   LogOut,
-  Menu,
+  Mail,
   MapPin,
+  Menu,
   MessageCircle,
-  Sparkles,
   Package,
   Settings,
   ShoppingCart,
+  Sparkles,
   Tag,
-  X,
   Users,
+  X,
   RotateCcw,
 } from 'lucide-react';
 import { useState } from 'react';
@@ -34,6 +35,7 @@ const navItems = [
   { label: 'Distributors', to: '/admin/distributors', icon: MapPin },
   { label: 'Hero Banners', to: '/admin/banners', icon: ImageIcon },
   { label: 'Reports', to: '/admin/reports', icon: BarChart3 },
+  { label: 'Email Settings', to: '/admin/email-settings', icon: Mail },
   { label: 'Settings', to: '/admin/settings', icon: Settings },
 ];
 
@@ -139,10 +141,10 @@ export default function AdminLayout({ title, breadcrumb = title, children }) {
               <Menu size={16} />
             </button>
             <div className="min-w-0">
-            <h1 className="truncate font-heading text-lg font-semibold sm:text-[22px]">{title}</h1>
-            <div className="mt-1 truncate text-xs" style={{ color: 'var(--admin-muted)' }}>
-              Admin &gt; {breadcrumb}
-            </div>
+              <h1 className="truncate font-heading text-lg font-semibold sm:text-[22px]">{title}</h1>
+              <div className="mt-1 truncate text-xs" style={{ color: 'var(--admin-muted)' }}>
+                Admin &gt; {breadcrumb}
+              </div>
             </div>
           </div>
 

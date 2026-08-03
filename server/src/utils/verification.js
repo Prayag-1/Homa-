@@ -1,5 +1,5 @@
-const crypto = require('crypto');
-const transporter = require('../config/email');
+﻿const crypto = require('crypto');
+const { sendWithResolvedConfig } = require('../services/smtpService');
 
 const normalizePhoneNumber = (value) => {
   if (typeof value !== 'string') return '';
@@ -35,13 +35,8 @@ const sendVerificationCode = async ({ method, target, code }) => {
   }
 
   if (normalizedMethod === 'email') {
-    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-      throw new Error('Email transport is not configured');
-    }
-
     try {
-      await transporter.sendMail({
-        from: process.env.EMAIL_FROM || process.env.EMAIL_USER,
+      await sendWithResolvedConfig({
         to: target,
         subject: 'Your HOMA verification code',
         text: `Your verification code is ${code}. It expires in 10 minutes.`,
@@ -54,7 +49,7 @@ const sendVerificationCode = async ({ method, target, code }) => {
       }
 
       process.stdout.write(
-        `[verification:email:fallback] ${target}: ${code} (email delivery failed: ${error.message})\n`,
+        `[verification:email:dev-console] ${target}: ${code} (email delivery failed: ${error.message})\n`,
       );
       return;
     }

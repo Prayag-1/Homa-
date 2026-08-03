@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import {
   AlertCircle,
@@ -17,17 +17,6 @@ import { Link } from 'react-router-dom';
 import { AddressMapPicker } from '../components/shared';
 import api from '../services/api';
 import { usePublicSettings } from '../hooks/useSiteSettings';
-
-/*
-Required .env variables:
-- SMTP_HOST (or EMAIL_HOST fallback)
-- SMTP_PORT (or EMAIL_PORT fallback)
-- SMTP_USER (or EMAIL_USER fallback)
-- SMTP_PASS (or EMAIL_PASS fallback)
-- EMAIL_FROM
-*/
-
-// Register in your router: <Route path="/contact" element={<ContactUsPage />} />
 
 const contactWhatsAppHandle = import.meta.env.VITE_WHATSAPP_HANDLE || 'WhatsApp';
 const contactWhatsAppUrl = import.meta.env.VITE_WHATSAPP_URL || '#';

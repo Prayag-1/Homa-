@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useRef, useState } from 'react';
+﻿import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { BrowserRouter, Navigate, Routes, Route, useLocation } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'react-hot-toast';
@@ -33,6 +33,7 @@ const AdminReports = lazy(() => import('./pages/admin/AdminReports'));
 const AdminCustomers = lazy(() => import('./pages/admin/AdminCustomers'));
 const AdminBanners = lazy(() => import('./pages/admin/AdminBanners'));
 const AdminSiteSettings = lazy(() => import('./pages/admin/AdminSiteSettings'));
+const AdminEmailSettings = lazy(() => import('./pages/admin/AdminEmailSettings'));
 const AdminOrders = lazy(() => import('./pages/admin/AdminOrders'));
 const AdminReturns = lazy(() => import('./pages/admin/AdminReturns'));
 const AdminProducts = lazy(() => import('./pages/admin/AdminProducts'));
@@ -167,6 +168,7 @@ function AppRoutes() {
             <Route path="/admin/customers" element={<AdminRoute><AdminCustomers /></AdminRoute>} />
             <Route path="/admin/banners" element={<AdminRoute><AdminBanners /></AdminRoute>} />
             <Route path="/admin/settings" element={<AdminRoute><AdminSiteSettings /></AdminRoute>} />
+            <Route path="/admin/email-settings" element={<AdminRoute><AdminEmailSettings /></AdminRoute>} />
             <Route path="/admin/transformations" element={<AdminRoute><TransformationStoriesPage /></AdminRoute>} />
             <Route path="/admin/transformations/new" element={<AdminRoute><TransformationStoryFormPage /></AdminRoute>} />
             <Route path="/admin/transformations/:id/edit" element={<AdminRoute><TransformationStoryFormPage /></AdminRoute>} />

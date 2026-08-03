@@ -1,4 +1,4 @@
-{
+﻿{
   "name": "homa-server",
   "version": "1.0.0",
   "description": "HOMA Beauty E-Commerce Backend",
@@ -10,7 +10,8 @@
     "ensure:indexes": "node src/scripts/ensureIndexes.js",
     "create:admin": "node src/scripts/createAdmin.js",
     "seed:products": "node src/scripts/seedProducts.js",
-    "seed:brands": "node src/scripts/seedBrandsCategories.js"
+    "seed:brands": "node src/scripts/seedBrandsCategories.js",
+    "migrate:smtp-settings": "node src/scripts/migrateSmtpSettings.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
