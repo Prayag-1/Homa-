@@ -3,7 +3,7 @@ const Blog = require('../models/Blog');
 const User = require('../models/User');
 const ApiError = require('../utils/ApiError');
 const { generateSlug } = require('../utils/slugify');
-const { uploadToCloudinary } = require('../middleware/upload');
+const { deleteUploadedFile, uploadToMongo } = require('../middleware/upload');
 const {
   sanitizeString: sanitizeQueryString,
   validatePagination,
@@ -24,11 +24,6 @@ const BLOG_SORT_WHITELIST = new Set([
 const escapeRegex = (value) => String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
-
-const hasCloudinaryConfig =
-  Boolean(process.env.CLOUDINARY_CLOUD_NAME) &&
-  Boolean(process.env.CLOUDINARY_API_KEY) &&
-  Boolean(process.env.CLOUDINARY_API_SECRET);
 
 const parseTags = (value) => {
   if (Array.isArray(value)) return value.map((tag) => String(tag).trim()).filter(Boolean);
@@ -146,11 +141,8 @@ const serializeBlog = (blog) => {
 
 const attachCoverImage = async (req) => {
   if (!req.file) return null;
-  if (!hasCloudinaryConfig) {
-    throw new ApiError(400, 'Image upload is not configured. Use a cover image URL instead.');
-  }
 
-  const result = await uploadToCloudinary(
+  const result = await uploadToMongo(
     req.file.buffer,
     'blogs',
   );
@@ -184,9 +176,14 @@ const buildBlogPayload = async (req, existingBlog = null) => {
   const publishedAt = status === 'published'
     ? (parseDateInput(req.body.publishedAt) || existingBlog?.publishedAt || new Date())
     : (parseDateInput(req.body.publishedAt) || existingBlog?.publishedAt || null);
+  const previousCoverImage = existingBlog?.coverImage || null;
   const coverImage = req.file
     ? await attachCoverImage(req)
-    : String(req.body.coverImage || existingBlog?.coverImage || '').trim() || null;
+    : String(req.body.coverImage || previousCoverImage || '').trim() || null;
+
+  if (previousCoverImage && coverImage !== previousCoverImage) {
+    await deleteUploadedFile(previousCoverImage);
+  }
 
   return {
     title,
@@ -415,6 +412,10 @@ exports.adminDeleteBlog = async (req, res, next) => {
 
     if (!deleted) {
       return next(new ApiError(404, 'Blog not found'));
+    }
+
+    if (deleted.coverImage) {
+      await deleteUploadedFile(deleted.coverImage);
     }
 
     return res.json({

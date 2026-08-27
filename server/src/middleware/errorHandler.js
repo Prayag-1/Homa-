@@ -28,8 +28,12 @@ const errorHandler = (err, req, res, next) => {
   }
   if (err.name === 'MulterError') {
     statusCode = 400;
+    const configuredMaxMb = Number.parseInt(process.env.IMAGE_UPLOAD_MAX_MB || '10', 10);
+    const maxImageSizeMb = Number.isInteger(configuredMaxMb) && configuredMaxMb > 0
+      ? configuredMaxMb
+      : 10;
     message = err.code === 'LIMIT_FILE_SIZE'
-      ? 'File too large. Maximum 600KB per image.'
+      ? `File too large. Maximum ${maxImageSizeMb}MB per image.`
       : 'File upload error';
   }
 

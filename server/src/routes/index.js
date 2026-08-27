@@ -26,6 +26,7 @@ router.use('/admin/contact-inquiries', require('./adminContactRoutes'));
 router.use('/admin/email-settings', require('./adminEmailSettingsRoutes'));
 router.use('/settings', require('./siteSettingsRoutes'));
 router.use('/banners', require('./bannerRoutes'));
+router.use('/uploads', require('./uploadRoutes'));
 
 router.get('/health', (req, res) => res.json({
   success: true,

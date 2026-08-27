@@ -1,7 +1,6 @@
 const mongoose = require('mongoose');
 const Product = require('../models/Product');
-const cloudinary = require('../config/cloudinary');
-const { uploadToCloudinary } = require('../middleware/upload');
+const { deleteUploadedFile, uploadToMongo } = require('../middleware/upload');
 const { generateUniqueSlug } = require('../utils/slugify');
 const ApiError = require('../utils/ApiError');
 const {
@@ -100,7 +99,7 @@ const uploadProductFiles = async (files = []) => {
   const uploadedImages = [];
 
   for (const file of files) {
-    const result = await uploadToCloudinary(
+    const result = await uploadToMongo(
       file.buffer,
       'products',
     );
@@ -264,7 +263,7 @@ exports.adminUpdateProduct = async (req, res, next) => {
 
     for (const img of product.images) {
       if (!keepImages.includes(img.publicId)) {
-        await cloudinary.uploader.destroy(img.publicId);
+        await deleteUploadedFile(img.publicId || img.url);
       }
     }
 
@@ -413,8 +412,8 @@ exports.adminDeleteProduct = async (req, res, next) => {
 
     await Promise.all(
       (product.images || [])
-        .filter((image) => image?.publicId)
-        .map((image) => cloudinary.uploader.destroy(image.publicId)),
+        .filter((image) => image?.publicId || image?.url)
+        .map((image) => deleteUploadedFile(image.publicId || image.url)),
     );
 
     await Product.deleteOne({ _id: product._id });

@@ -1,5 +1,10 @@
-export const MAX_IMAGE_SIZE_BYTES = 600 * 1024;
-export const MAX_IMAGE_SIZE_LABEL = '600 KB';
+const configuredMaxMb = Number.parseInt(import.meta.env.VITE_IMAGE_UPLOAD_MAX_MB || '10', 10);
+const maxImageSizeMb = Number.isInteger(configuredMaxMb) && configuredMaxMb > 0
+  ? configuredMaxMb
+  : 10;
+
+export const MAX_IMAGE_SIZE_BYTES = maxImageSizeMb * 1024 * 1024;
+export const MAX_IMAGE_SIZE_LABEL = `${maxImageSizeMb} MB`;
 export const IMAGE_UPLOAD_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
 const QUALITY_STEPS = [0.94, 0.88, 0.8, 0.72, 0.64, 0.56];

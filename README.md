@@ -9,14 +9,14 @@ A production-ready MERN stack for the HOMA Japanese Skincare project targeting t
 | Frontend  | React 18, Vite, React Router, Tailwind CSS, React Query |
 | Backend   | Node.js, Express, MongoDB with Mongoose |
 | Auth      | JWT (access + refresh tokens) |
-| File Storage | Cloudinary |
+| File Storage | MongoDB GridFS image storage |
 | Email     | Nodemailer |
 
 ## Prerequisites
 
 - Node.js v20 or higher
 - MongoDB Atlas account (free tier available)
-- Cloudinary account (for image uploads)
+- Local MongoDB instance for development image storage
 
 ## Quick Start
 
@@ -40,10 +40,13 @@ copy .env.example .env
 
 **Server** (.env):
 ```
-MONGO_URI=mongodb+srv://USERNAME:PASSWORD@cluster.mongodb.net/homa
+MONGO_URI=mongodb://127.0.0.1:27017/homa
+ALLOW_LOCAL_MONGO=true
 JWT_SECRET=your_long_random_string
 JWT_REFRESH_SECRET=your_another_random_string
 CLIENT_URL=http://localhost:5173
+PUBLIC_IMAGE_BASE_URL=http://localhost:5000/api/v1/uploads
+IMAGE_UPLOAD_MAX_MB=10
 ```
 
 To generate random JWT secrets for development:
@@ -56,6 +59,7 @@ npm run secrets
 **Client** (.env):
 ```
 VITE_API_URL=http://localhost:5000/api/v1
+VITE_IMAGE_UPLOAD_MAX_MB=10
 ```
 
 ### 3. Run Locally
@@ -175,8 +179,7 @@ http://localhost:5000/api/v1
 ## Notes
 
 - The database connection requires a MongoDB URI (MongoDB Atlas recommended)
-- Cloudinary is required for image uploads
+- Image uploads are stored in MongoDB GridFS; product/order records store image URLs and IDs
 - Email functionality requires SMTP credentials
 - Payment integration (eSewa, FonePay) is configured but not fully implemented
 - All stub routes should be replaced with actual implementations
- 

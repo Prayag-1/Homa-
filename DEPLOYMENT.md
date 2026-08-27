@@ -101,13 +101,6 @@ curl https://api.homabeauty.com/api/v1/health
 # Visit https://homabeauty.com in browser
 ```
 
-### Step 15: Regenerate Cloudinary API Secret
-IMPORTANT: The Cloudinary API secret was exposed earlier in a conversation. Before going live:
-1. Go to Cloudinary dashboard -> Settings -> Access Keys
-2. Regenerate API Secret
-3. Update server/.env with the new secret
-4. Restart PM2: `pm2 restart homa-api`
-
 ## Update Deployment (after code changes)
 ```bash
 cd /var/www/homa
@@ -132,7 +125,10 @@ npm run build
 - [ ] No localhost in any production env file
 - [ ] `JWT_SECRET` is 64+ random characters
 - [ ] `JWT_REFRESH_SECRET` is different from `JWT_SECRET`
-- [ ] Cloudinary API Secret regenerated
+- [ ] `MONGO_URI` points to the intended local MongoDB instance
+- [ ] `ALLOW_LOCAL_MONGO=true` if using local MongoDB
+- [ ] `PUBLIC_IMAGE_BASE_URL` points to the API upload route
+- [ ] `IMAGE_UPLOAD_MAX_MB` is set to the desired upload limit
 - [ ] eSewa payment URL is live, not sandbox
 - [ ] eSewa success/failure URLs point to `homabeauty.com`
 - [ ] Fonepay return URL points to `homabeauty.com`
