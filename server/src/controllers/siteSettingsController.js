@@ -2,7 +2,7 @@ const Joi = require("joi");
 const SiteSettings = require("../models/SiteSettings");
 const ApiError = require("../utils/ApiError");
 const { sanitizeString } = require("../utils/sanitize");
-const { deleteUploadedFile, uploadToMongo } = require("../middleware/upload");
+const { deleteUploadedFile, uploadToLocal } = require("../middleware/upload");
 
 const LEGACY_WHATSAPP_PHONE = "9707082505";
 const DEFAULT_WHATSAPP_PHONE = "9707082505";
@@ -173,7 +173,7 @@ const updateAnnouncementBar = async (req, res, next) => {
     let image = existingImage;
 
     if (req.file) {
-      const uploaded = await uploadToMongo(req.file.buffer, "settings");
+      const uploaded = await uploadToLocal(req.file.buffer, "settings");
       image = {
         url: uploaded.url,
         publicId: uploaded.publicId,
@@ -233,7 +233,7 @@ const updatePaymentSettings = async (req, res, next) => {
     let qrImage = existingQrImage;
 
     if (req.file) {
-      const uploaded = await uploadToMongo(req.file.buffer, "payments");
+      const uploaded = await uploadToLocal(req.file.buffer, "payments");
       qrImage = {
         url: uploaded.url,
         publicId: uploaded.publicId,

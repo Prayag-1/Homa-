@@ -3,7 +3,7 @@ const TransformationStory = require('../models/TransformationStory');
 const User = require('../models/User');
 const ApiError = require('../utils/ApiError');
 const { generateSlug } = require('../utils/slugify');
-const { deleteUploadedFile, uploadToMongo } = require('../middleware/upload');
+const { deleteUploadedFile, uploadToLocal } = require('../middleware/upload');
 const {
   sanitizeString: sanitizeQueryString,
   validatePagination,
@@ -155,7 +155,7 @@ const getFile = (files, fieldName) => (files[fieldName] && files[fieldName][0]) 
 const uploadImage = async (file, folder) => {
   if (!file) return null;
 
-  const result = await uploadToMongo(
+  const result = await uploadToLocal(
     file.buffer,
     folder,
   );

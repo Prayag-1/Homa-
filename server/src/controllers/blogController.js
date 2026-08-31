@@ -3,7 +3,7 @@ const Blog = require('../models/Blog');
 const User = require('../models/User');
 const ApiError = require('../utils/ApiError');
 const { generateSlug } = require('../utils/slugify');
-const { deleteUploadedFile, uploadToMongo } = require('../middleware/upload');
+const { deleteUploadedFile, uploadToLocal } = require('../middleware/upload');
 const {
   sanitizeString: sanitizeQueryString,
   validatePagination,
@@ -142,7 +142,7 @@ const serializeBlog = (blog) => {
 const attachCoverImage = async (req) => {
   if (!req.file) return null;
 
-  const result = await uploadToMongo(
+  const result = await uploadToLocal(
     req.file.buffer,
     'blogs',
   );

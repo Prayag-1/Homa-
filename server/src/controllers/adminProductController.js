@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const Product = require('../models/Product');
-const { deleteUploadedFile, uploadToMongo } = require('../middleware/upload');
+const { deleteUploadedFile, uploadToLocal } = require('../middleware/upload');
 const { generateUniqueSlug } = require('../utils/slugify');
 const ApiError = require('../utils/ApiError');
 const {
@@ -99,7 +99,7 @@ const uploadProductFiles = async (files = []) => {
   const uploadedImages = [];
 
   for (const file of files) {
-    const result = await uploadToMongo(
+    const result = await uploadToLocal(
       file.buffer,
       'products',
     );

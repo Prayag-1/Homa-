@@ -6,7 +6,7 @@
 - PM2 installed globally: `npm install -g pm2`
 - Nginx installed: `apt install -y nginx`
 - Certbot installed: `apt install -y certbot python3-certbot-nginx`
-- MongoDB Atlas cluster set up with IP whitelist
+- Local MongoDB installed on the VPS, with its data directory on persistent storage
 
 ## First-Time Deployment Steps
 
@@ -38,6 +38,7 @@ node src/scripts/generateSecrets.js
 ### Step 5: Create required log directory
 ```bash
 mkdir -p /var/log/homa
+mkdir -p /var/www/homa/uploads
 ```
 
 ### Step 6: Ensure MongoDB indexes
@@ -127,7 +128,8 @@ npm run build
 - [ ] `JWT_REFRESH_SECRET` is different from `JWT_SECRET`
 - [ ] `MONGO_URI` points to the intended local MongoDB instance
 - [ ] `ALLOW_LOCAL_MONGO=true` if using local MongoDB
-- [ ] `PUBLIC_IMAGE_BASE_URL` points to the API upload route
+- [ ] `UPLOAD_DIR=/var/www/homa/uploads`
+- [ ] `PUBLIC_IMAGE_BASE_URL=https://homabeauty.com/uploads`
 - [ ] `IMAGE_UPLOAD_MAX_MB` is set to the desired upload limit
 - [ ] eSewa payment URL is live, not sandbox
 - [ ] eSewa success/failure URLs point to `homabeauty.com`
@@ -139,7 +141,6 @@ npm run build
 - [ ] `GET /api/v1/health` returns `database: connected`
 - [ ] Stack traces are not returned in API errors
 - [ ] Rate limiters active
-- [ ] MongoDB Atlas IP whitelist set to VPS IP only
 - [ ] All seed scripts have run successfully
 - [ ] Admin temporary password has been changed
 
@@ -165,7 +166,8 @@ npm run build
 - [ ] `certbot renew --dry-run` passes
 
 ### Data
-- [ ] MongoDB Atlas automatic backup is enabled
+- [ ] Local MongoDB backups are scheduled
+- [ ] `/var/www/homa/uploads` backups are scheduled
 - [ ] At least 1 brand exists in `brands`
 - [ ] At least 1 category exists in `categories`
 - [ ] SiteSettings document exists

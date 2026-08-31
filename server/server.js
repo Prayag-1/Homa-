@@ -94,6 +94,7 @@ const { migrateEnvSmtpSettings } = require('./src/services/smtpService');
 const routes = require('./src/routes/index');
 const contactRouter = require('./src/routes/contactRoute');
 const errorHandler = require('./src/middleware/errorHandler');
+const { UPLOAD_DIR } = require('./src/middleware/upload');
 const logger = require('./src/utils/logger');
 
 const app = express();
@@ -166,6 +167,16 @@ app.use(mongoSanitize({
   replaceWith: '_',
   onSanitize: ({ req, key }) => {
     console.warn(`NoSQL injection attempt detected. Key: ${key}, IP: ${req.ip}`);
+  },
+}));
+
+app.use('/uploads', express.static(UPLOAD_DIR, {
+  maxAge: '30d',
+  immutable: true,
+  setHeaders: (res) => {
+    res.setHeader('Cache-Control', 'public, max-age=2592000, immutable');
+    res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+    res.setHeader('X-Content-Type-Options', 'nosniff');
   },
 }));
 

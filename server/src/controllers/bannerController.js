@@ -1,7 +1,7 @@
 const Joi = require('joi');
 const Banner = require('../models/Banner');
 const ApiError = require('../utils/ApiError');
-const { deleteUploadedFile, uploadToMongo } = require('../middleware/upload');
+const { deleteUploadedFile, uploadToLocal } = require('../middleware/upload');
 const { sanitizeString } = require('../utils/sanitize');
 
 const bannerLinkSchema = Joi.alternatives()
@@ -70,7 +70,7 @@ const createBanner = async (req, res, next) => {
       return next(new ApiError(400, 'Banner image is required'));
     }
 
-    const uploaded = await uploadToMongo(req.file.buffer, 'banners');
+    const uploaded = await uploadToLocal(req.file.buffer, 'banners');
     const banner = await Banner.create({
       title: sanitizeString(value.title) || '',
       imageUrl: uploaded.url,
@@ -106,7 +106,7 @@ const updateBanner = async (req, res, next) => {
     if (error) return next(new ApiError(400, error.details[0].message));
 
     if (req.file) {
-      const uploaded = await uploadToMongo(req.file.buffer, 'banners');
+      const uploaded = await uploadToLocal(req.file.buffer, 'banners');
       if (banner.publicId || banner.imageUrl) {
         await deleteUploadedFile(banner.publicId || banner.imageUrl);
       }

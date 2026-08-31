@@ -1,7 +1,8 @@
 const crypto = require('crypto');
-const { Readable } = require('stream');
+const fs = require('fs/promises');
 const mongoose = require('mongoose');
 const multer = require('multer');
+const path = require('path');
 const ApiError = require('../utils/ApiError');
 
 const ALLOWED_MIMETYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
@@ -19,7 +20,15 @@ const parsePositiveInteger = (value, fallback) => {
 const MAX_IMAGE_SIZE_MB = parsePositiveInteger(process.env.IMAGE_UPLOAD_MAX_MB, 10);
 const MAX_IMAGE_SIZE_BYTES = MAX_IMAGE_SIZE_MB * 1024 * 1024;
 const MAX_IMAGE_SIZE_LABEL = `${MAX_IMAGE_SIZE_MB}MB`;
-const IMAGE_ROUTE_BASE = (process.env.PUBLIC_IMAGE_BASE_URL || `http://localhost:${process.env.PORT || 5000}/api/v1/uploads`)
+const resolveUploadDir = () => {
+  const configured = process.env.UPLOAD_DIR;
+  if (!configured) return path.resolve(__dirname, '..', '..', 'uploads');
+  return path.isAbsolute(configured)
+    ? configured
+    : path.resolve(__dirname, '..', '..', configured);
+};
+const UPLOAD_DIR = resolveUploadDir();
+const PUBLIC_UPLOAD_BASE_URL = (process.env.PUBLIC_IMAGE_BASE_URL || `http://localhost:${process.env.PORT || 5000}/uploads`)
   .replace(/\/+$/, '');
 
 const storage = multer.memoryStorage();
@@ -83,9 +92,75 @@ const getGridFsBucket = () => {
   });
 };
 
-const buildImageUrl = (id) => `${IMAGE_ROUTE_BASE}/${id}`;
+const normalizePathSeparators = (value) => String(value || '').replace(/\\/g, '/');
 
-const uploadToMongo = async (buffer, folder = 'uploads', publicId = null, originalFile = {}) => {
+const sanitizeFolder = (folder = 'uploads') => {
+  const normalized = normalizePathSeparators(folder)
+    .split('/')
+    .map((part) => part.trim().toLowerCase().replace(/[^a-z0-9_-]/g, '-'))
+    .filter(Boolean)
+    .join('/');
+
+  return normalized || 'uploads';
+};
+
+const normalizePublicId = (value) => {
+  const normalized = normalizePathSeparators(value)
+    .trim()
+    .replace(/^\/+/, '');
+
+  if (!normalized || normalized.includes('\0')) return '';
+  if (normalized.split('/').some((part) => !part || part === '.' || part === '..')) return '';
+  if (path.isAbsolute(normalized)) return '';
+
+  return normalized;
+};
+
+const publicIdFromValue = (value) => {
+  if (!value || typeof value !== 'string') return '';
+
+  try {
+    const url = new URL(value);
+    const pathname = decodeURIComponent(url.pathname);
+    const marker = '/uploads/';
+    const index = pathname.indexOf(marker);
+
+    if (index !== -1) {
+      return normalizePublicId(pathname.slice(index + marker.length));
+    }
+  } catch {
+  }
+
+  const raw = normalizePathSeparators(value);
+  const marker = '/uploads/';
+  const markerIndex = raw.indexOf(marker);
+  const candidate = markerIndex !== -1 ? raw.slice(markerIndex + marker.length) : raw;
+
+  return normalizePublicId(candidate);
+};
+
+const resolveUploadPath = (publicId) => {
+  const normalized = normalizePublicId(publicId);
+  if (!normalized) {
+    throw new ApiError(400, 'Invalid uploaded file path');
+  }
+
+  const resolved = path.resolve(UPLOAD_DIR, normalized);
+  const root = UPLOAD_DIR.endsWith(path.sep) ? UPLOAD_DIR : `${UPLOAD_DIR}${path.sep}`;
+
+  if (resolved !== UPLOAD_DIR && !resolved.startsWith(root)) {
+    throw new ApiError(400, 'Invalid uploaded file path');
+  }
+
+  return resolved;
+};
+
+const buildPublicUrl = (publicId) => `${PUBLIC_UPLOAD_BASE_URL}/${normalizePathSeparators(publicId)
+  .split('/')
+  .map(encodeURIComponent)
+  .join('/')}`;
+
+const uploadToLocal = async (buffer, folder = 'uploads', publicId = null, originalFile = {}) => {
   if (!Buffer.isBuffer(buffer) || buffer.length === 0) {
     throw new ApiError(400, 'No image file provided');
   }
@@ -96,33 +171,21 @@ const uploadToMongo = async (buffer, folder = 'uploads', publicId = null, origin
     throw new ApiError(400, 'Invalid image file. Only JPEG, PNG, and WebP images are allowed.');
   }
 
-  const bucket = getGridFsBucket();
   const extension = ALLOWED_EXTENSIONS[type.mime];
-  const filename = `${folder}-${Date.now()}-${crypto.randomBytes(8).toString('hex')}.${extension}`;
+  const safeFolder = sanitizeFolder(folder);
+  const filename = `${safeFolder.replace(/\//g, '-')}-${Date.now()}-${crypto.randomBytes(8).toString('hex')}.${extension}`;
+  const storedPublicId = normalizePublicId(publicId) || `${safeFolder}/${filename}`;
+  const filePath = resolveUploadPath(storedPublicId);
 
-  return new Promise((resolve, reject) => {
-    const uploadStream = bucket.openUploadStream(filename, {
-      contentType: type.mime,
-      metadata: {
-        folder,
-        legacyPublicId: publicId || '',
-        originalName: originalFile.originalname || '',
-        uploadedAt: new Date(),
-      },
-    });
+  await fs.mkdir(path.dirname(filePath), { recursive: true });
+  await fs.writeFile(filePath, buffer, { flag: 'wx' });
 
-    uploadStream.on('error', reject);
-    uploadStream.on('finish', () => {
-      const id = uploadStream.id.toString();
-      resolve({
-        url: buildImageUrl(id),
-        publicId: id,
-        filename,
-      });
-    });
-
-    Readable.from(buffer).pipe(uploadStream);
-  });
+  return {
+    url: buildPublicUrl(storedPublicId),
+    publicId: storedPublicId,
+    filename,
+    originalName: originalFile.originalname || '',
+  };
 };
 
 const isObjectId = (value) => mongoose.Types.ObjectId.isValid(String(value || ''));
@@ -145,6 +208,17 @@ const imageIdFromValue = (value) => {
 };
 
 const deleteUploadedFile = async (publicIdOrUrl) => {
+  const publicId = publicIdFromValue(publicIdOrUrl);
+  if (publicId && !isObjectId(publicId)) {
+    try {
+      await fs.unlink(resolveUploadPath(publicId));
+      return true;
+    } catch (err) {
+      if (err.code === 'ENOENT') return false;
+      throw err;
+    }
+  }
+
   const imageId = imageIdFromValue(publicIdOrUrl);
   if (!imageId) return false;
 
@@ -264,8 +338,9 @@ module.exports = {
   uploadPaymentProofImage,
   uploadTransformationStoryImages,
   validateImageBuffer,
-  uploadToMongo,
+  uploadToLocal,
   deleteUploadedFile,
   getStoredImage,
   MAX_IMAGE_SIZE_LABEL,
+  UPLOAD_DIR,
 };

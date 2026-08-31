@@ -12,7 +12,7 @@ const connectDB = async () => {
     const isLocalMongo = ['localhost', '127.0.0.1', '::1'].includes(parsedUri.hostname);
 
     if (isLocalMongo && process.env.ALLOW_LOCAL_MONGO !== 'true') {
-      throw new Error('Local MongoDB is disabled. Set MONGO_URI to your MongoDB Atlas connection string.');
+      throw new Error('Local MongoDB is disabled. Set ALLOW_LOCAL_MONGO=true to use a local MongoDB connection.');
     }
 
     const conn = await mongoose.connect(mongoUri, {

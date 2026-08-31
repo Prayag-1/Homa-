@@ -9,14 +9,14 @@ A production-ready MERN stack for the HOMA Japanese Skincare project targeting t
 | Frontend  | React 18, Vite, React Router, Tailwind CSS, React Query |
 | Backend   | Node.js, Express, MongoDB with Mongoose |
 | Auth      | JWT (access + refresh tokens) |
-| File Storage | MongoDB GridFS image storage |
+| File Storage | VPS filesystem uploads, with GridFS fallback for older images |
 | Email     | Nodemailer |
 
 ## Prerequisites
 
 - Node.js v20 or higher
-- MongoDB Atlas account (free tier available)
-- Local MongoDB instance for development image storage
+- Local MongoDB instance
+- Writable upload directory for image storage
 
 ## Quick Start
 
@@ -45,7 +45,8 @@ ALLOW_LOCAL_MONGO=true
 JWT_SECRET=your_long_random_string
 JWT_REFRESH_SECRET=your_another_random_string
 CLIENT_URL=http://localhost:5173
-PUBLIC_IMAGE_BASE_URL=http://localhost:5000/api/v1/uploads
+UPLOAD_DIR=./uploads
+PUBLIC_IMAGE_BASE_URL=http://localhost:5000/uploads
 IMAGE_UPLOAD_MAX_MB=10
 ```
 
@@ -90,7 +91,7 @@ homa/
 │   └── package.json
 ├── server/                 ← Express.js backend
 │   ├── src/
-│   │   ├── config/         ← Database, Cloudinary, Email
+│   │   ├── config/         ← Database and Email
 │   │   ├── models/         ← Mongoose schemas
 │   │   ├── controllers/    ← Route handlers
 │   │   ├── routes/         ← API routes
@@ -178,8 +179,9 @@ http://localhost:5000/api/v1
 
 ## Notes
 
-- The database connection requires a MongoDB URI (MongoDB Atlas recommended)
-- Image uploads are stored in MongoDB GridFS; product/order records store image URLs and IDs
+- The database connection requires a MongoDB URI
+- New image uploads are stored on the VPS filesystem; product/order records store image URLs and file paths
+- Existing GridFS image URLs under `/api/v1/uploads/:id` remain readable for backward compatibility
 - Email functionality requires SMTP credentials
 - Payment integration (eSewa, FonePay) is configured but not fully implemented
 - All stub routes should be replaced with actual implementations
