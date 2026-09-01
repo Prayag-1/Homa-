@@ -10,7 +10,7 @@ import { useScrollDirection } from "../../hooks/useScrollDirection";
 import { useIsMobile } from "../../hooks/useMediaQuery";
 
 const mainLinks = [
-  { to: "/", label: "Home" },
+  { to: "/home", label: "Home" },
   { to: "/shop", label: "Shop" },
   { to: "/distributors", label: "Authorized Dealers" },
   { to: "/blog", label: "Blog" },
@@ -168,7 +168,7 @@ export default function Navbar({ onCartOpen }) {
             </div>
           ) : (
             <>
-          <Link to="/" aria-label="HOMA home" className="shrink-0">
+          <Link to="/shop" aria-label="HOMA shop" className="shrink-0">
             <HomaLogo
               variant="red"
               size={isMobile ? "sm" : "md"}

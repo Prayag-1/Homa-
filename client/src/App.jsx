@@ -133,7 +133,8 @@ function AppRoutes() {
       <main>
         <Suspense fallback={routeFallback}>
           <Routes>
-            <Route path="/" element={<Home />} />
+            <Route path="/" element={<Navigate to="/shop" replace />} />
+            <Route path="/home" element={<Home />} />
             <Route path="/user/dashboard" element={<Dashboard />} />
             <Route path="/account" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/shop" element={<ErrorBoundary><Catalog /></ErrorBoundary>} />

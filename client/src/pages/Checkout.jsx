@@ -12,6 +12,8 @@ import { AddressMapPicker } from '../components/shared';
 import { getResponsiveImageProps } from '../utils/cloudinaryUrl';
 import { z } from 'zod';
 
+const DELIVERY_CHARGE = 100;
+
 const checkoutSchema = z.object({
   shippingAddress: z.object({
     street: z.string().trim().min(3, 'Street address is required').max(120),
@@ -26,7 +28,7 @@ const checkoutSchema = z.object({
 
 export default function Checkout() {
   const navigate = useNavigate();
-  const { items, itemCount, subtotal, vatAmount, grandTotal, clearCart } = useCart();
+  const { items, itemCount, subtotal, clearCart } = useCart();
   const { user, loading: authLoading } = useAuthContext();
   const { data: settings } = usePublicSettings();
 
@@ -137,7 +139,7 @@ export default function Checkout() {
 
   // Calculate dynamic totals based on coupon
   const discountAmount = appliedCoupon ? appliedCoupon.discountAmount : 0;
-  const deliveryCharge = subtotal > 2000 ? 0 : 100;
+  const deliveryCharge = DELIVERY_CHARGE;
   const taxableAmount = subtotal - discountAmount;
   const vatAmountFinal = parseFloat((taxableAmount * 0.13).toFixed(2));
   const grandTotalFinal = parseFloat((taxableAmount + vatAmountFinal + deliveryCharge).toFixed(2));
@@ -255,7 +257,7 @@ export default function Checkout() {
                 <div className="flex justify-between text-gray-600"><span>Subtotal</span><span>{formatPrice(subtotal)}</span></div>
                 {discountAmount > 0 && <div className="flex justify-between text-red-600"><span>Discount</span><span>-{formatPrice(discountAmount)}</span></div>}
                 <div className="flex justify-between text-gray-600"><span>VAT (13%)</span><span>{formatPrice(vatAmountFinal)}</span></div>
-                <div className="flex justify-between text-gray-600"><span>Delivery</span><span>{deliveryCharge === 0 ? 'Free' : formatPrice(deliveryCharge)}</span></div>
+                <div className="flex justify-between text-gray-600"><span>Delivery</span><span>{formatPrice(deliveryCharge)}</span></div>
                 <div className="flex justify-between border-t border-gray-100 pt-3 font-bold text-black"><span>Total</span><span>{formatPrice(grandTotalFinal)}</span></div>
               </div>
             </div>
@@ -605,15 +607,7 @@ export default function Checkout() {
 
                 <div className="flex justify-between text-gray-600">
                   <span>Delivery Charge</span>
-                  <span>
-                    {deliveryCharge === 0 ? (
-                      <span className="text-green-600 font-semibold uppercase tracking-wider text-xs bg-green-50 px-2 py-0.5 rounded">
-                        Free
-                      </span>
-                    ) : (
-                      formatPrice(deliveryCharge)
-                    )}
-                  </span>
+                  <span>{formatPrice(deliveryCharge)}</span>
                 </div>
 
                 <div className="flex justify-between text-lg font-bold text-black border-t border-gray-150 pt-4 mt-2">

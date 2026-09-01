@@ -14,6 +14,7 @@ const { uploadToLocal } = require('../middleware/upload');
 const VALID_ORDER_STATUSES = new Set(['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled', 'returned']);
 const VALID_PAYMENT_STATUSES = new Set(['pending', 'paid', 'failed', 'pending_collection', 'collected']);
 const VALID_PAYMENT_REVIEW_STATUSES = new Set(['not_required', 'pending', 'approved', 'rejected']);
+const DELIVERY_CHARGE = 100;
 
 // Environment variables for eSewa. Live/sandbox URLs must be supplied by env.
 const ESEWA_PRODUCT_CODE = process.env.ESEWA_PRODUCT_CODE || process.env.ESEWA_MERCHANT_ID || 'EPAYTEST';
@@ -263,8 +264,7 @@ exports.createOrder = async (req, res, next) => {
       }
     }
 
-    // Delivery charge: Free above Rs. 2000, else Rs. 100
-    const deliveryCharge = subtotal > 2000 ? 0 : 100;
+    const deliveryCharge = DELIVERY_CHARGE;
 
     // Calculate totals using tax util
     const totals = calculateOrderTotals(orderItems, discountAmount, deliveryCharge);
