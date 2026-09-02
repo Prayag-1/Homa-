@@ -176,7 +176,10 @@ export default function Footer() {
               </>
             )}
           </div>
-          <div className="sm:text-right">Made with {'\u2665'} in Nepal</div>
+          <div className="sm:text-right">
+            Website developed by Prayag Nepal & Adarsh <span aria-hidden="true">&copy;</span>
+          </div>
+          
         </div>
       </div>
     </footer>
