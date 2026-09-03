@@ -69,11 +69,6 @@ const faqSections = [
         answer:
           'Open the Distributors page to browse the dealer list. Select a dealer to view details, open the larger map view, or launch directions directly in your browser.',
       },
-      {
-        question: 'Why do some pages load data from the backend and others do not?',
-        answer:
-          'Product, blog, distributor, and account pages use the backend API. Some content, like the FAQ page, is currently static and can be expanded later if you want admin-managed FAQs.',
-      },
     ],
   },
 ];
