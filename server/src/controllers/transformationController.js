@@ -1,9 +1,10 @@
 const mongoose = require('mongoose');
+const cloudinary = require('../config/cloudinary');
 const TransformationStory = require('../models/TransformationStory');
 const User = require('../models/User');
 const ApiError = require('../utils/ApiError');
 const { generateSlug } = require('../utils/slugify');
-const { deleteUploadedFile, uploadToLocal } = require('../middleware/upload');
+const { uploadToCloudinary } = require('../middleware/upload');
 const {
   sanitizeString: sanitizeQueryString,
   validatePagination,
@@ -20,6 +21,11 @@ const TRANSFORMATION_SORT_WHITELIST = new Set([
   'title',
   '-title',
 ]);
+
+const hasCloudinaryConfig =
+  Boolean(process.env.CLOUDINARY_CLOUD_NAME) &&
+  Boolean(process.env.CLOUDINARY_API_KEY) &&
+  Boolean(process.env.CLOUDINARY_API_SECRET);
 
 const escapeRegex = (value) => String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
@@ -154,8 +160,11 @@ const getFile = (files, fieldName) => (files[fieldName] && files[fieldName][0]) 
 
 const uploadImage = async (file, folder) => {
   if (!file) return null;
+  if (!hasCloudinaryConfig) {
+    throw new ApiError(400, 'Image upload is not configured. Please use Cloudinary credentials.');
+  }
 
-  const result = await uploadToLocal(
+  const result = await uploadToCloudinary(
     file.buffer,
     folder,
   );
@@ -167,8 +176,8 @@ const uploadImage = async (file, folder) => {
 };
 
 const destroyImage = async (image) => {
-  if (image?.publicId || image?.url) {
-    await deleteUploadedFile(image.publicId || image.url);
+  if (image?.publicId) {
+    await cloudinary.uploader.destroy(image.publicId);
   }
 };
 

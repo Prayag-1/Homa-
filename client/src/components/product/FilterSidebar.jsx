@@ -249,7 +249,7 @@ const FilterSidebar = () => {
   const activeFilters = getActiveFilterCount(searchParams);
 
   return (
-    <aside className="sticky top-24 max-h-[calc(100vh-120px)] w-80 overflow-y-auto rounded-tl-2xl border-r border-[#F0E8E8] bg-white">
+    <aside className="sticky top-24 max-h-[calc(100vh-120px)] w-full overflow-y-auto rounded-tl-2xl border-r border-[#F0E8E8] bg-white">
       <div className="p-6">
         <div className="mb-6 flex items-center justify-between border-b border-[#F0E8E8] pb-6">
           <div className="flex items-center gap-2">

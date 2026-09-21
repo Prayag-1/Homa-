@@ -2,7 +2,13 @@ const Joi = require("joi");
 const SiteSettings = require("../models/SiteSettings");
 const ApiError = require("../utils/ApiError");
 const { sanitizeString } = require("../utils/sanitize");
-const { deleteUploadedFile, uploadToLocal } = require("../middleware/upload");
+const cloudinary = require("../config/cloudinary");
+const { uploadToCloudinary } = require("../middleware/upload");
+
+const hasCloudinaryConfig =
+  Boolean(process.env.CLOUDINARY_CLOUD_NAME) &&
+  Boolean(process.env.CLOUDINARY_API_KEY) &&
+  Boolean(process.env.CLOUDINARY_API_SECRET);
 
 const LEGACY_WHATSAPP_PHONE = "9707082505";
 const DEFAULT_WHATSAPP_PHONE = "9707082505";
@@ -173,7 +179,16 @@ const updateAnnouncementBar = async (req, res, next) => {
     let image = existingImage;
 
     if (req.file) {
-      const uploaded = await uploadToLocal(req.file.buffer, "settings");
+      if (!hasCloudinaryConfig) {
+        return next(
+          new ApiError(
+            400,
+            "Image upload is not configured. Add Cloudinary credentials to enable announcement images.",
+          ),
+        );
+      }
+
+      const uploaded = await uploadToCloudinary(req.file.buffer, "settings");
       image = {
         url: uploaded.url,
         publicId: uploaded.publicId,
@@ -182,11 +197,11 @@ const updateAnnouncementBar = async (req, res, next) => {
         existingImage.publicId &&
         existingImage.publicId !== uploaded.publicId
       ) {
-        await deleteUploadedFile(existingImage.publicId || existingImage.url);
+        await cloudinary.uploader.destroy(existingImage.publicId);
       }
     } else if (value.removeImage) {
-      if (existingImage.publicId || existingImage.url) {
-        await deleteUploadedFile(existingImage.publicId || existingImage.url);
+      if (existingImage.publicId) {
+        await cloudinary.uploader.destroy(existingImage.publicId);
       }
       image = { url: "", publicId: "" };
     }
@@ -233,7 +248,16 @@ const updatePaymentSettings = async (req, res, next) => {
     let qrImage = existingQrImage;
 
     if (req.file) {
-      const uploaded = await uploadToLocal(req.file.buffer, "payments");
+      if (!hasCloudinaryConfig) {
+        return next(
+          new ApiError(
+            400,
+            "Image upload is not configured. Add Cloudinary credentials to enable payment QR images.",
+          ),
+        );
+      }
+
+      const uploaded = await uploadToCloudinary(req.file.buffer, "payment");
       qrImage = {
         url: uploaded.url,
         publicId: uploaded.publicId,
@@ -242,11 +266,11 @@ const updatePaymentSettings = async (req, res, next) => {
         existingQrImage.publicId &&
         existingQrImage.publicId !== uploaded.publicId
       ) {
-        await deleteUploadedFile(existingQrImage.publicId || existingQrImage.url);
+        await cloudinary.uploader.destroy(existingQrImage.publicId);
       }
     } else if (value.removeQrImage) {
-      if (existingQrImage.publicId || existingQrImage.url) {
-        await deleteUploadedFile(existingQrImage.publicId || existingQrImage.url);
+      if (existingQrImage.publicId) {
+        await cloudinary.uploader.destroy(existingQrImage.publicId);
       }
       qrImage = { url: "", publicId: "" };
     }

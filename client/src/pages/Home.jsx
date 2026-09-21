@@ -68,7 +68,7 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-homa-cream">
-      <section className="relative h-[85vh] overflow-hidden bg-homa-red">
+      <section className="relative h-[clamp(300px,72vw,560px)] w-full overflow-hidden bg-homa-red sm:h-[clamp(360px,58vw,620px)] lg:h-[min(44vw,680px)]">
         <HeroCarousel
           banners={heroBanners}
           variant="background"

@@ -140,7 +140,7 @@ export default function FAQPage() {
             Frequently asked questions.
           </h1>
           <p className="mt-5 max-w-3xl text-base leading-7 text-black/65 md:text-lg">
-            Answers about skin routines, product use, orders, delivery, and how the Homa website works.
+            Answers about skin routines, product use, orders, and delivery.
           </p>
 
           <div className="mt-8 max-w-2xl">

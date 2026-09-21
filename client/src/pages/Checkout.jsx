@@ -5,7 +5,7 @@ import { useAuthContext } from '../context/AuthContext';
 import { createOrder, validateCoupon } from '../services/orderService';
 import { formatPrice } from '../utils/formatPrice';
 import { usePublicSettings } from '../hooks/useSiteSettings';
-import { compressImageFile, MAX_IMAGE_SIZE_LABEL } from '../utils/compressImage';
+import { compressImageFile } from '../utils/compressImage';
 import { toast } from 'react-hot-toast';
 import { ArrowLeft, CreditCard, ShoppingBag, Truck, CheckCircle2, Ticket, ChevronDown, Upload, ScanLine } from 'lucide-react';
 import { AddressMapPicker } from '../components/shared';
@@ -13,6 +13,8 @@ import { getResponsiveImageProps } from '../utils/cloudinaryUrl';
 import { z } from 'zod';
 
 const DELIVERY_CHARGE = 100;
+const PAYMENT_PROOF_MAX_IMAGE_SIZE_BYTES = 300 * 1024;
+const PAYMENT_PROOF_MAX_IMAGE_SIZE_LABEL = '300 KB';
 
 const checkoutSchema = z.object({
   shippingAddress: z.object({
@@ -121,7 +123,10 @@ export default function Checkout() {
     }
 
     try {
-      const compressed = await compressImageFile(file);
+      const compressed = await compressImageFile(file, {
+        maxBytes: PAYMENT_PROOF_MAX_IMAGE_SIZE_BYTES,
+        maxSizeLabel: PAYMENT_PROOF_MAX_IMAGE_SIZE_LABEL,
+      });
       setPaymentProofFile(compressed);
       setPaymentProofPreview(URL.createObjectURL(compressed));
     } catch (err) {
@@ -467,7 +472,7 @@ export default function Checkout() {
                         {paymentProofFile ? 'Replace payment proof' : 'Click to upload payment screenshot'}
                       </span>
                       <span className="mt-1 text-xs text-gray-500">
-                        JPEG, PNG, or WebP up to {MAX_IMAGE_SIZE_LABEL}
+                        JPEG, PNG, or WebP up to {PAYMENT_PROOF_MAX_IMAGE_SIZE_LABEL}
                       </span>
                       <input
                         type="file"

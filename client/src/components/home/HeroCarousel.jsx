@@ -67,7 +67,7 @@ export default function HeroCarousel({ banners = [], variant = 'card', fullWidth
       <div
         className={
           isBackground
-            ? 'relative h-full w-full overflow-hidden'
+            ? 'relative h-full min-h-[300px] w-full overflow-hidden sm:min-h-[360px]'
             : isFullWidth
               ? 'relative h-[420px] w-full overflow-hidden rounded-[2.5rem] border border-white/10 bg-black/10 shadow-[0_30px_80px_rgba(0,0,0,0.2)] sm:h-[500px] lg:h-[640px]'
               : 'relative h-[430px] w-full max-w-[640px] overflow-hidden rounded-[2.25rem] border border-white/10 bg-black/10 shadow-[0_30px_80px_rgba(0,0,0,0.2)]'
@@ -91,7 +91,7 @@ export default function HeroCarousel({ banners = [], variant = 'card', fullWidth
               <img
                 src={optimizeImage(slide.imageUrl, 1600)}
                 alt={slide.title || 'Hero banner'}
-                className="h-full w-full object-cover"
+                className="h-full w-full object-contain sm:object-cover"
                 loading="eager"
                 decoding="async"
               />

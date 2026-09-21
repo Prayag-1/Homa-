@@ -6,7 +6,7 @@
 - PM2 installed globally: `npm install -g pm2`
 - Nginx installed: `apt install -y nginx`
 - Certbot installed: `apt install -y certbot python3-certbot-nginx`
-- Local MongoDB installed on the VPS, with its data directory on persistent storage
+- MongoDB Atlas cluster set up with IP whitelist
 
 ## First-Time Deployment Steps
 
@@ -38,7 +38,6 @@ node src/scripts/generateSecrets.js
 ### Step 5: Create required log directory
 ```bash
 mkdir -p /var/log/homa
-mkdir -p /var/www/homa/uploads
 ```
 
 ### Step 6: Ensure MongoDB indexes
@@ -102,6 +101,13 @@ curl https://api.homabeauty.com/api/v1/health
 # Visit https://homabeauty.com in browser
 ```
 
+### Step 15: Regenerate Cloudinary API Secret
+IMPORTANT: The Cloudinary API secret was exposed earlier in a conversation. Before going live:
+1. Go to Cloudinary dashboard -> Settings -> Access Keys
+2. Regenerate API Secret
+3. Update server/.env with the new secret
+4. Restart PM2: `pm2 restart homa-api`
+
 ## Update Deployment (after code changes)
 ```bash
 cd /var/www/homa
@@ -126,11 +132,7 @@ npm run build
 - [ ] No localhost in any production env file
 - [ ] `JWT_SECRET` is 64+ random characters
 - [ ] `JWT_REFRESH_SECRET` is different from `JWT_SECRET`
-- [ ] `MONGO_URI` points to the intended local MongoDB instance
-- [ ] `ALLOW_LOCAL_MONGO=true` if using local MongoDB
-- [ ] `UPLOAD_DIR=/var/www/homa/uploads`
-- [ ] `PUBLIC_IMAGE_BASE_URL=https://homabeauty.com/uploads`
-- [ ] `IMAGE_UPLOAD_MAX_MB` is set to the desired upload limit
+- [ ] Cloudinary API Secret regenerated
 - [ ] eSewa payment URL is live, not sandbox
 - [ ] eSewa success/failure URLs point to `homabeauty.com`
 - [ ] Fonepay return URL points to `homabeauty.com`
@@ -141,6 +143,7 @@ npm run build
 - [ ] `GET /api/v1/health` returns `database: connected`
 - [ ] Stack traces are not returned in API errors
 - [ ] Rate limiters active
+- [ ] MongoDB Atlas IP whitelist set to VPS IP only
 - [ ] All seed scripts have run successfully
 - [ ] Admin temporary password has been changed
 
@@ -166,8 +169,7 @@ npm run build
 - [ ] `certbot renew --dry-run` passes
 
 ### Data
-- [ ] Local MongoDB backups are scheduled
-- [ ] `/var/www/homa/uploads` backups are scheduled
+- [ ] MongoDB Atlas automatic backup is enabled
 - [ ] At least 1 brand exists in `brands`
 - [ ] At least 1 category exists in `categories`
 - [ ] SiteSettings document exists

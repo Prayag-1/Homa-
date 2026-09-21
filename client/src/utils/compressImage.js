@@ -1,7 +1,7 @@
-const configuredMaxMb = Number.parseInt(import.meta.env.VITE_IMAGE_UPLOAD_MAX_MB || '10', 10);
-const maxImageSizeMb = Number.isInteger(configuredMaxMb) && configuredMaxMb > 0
+const configuredMaxMb = Number.parseFloat(import.meta.env.VITE_IMAGE_UPLOAD_MAX_MB || '1.5');
+const maxImageSizeMb = Number.isFinite(configuredMaxMb) && configuredMaxMb > 0
   ? configuredMaxMb
-  : 10;
+  : 1.5;
 
 export const MAX_IMAGE_SIZE_BYTES = maxImageSizeMb * 1024 * 1024;
 export const MAX_IMAGE_SIZE_LABEL = `${maxImageSizeMb} MB`;
@@ -70,6 +70,7 @@ export const compressImageFile = async (file, options = {}) => {
   if (!file.type?.startsWith('image/')) return file;
 
   const maxBytes = options.maxBytes || MAX_IMAGE_SIZE_BYTES;
+  const maxSizeLabel = options.maxSizeLabel || MAX_IMAGE_SIZE_LABEL;
   if (file.size <= maxBytes) return file;
 
   const supportedMimeTypes = options.mimeTypes || ['image/webp', 'image/jpeg'];
@@ -130,5 +131,5 @@ export const compressImageFile = async (file, options = {}) => {
     return blobToFile(bestBlob, file, bestMimeType);
   }
 
-  throw new Error(`Could not compress ${file.name} below ${MAX_IMAGE_SIZE_LABEL}.`);
+  throw new Error(`Could not compress ${file.name} below ${maxSizeLabel}.`);
 };

@@ -7,7 +7,6 @@ server/node_modules/
 
 client/.env
 server/.env
-server/uploads/
 
 # Build output
 client/dist/

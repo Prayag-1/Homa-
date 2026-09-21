@@ -7,6 +7,9 @@ const REQUIRED_ENV = [
   'JWT_SECRET',
   'JWT_REFRESH_SECRET',
   'CLIENT_URL',
+  'CLOUDINARY_CLOUD_NAME',
+  'CLOUDINARY_API_KEY',
+  'CLOUDINARY_API_SECRET',
 ];
 const PRODUCTION_REQUIRED_ENV = [
   'ESEWA_MERCHANT_ID',
@@ -94,7 +97,6 @@ const { migrateEnvSmtpSettings } = require('./src/services/smtpService');
 const routes = require('./src/routes/index');
 const contactRouter = require('./src/routes/contactRoute');
 const errorHandler = require('./src/middleware/errorHandler');
-const { UPLOAD_DIR } = require('./src/middleware/upload');
 const logger = require('./src/utils/logger');
 
 const app = express();
@@ -112,7 +114,7 @@ app.use(helmet({
       scriptSrc: ["'self'"],
       styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
       fontSrc: ["'self'", 'https://fonts.gstatic.com'],
-      imgSrc: ["'self'", 'data:'],
+      imgSrc: ["'self'", 'data:', 'https://res.cloudinary.com'],
       connectSrc: ["'self'"],
       frameSrc: ["'none'"],
       objectSrc: ["'none'"],
@@ -120,7 +122,6 @@ app.use(helmet({
     },
   },
   crossOriginEmbedderPolicy: false,
-  crossOriginResourcePolicy: { policy: 'cross-origin' },
   hsts: {
     maxAge: 31536000,
     includeSubDomains: true,
@@ -167,16 +168,6 @@ app.use(mongoSanitize({
   replaceWith: '_',
   onSanitize: ({ req, key }) => {
     console.warn(`NoSQL injection attempt detected. Key: ${key}, IP: ${req.ip}`);
-  },
-}));
-
-app.use('/uploads', express.static(UPLOAD_DIR, {
-  maxAge: '30d',
-  immutable: true,
-  setHeaders: (res) => {
-    res.setHeader('Cache-Control', 'public, max-age=2592000, immutable');
-    res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
-    res.setHeader('X-Content-Type-Options', 'nosniff');
   },
 }));
 

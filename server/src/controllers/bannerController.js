@@ -1,8 +1,14 @@
 const Joi = require('joi');
 const Banner = require('../models/Banner');
 const ApiError = require('../utils/ApiError');
-const { deleteUploadedFile, uploadToLocal } = require('../middleware/upload');
+const cloudinary = require('../config/cloudinary');
+const { uploadToCloudinary } = require('../middleware/upload');
 const { sanitizeString } = require('../utils/sanitize');
+
+const hasCloudinaryConfig =
+  Boolean(process.env.CLOUDINARY_CLOUD_NAME) &&
+  Boolean(process.env.CLOUDINARY_API_KEY) &&
+  Boolean(process.env.CLOUDINARY_API_SECRET);
 
 const bannerLinkSchema = Joi.alternatives()
   .try(
@@ -70,7 +76,11 @@ const createBanner = async (req, res, next) => {
       return next(new ApiError(400, 'Banner image is required'));
     }
 
-    const uploaded = await uploadToLocal(req.file.buffer, 'banners');
+    if (!hasCloudinaryConfig) {
+      return next(new ApiError(400, 'Image upload is not configured. Add Cloudinary credentials first.'));
+    }
+
+    const uploaded = await uploadToCloudinary(req.file.buffer, 'banners');
     const banner = await Banner.create({
       title: sanitizeString(value.title) || '',
       imageUrl: uploaded.url,
@@ -106,9 +116,13 @@ const updateBanner = async (req, res, next) => {
     if (error) return next(new ApiError(400, error.details[0].message));
 
     if (req.file) {
-      const uploaded = await uploadToLocal(req.file.buffer, 'banners');
-      if (banner.publicId || banner.imageUrl) {
-        await deleteUploadedFile(banner.publicId || banner.imageUrl);
+      if (!hasCloudinaryConfig) {
+        return next(new ApiError(400, 'Image upload is not configured. Add Cloudinary credentials first.'));
+      }
+
+      const uploaded = await uploadToCloudinary(req.file.buffer, 'banners');
+      if (banner.publicId) {
+        await cloudinary.uploader.destroy(banner.publicId);
       }
       banner.imageUrl = uploaded.url;
       banner.publicId = uploaded.publicId;
@@ -136,8 +150,8 @@ const deleteBanner = async (req, res, next) => {
     const banner = await Banner.findById(req.params.id);
     if (!banner) return next(new ApiError(404, 'Banner not found'));
 
-    if (banner.publicId || banner.imageUrl) {
-      await deleteUploadedFile(banner.publicId || banner.imageUrl);
+    if (banner.publicId) {
+      await cloudinary.uploader.destroy(banner.publicId);
     }
 
     await banner.deleteOne();

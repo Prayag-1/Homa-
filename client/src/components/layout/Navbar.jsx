@@ -10,7 +10,7 @@ import { useScrollDirection } from "../../hooks/useScrollDirection";
 import { useIsMobile } from "../../hooks/useMediaQuery";
 
 const mainLinks = [
-  { to: "/home", label: "Home" },
+  { to: "/", label: "Home" },
   { to: "/shop", label: "Shop" },
   { to: "/distributors", label: "Authorized Dealers" },
   { to: "/blog", label: "Blog" },
@@ -168,7 +168,7 @@ export default function Navbar({ onCartOpen }) {
             </div>
           ) : (
             <>
-          <Link to="/shop" aria-label="HOMA shop" className="shrink-0">
+          <Link to="/" aria-label="HOMA home" className="shrink-0">
             <HomaLogo
               variant="red"
               size={isMobile ? "sm" : "md"}
@@ -177,7 +177,7 @@ export default function Navbar({ onCartOpen }) {
             />
           </Link>
 
-          <nav className="hidden items-center gap-8 md:flex">
+          <nav className="hidden items-center gap-8 xl:flex">
             {mainLinks.map((link) => (
               <Link
                 key={link.to}
@@ -240,7 +240,7 @@ export default function Navbar({ onCartOpen }) {
             </div>
           </nav>
 
-          <div className="hidden items-center gap-5 md:flex">
+          <div className="hidden items-center gap-5 xl:flex">
             <button
               type="button"
               className={`touch-target ${iconClass}`}
@@ -287,7 +287,7 @@ export default function Navbar({ onCartOpen }) {
             )}
           </div>
 
-          <div className="flex items-center gap-2 md:hidden">
+          <div className="flex items-center gap-2 xl:hidden">
             <button
               type="button"
               className={`touch-target ${iconClass}`}
@@ -350,7 +350,7 @@ export default function Navbar({ onCartOpen }) {
       <AnimatePresence>
         {mobileOpen && (
           <motion.div
-            className="sakura-pattern safe-bottom safe-top fixed inset-0 z-[60] flex flex-col overflow-hidden bg-homa-red md:hidden"
+            className="sakura-pattern safe-bottom safe-top fixed inset-0 z-[60] flex flex-col overflow-hidden bg-homa-red xl:hidden"
             style={{ height: '100dvh' }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}

@@ -158,8 +158,8 @@ const Catalog = () => {
         </div>
       </div>
 
-      <div className="mx-auto max-w-7xl px-0 py-8 md:px-12">
-        <div className="flex gap-8">
+      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-5 md:px-12">
+        <div className="flex gap-8 lg:gap-10">
           <div className="hidden w-80 flex-shrink-0 lg:block">
             <FilterSidebar />
           </div>
@@ -214,7 +214,7 @@ const Catalog = () => {
             )}
 
             {isLoading && (
-              <div className="grid grid-cols-2 gap-3 px-4 md:grid-cols-3 md:gap-4 md:px-6 lg:grid-cols-4 lg:gap-6 lg:px-8">
+              <div className="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-4 lg:grid-cols-4 lg:gap-6">
                 {Array.from({ length: 12 }).map((_, index) => (
                   <ProductCardSkeleton key={index} />
                 ))}
@@ -232,7 +232,7 @@ const Catalog = () => {
             )}
 
             {!isLoading && products.length > 0 && (
-              <div className="grid grid-cols-2 gap-3 px-4 md:grid-cols-3 md:gap-4 md:px-6 lg:grid-cols-4 lg:gap-6 lg:px-8">
+              <div className="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-4 lg:grid-cols-4 lg:gap-6">
                 {products.map(renderProduct)}
               </div>
             )}

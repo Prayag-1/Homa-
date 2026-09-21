@@ -1,35 +1,18 @@
 const crypto = require('crypto');
-const fs = require('fs/promises');
-const mongoose = require('mongoose');
 const multer = require('multer');
-const path = require('path');
+const streamifier = require('streamifier');
+const cloudinary = require('../config/cloudinary');
 const ApiError = require('../utils/ApiError');
 
 const ALLOWED_MIMETYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
-const ALLOWED_EXTENSIONS = {
-  'image/jpeg': 'jpg',
-  'image/png': 'png',
-  'image/webp': 'webp',
-};
-
-const parsePositiveInteger = (value, fallback) => {
-  const parsed = Number.parseInt(value, 10);
-  return Number.isInteger(parsed) && parsed > 0 ? parsed : fallback;
-};
-
-const MAX_IMAGE_SIZE_MB = parsePositiveInteger(process.env.IMAGE_UPLOAD_MAX_MB, 10);
-const MAX_IMAGE_SIZE_BYTES = MAX_IMAGE_SIZE_MB * 1024 * 1024;
-const MAX_IMAGE_SIZE_LABEL = `${MAX_IMAGE_SIZE_MB}MB`;
-const resolveUploadDir = () => {
-  const configured = process.env.UPLOAD_DIR;
-  if (!configured) return path.resolve(__dirname, '..', '..', 'uploads');
-  return path.isAbsolute(configured)
-    ? configured
-    : path.resolve(__dirname, '..', '..', configured);
-};
-const UPLOAD_DIR = resolveUploadDir();
-const PUBLIC_UPLOAD_BASE_URL = (process.env.PUBLIC_IMAGE_BASE_URL || `http://localhost:${process.env.PORT || 5000}/uploads`)
-  .replace(/\/+$/, '');
+const configuredMaxMb = Number.parseFloat(process.env.IMAGE_UPLOAD_MAX_MB || '1.5');
+const maxImageSizeMb = Number.isFinite(configuredMaxMb) && configuredMaxMb > 0
+  ? configuredMaxMb
+  : 1.5;
+const MAX_IMAGE_SIZE_BYTES = maxImageSizeMb * 1024 * 1024;
+const MAX_IMAGE_SIZE_LABEL = `${maxImageSizeMb}MB`;
+const PAYMENT_PROOF_MAX_IMAGE_SIZE_BYTES = 300 * 1024;
+const PAYMENT_PROOF_MAX_IMAGE_SIZE_LABEL = '300KB';
 
 const storage = multer.memoryStorage();
 
@@ -46,6 +29,11 @@ const limits = {
   files: 8,
   fields: 20,
   fieldSize: 10 * 1024,
+};
+const paymentProofLimits = {
+  ...limits,
+  fileSize: PAYMENT_PROOF_MAX_IMAGE_SIZE_BYTES,
+  files: 1,
 };
 
 const getUploadedFiles = (req) => {
@@ -71,9 +59,7 @@ const validateImageBuffer = async (req, res, next) => {
           'Invalid file content. Only real JPEG, PNG, and WebP images are allowed.',
         ));
       }
-
       file.mimetype = type.mime;
-      file.detectedExtension = ALLOWED_EXTENSIONS[type.mime];
     }
 
     next();
@@ -82,251 +68,174 @@ const validateImageBuffer = async (req, res, next) => {
   }
 };
 
-const getGridFsBucket = () => {
-  if (mongoose.connection.readyState !== 1 || !mongoose.connection.db) {
-    throw new ApiError(503, 'Image storage is not ready. MongoDB is not connected.');
-  }
+const uploadToCloudinary = (buffer, folder, publicId) =>
+  new Promise((resolve, reject) => {
+    const generatedPublicId = `homa-${folder}-${Date.now()}-${crypto.randomBytes(8).toString('hex')}`;
+    const uploadStream = cloudinary.uploader.upload_stream(
+      {
+        folder: `homa/${folder}`,
+        public_id: publicId || generatedPublicId,
+        allowed_formats: ['jpg', 'jpeg', 'png', 'webp'],
+        resource_type: 'image',
+        transformation: [
+          {
+            width: 1200,
+            height: 1200,
+            crop: 'limit',
+            quality: 'auto',
+            fetch_format: 'auto',
+          },
+        ],
+      },
+      (error, result) => {
+        if (error) return reject(error);
 
-  return new mongoose.mongo.GridFSBucket(mongoose.connection.db, {
-    bucketName: 'images',
+        resolve({
+          url: result.secure_url,
+          publicId: result.public_id,
+        });
+      },
+    );
+
+    streamifier.createReadStream(buffer).pipe(uploadStream);
   });
-};
-
-const normalizePathSeparators = (value) => String(value || '').replace(/\\/g, '/');
-
-const sanitizeFolder = (folder = 'uploads') => {
-  const normalized = normalizePathSeparators(folder)
-    .split('/')
-    .map((part) => part.trim().toLowerCase().replace(/[^a-z0-9_-]/g, '-'))
-    .filter(Boolean)
-    .join('/');
-
-  return normalized || 'uploads';
-};
-
-const normalizePublicId = (value) => {
-  const normalized = normalizePathSeparators(value)
-    .trim()
-    .replace(/^\/+/, '');
-
-  if (!normalized || normalized.includes('\0')) return '';
-  if (normalized.split('/').some((part) => !part || part === '.' || part === '..')) return '';
-  if (path.isAbsolute(normalized)) return '';
-
-  return normalized;
-};
-
-const publicIdFromValue = (value) => {
-  if (!value || typeof value !== 'string') return '';
-
-  try {
-    const url = new URL(value);
-    const pathname = decodeURIComponent(url.pathname);
-    const marker = '/uploads/';
-    const index = pathname.indexOf(marker);
-
-    if (index !== -1) {
-      return normalizePublicId(pathname.slice(index + marker.length));
-    }
-  } catch {
-  }
-
-  const raw = normalizePathSeparators(value);
-  const marker = '/uploads/';
-  const markerIndex = raw.indexOf(marker);
-  const candidate = markerIndex !== -1 ? raw.slice(markerIndex + marker.length) : raw;
-
-  return normalizePublicId(candidate);
-};
-
-const resolveUploadPath = (publicId) => {
-  const normalized = normalizePublicId(publicId);
-  if (!normalized) {
-    throw new ApiError(400, 'Invalid uploaded file path');
-  }
-
-  const resolved = path.resolve(UPLOAD_DIR, normalized);
-  const root = UPLOAD_DIR.endsWith(path.sep) ? UPLOAD_DIR : `${UPLOAD_DIR}${path.sep}`;
-
-  if (resolved !== UPLOAD_DIR && !resolved.startsWith(root)) {
-    throw new ApiError(400, 'Invalid uploaded file path');
-  }
-
-  return resolved;
-};
-
-const buildPublicUrl = (publicId) => `${PUBLIC_UPLOAD_BASE_URL}/${normalizePathSeparators(publicId)
-  .split('/')
-  .map(encodeURIComponent)
-  .join('/')}`;
-
-const uploadToLocal = async (buffer, folder = 'uploads', publicId = null, originalFile = {}) => {
-  if (!Buffer.isBuffer(buffer) || buffer.length === 0) {
-    throw new ApiError(400, 'No image file provided');
-  }
-
-  const { fileTypeFromBuffer } = await import('file-type');
-  const type = await fileTypeFromBuffer(buffer);
-  if (!type || !ALLOWED_MIMETYPES.has(type.mime)) {
-    throw new ApiError(400, 'Invalid image file. Only JPEG, PNG, and WebP images are allowed.');
-  }
-
-  const extension = ALLOWED_EXTENSIONS[type.mime];
-  const safeFolder = sanitizeFolder(folder);
-  const filename = `${safeFolder.replace(/\//g, '-')}-${Date.now()}-${crypto.randomBytes(8).toString('hex')}.${extension}`;
-  const storedPublicId = normalizePublicId(publicId) || `${safeFolder}/${filename}`;
-  const filePath = resolveUploadPath(storedPublicId);
-
-  await fs.mkdir(path.dirname(filePath), { recursive: true });
-  await fs.writeFile(filePath, buffer, { flag: 'wx' });
-
-  return {
-    url: buildPublicUrl(storedPublicId),
-    publicId: storedPublicId,
-    filename,
-    originalName: originalFile.originalname || '',
-  };
-};
-
-const isObjectId = (value) => mongoose.Types.ObjectId.isValid(String(value || ''));
-
-const imageIdFromValue = (value) => {
-  if (!value || typeof value !== 'string') return '';
-
-  if (isObjectId(value)) return value;
-
-  try {
-    const url = new URL(value);
-    const parts = url.pathname.split('/').filter(Boolean);
-    const candidate = parts[parts.length - 1];
-    return isObjectId(candidate) ? candidate : '';
-  } catch {
-    const parts = value.split('/').filter(Boolean);
-    const candidate = parts[parts.length - 1];
-    return isObjectId(candidate) ? candidate : '';
-  }
-};
-
-const deleteUploadedFile = async (publicIdOrUrl) => {
-  const publicId = publicIdFromValue(publicIdOrUrl);
-  if (publicId && !isObjectId(publicId)) {
-    try {
-      await fs.unlink(resolveUploadPath(publicId));
-      return true;
-    } catch (err) {
-      if (err.code === 'ENOENT') return false;
-      throw err;
-    }
-  }
-
-  const imageId = imageIdFromValue(publicIdOrUrl);
-  if (!imageId) return false;
-
-  const bucket = getGridFsBucket();
-  try {
-    await bucket.delete(new mongoose.Types.ObjectId(imageId));
-    return true;
-  } catch (err) {
-    if (err.message && err.message.includes('FileNotFound')) return false;
-    throw err;
-  }
-};
-
-const getStoredImage = async (id) => {
-  if (!isObjectId(id)) {
-    throw new ApiError(404, 'Image not found');
-  }
-
-  const objectId = new mongoose.Types.ObjectId(id);
-  const file = await mongoose.connection.db
-    .collection('images.files')
-    .findOne({ _id: objectId });
-
-  if (!file) {
-    throw new ApiError(404, 'Image not found');
-  }
-
-  return {
-    file,
-    stream: getGridFsBucket().openDownloadStream(objectId),
-  };
-};
 
 const productImagesUpload = multer({ storage, limits, fileFilter }).array('images', 8);
 const blogCoverImageUpload = multer({ storage, limits, fileFilter }).single('coverImageFile');
 const announcementImageUpload = multer({ storage, limits, fileFilter }).single('announcementImageFile');
 const bannerImageUpload = multer({ storage, limits, fileFilter }).single('bannerImageFile');
 const paymentQrImageUpload = multer({ storage, limits, fileFilter }).single('paymentQrImageFile');
-const paymentProofImageUpload = multer({ storage, limits, fileFilter }).single('paymentProofFile');
+const paymentProofImageUpload = multer({ storage, limits: paymentProofLimits, fileFilter }).single('paymentProofFile');
 const transformationStoryImagesUpload = multer({ storage, limits, fileFilter }).fields([
   { name: 'coverImageFile', maxCount: 1 },
   { name: 'beforeImageFile', maxCount: 1 },
   { name: 'afterImageFile', maxCount: 1 },
 ]);
 
-const handleUploadError = (err, next, messages) => {
-  if (!err) return next();
-
-  if (err instanceof multer.MulterError) {
-    if (err.code === 'LIMIT_FILE_SIZE') {
-      return next(new ApiError(400, messages.fileSize));
-    }
-    if (err.code === 'LIMIT_FILE_COUNT') {
-      return next(new ApiError(400, messages.fileCount));
-    }
-    return next(new ApiError(400, err.message));
-  }
-
-  return next(err);
-};
-
 const uploadProductImages = (req, res, next) => {
-  productImagesUpload(req, res, (err) => handleUploadError(err, next, {
-    fileSize: `Each image must be ${MAX_IMAGE_SIZE_LABEL} or less`,
-    fileCount: 'A maximum of 8 images are allowed',
-  }));
+  productImagesUpload(req, res, (err) => {
+    if (!err) return next();
+
+    if (err instanceof multer.MulterError) {
+      if (err.code === 'LIMIT_FILE_SIZE') {
+        return next(new ApiError(400, `Each image must be ${MAX_IMAGE_SIZE_LABEL} or less`));
+      }
+      if (err.code === 'LIMIT_FILE_COUNT') {
+        return next(new ApiError(400, 'A maximum of 8 images are allowed'));
+      }
+      return next(new ApiError(400, err.message));
+    }
+
+    return next(err);
+  });
 };
 
 const uploadBlogCoverImage = (req, res, next) => {
-  blogCoverImageUpload(req, res, (err) => handleUploadError(err, next, {
-    fileSize: `The cover image must be ${MAX_IMAGE_SIZE_LABEL} or less`,
-    fileCount: 'Only one cover image can be uploaded',
-  }));
+  blogCoverImageUpload(req, res, (err) => {
+    if (!err) return next();
+
+    if (err instanceof multer.MulterError) {
+      if (err.code === 'LIMIT_FILE_SIZE') {
+        return next(new ApiError(400, `The cover image must be ${MAX_IMAGE_SIZE_LABEL} or less`));
+      }
+      if (err.code === 'LIMIT_FILE_COUNT') {
+        return next(new ApiError(400, 'Only one cover image can be uploaded'));
+      }
+      return next(new ApiError(400, err.message));
+    }
+
+    return next(err);
+  });
 };
 
 const uploadAnnouncementImage = (req, res, next) => {
-  announcementImageUpload(req, res, (err) => handleUploadError(err, next, {
-    fileSize: `The announcement image must be ${MAX_IMAGE_SIZE_LABEL} or less`,
-    fileCount: 'Only one announcement image can be uploaded',
-  }));
+  announcementImageUpload(req, res, (err) => {
+    if (!err) return next();
+
+    if (err instanceof multer.MulterError) {
+      if (err.code === 'LIMIT_FILE_SIZE') {
+        return next(new ApiError(400, `The announcement image must be ${MAX_IMAGE_SIZE_LABEL} or less`));
+      }
+      if (err.code === 'LIMIT_FILE_COUNT') {
+        return next(new ApiError(400, 'Only one announcement image can be uploaded'));
+      }
+      return next(new ApiError(400, err.message));
+    }
+
+    return next(err);
+  });
 };
 
 const uploadBannerImage = (req, res, next) => {
-  bannerImageUpload(req, res, (err) => handleUploadError(err, next, {
-    fileSize: `The banner image must be ${MAX_IMAGE_SIZE_LABEL} or less`,
-    fileCount: 'Only one banner image can be uploaded',
-  }));
+  bannerImageUpload(req, res, (err) => {
+    if (!err) return next();
+
+    if (err instanceof multer.MulterError) {
+      if (err.code === 'LIMIT_FILE_SIZE') {
+        return next(new ApiError(400, `The banner image must be ${MAX_IMAGE_SIZE_LABEL} or less`));
+      }
+      if (err.code === 'LIMIT_FILE_COUNT') {
+        return next(new ApiError(400, 'Only one banner image can be uploaded'));
+      }
+      return next(new ApiError(400, err.message));
+    }
+
+    return next(err);
+  });
 };
 
 const uploadPaymentQrImage = (req, res, next) => {
-  paymentQrImageUpload(req, res, (err) => handleUploadError(err, next, {
-    fileSize: `The payment QR image must be ${MAX_IMAGE_SIZE_LABEL} or less`,
-    fileCount: 'Only one payment QR image can be uploaded',
-  }));
+  paymentQrImageUpload(req, res, (err) => {
+    if (!err) return next();
+
+    if (err instanceof multer.MulterError) {
+      if (err.code === 'LIMIT_FILE_SIZE') {
+        return next(new ApiError(400, `The payment QR image must be ${MAX_IMAGE_SIZE_LABEL} or less`));
+      }
+      if (err.code === 'LIMIT_FILE_COUNT') {
+        return next(new ApiError(400, 'Only one payment QR image can be uploaded'));
+      }
+      return next(new ApiError(400, err.message));
+    }
+
+    return next(err);
+  });
 };
 
 const uploadPaymentProofImage = (req, res, next) => {
-  paymentProofImageUpload(req, res, (err) => handleUploadError(err, next, {
-    fileSize: `The payment proof image must be ${MAX_IMAGE_SIZE_LABEL} or less`,
-    fileCount: 'Only one payment proof image can be uploaded',
-  }));
+  paymentProofImageUpload(req, res, (err) => {
+    if (!err) return next();
+
+    if (err instanceof multer.MulterError) {
+      if (err.code === 'LIMIT_FILE_SIZE') {
+        return next(new ApiError(400, `The payment proof image must be ${PAYMENT_PROOF_MAX_IMAGE_SIZE_LABEL} or less`));
+      }
+      if (err.code === 'LIMIT_FILE_COUNT') {
+        return next(new ApiError(400, 'Only one payment proof image can be uploaded'));
+      }
+      return next(new ApiError(400, err.message));
+    }
+
+    return next(err);
+  });
 };
 
 const uploadTransformationStoryImages = (req, res, next) => {
-  transformationStoryImagesUpload(req, res, (err) => handleUploadError(err, next, {
-    fileSize: `Each image must be ${MAX_IMAGE_SIZE_LABEL} or less`,
-    fileCount: 'Only three images can be uploaded',
-  }));
+  transformationStoryImagesUpload(req, res, (err) => {
+    if (!err) return next();
+
+    if (err instanceof multer.MulterError) {
+      if (err.code === 'LIMIT_FILE_SIZE') {
+        return next(new ApiError(400, `Each image must be ${MAX_IMAGE_SIZE_LABEL} or less`));
+      }
+      if (err.code === 'LIMIT_FILE_COUNT') {
+        return next(new ApiError(400, 'Only three images can be uploaded'));
+      }
+      return next(new ApiError(400, err.message));
+    }
+
+    return next(err);
+  });
 };
 
 module.exports = {
@@ -338,9 +247,5 @@ module.exports = {
   uploadPaymentProofImage,
   uploadTransformationStoryImages,
   validateImageBuffer,
-  uploadToLocal,
-  deleteUploadedFile,
-  getStoredImage,
-  MAX_IMAGE_SIZE_LABEL,
-  UPLOAD_DIR,
+  uploadToCloudinary,
 };

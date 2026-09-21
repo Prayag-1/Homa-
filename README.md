@@ -9,14 +9,14 @@ A production-ready MERN stack for the HOMA Japanese Skincare project targeting t
 | Frontend  | React 18, Vite, React Router, Tailwind CSS, React Query |
 | Backend   | Node.js, Express, MongoDB with Mongoose |
 | Auth      | JWT (access + refresh tokens) |
-| File Storage | VPS filesystem uploads, with GridFS fallback for older images |
+| File Storage | Cloudinary |
 | Email     | Nodemailer |
 
 ## Prerequisites
 
 - Node.js v20 or higher
-- Local MongoDB instance
-- Writable upload directory for image storage
+- MongoDB Atlas account (free tier available)
+- Cloudinary account (for image uploads)
 
 ## Quick Start
 
@@ -40,14 +40,10 @@ copy .env.example .env
 
 **Server** (.env):
 ```
-MONGO_URI=mongodb://127.0.0.1:27017/homa
-ALLOW_LOCAL_MONGO=true
+MONGO_URI=mongodb+srv://USERNAME:PASSWORD@cluster.mongodb.net/homa
 JWT_SECRET=your_long_random_string
 JWT_REFRESH_SECRET=your_another_random_string
 CLIENT_URL=http://localhost:5173
-UPLOAD_DIR=./uploads
-PUBLIC_IMAGE_BASE_URL=http://localhost:5000/uploads
-IMAGE_UPLOAD_MAX_MB=10
 ```
 
 To generate random JWT secrets for development:
@@ -60,7 +56,6 @@ npm run secrets
 **Client** (.env):
 ```
 VITE_API_URL=http://localhost:5000/api/v1
-VITE_IMAGE_UPLOAD_MAX_MB=10
 ```
 
 ### 3. Run Locally
@@ -91,7 +86,7 @@ homa/
 │   └── package.json
 ├── server/                 ← Express.js backend
 │   ├── src/
-│   │   ├── config/         ← Database and Email
+│   │   ├── config/         ← Database, Cloudinary, Email
 │   │   ├── models/         ← Mongoose schemas
 │   │   ├── controllers/    ← Route handlers
 │   │   ├── routes/         ← API routes
@@ -179,9 +174,8 @@ http://localhost:5000/api/v1
 
 ## Notes
 
-- The database connection requires a MongoDB URI
-- New image uploads are stored on the VPS filesystem; product/order records store image URLs and file paths
-- Existing GridFS image URLs under `/api/v1/uploads/:id` remain readable for backward compatibility
+- The database connection requires a MongoDB URI (MongoDB Atlas recommended)
+- Cloudinary is required for image uploads
 - Email functionality requires SMTP credentials
 - Payment integration (eSewa, FonePay) is configured but not fully implemented
 - All stub routes should be replaced with actual implementations

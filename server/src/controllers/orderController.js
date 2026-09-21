@@ -9,7 +9,7 @@ const { calculateOrderTotals } = require('../utils/tax');
 const { generateInvoicePDF } = require('../utils/invoice');
 const { createOrderSchema } = require('../validators/orderValidators');
 const { calculateLoyaltyPoints } = require('../utils/loyalty');
-const { uploadToLocal } = require('../middleware/upload');
+const { uploadToCloudinary } = require('../middleware/upload');
 
 const VALID_ORDER_STATUSES = new Set(['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled', 'returned']);
 const VALID_PAYMENT_STATUSES = new Set(['pending', 'paid', 'failed', 'pending_collection', 'collected']);
@@ -68,7 +68,7 @@ const normalizeOrderBody = (body = {}) => {
 const uploadPaymentProof = async (file) => {
   if (!file) return null;
 
-  const uploaded = await uploadToLocal(file.buffer, 'payments');
+  const uploaded = await uploadToCloudinary(file.buffer, 'payments');
   return {
     url: uploaded.url,
     publicId: uploaded.publicId,
