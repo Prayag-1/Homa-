@@ -12,7 +12,8 @@
     "create:admin": "node backend/src/scripts/createAdmin.js",
     "seed:products": "node backend/src/scripts/seedProducts.js",
     "seed:brands": "node backend/src/scripts/seedBrandsCategories.js",
-    "migrate:smtp-settings": "node backend/src/scripts/migrateSmtpSettings.js"
+    "migrate:smtp-settings": "node backend/src/scripts/migrateSmtpSettings.js",
+    "check:junk": "node scripts/check-junk.js"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.3.1",

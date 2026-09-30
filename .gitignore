@@ -6,7 +6,6 @@ node_modules/
 .env
 .env.*
 !.env.example
-!.env.*.example
 
 # Build output and coverage
 dist/
@@ -30,6 +29,7 @@ Thumbs.db
 tmp/
 temp/
 uploads/
+deploy/
 *.zip
 *.rar
 *.tar.gz
