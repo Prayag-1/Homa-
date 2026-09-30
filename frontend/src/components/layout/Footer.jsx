@@ -177,7 +177,7 @@ export default function Footer() {
             )}
           </div>
           <div className="sm:text-right">
-            Made by Prayag Nepal and Adarsh <span aria-hidden="true">&copy;</span>
+            Made by Prayag Nepal and Adarsh Sapkota <span aria-hidden="true">&copy;</span>
           </div>
           
         </div>
