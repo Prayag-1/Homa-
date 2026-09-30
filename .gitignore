@@ -30,6 +30,10 @@ tmp/
 temp/
 uploads/
 deploy/
+# Markdown notes and documentation stay local per request
+*.md
+*.markdown
+*.mdx
 *.zip
 *.rar
 *.tar.gz

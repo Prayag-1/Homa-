@@ -9,6 +9,7 @@ const junkPatterns = [
   /(^|\/)node_modules\//i,
   /(^|\/)(?:dist|build|coverage|logs?|tmp|temp|uploads|deploy)\//i,
   /(^|\/)\.env(?:\..*)?$/i,
+  /(^|\/)[^/]+\.(?:md|markdown|mdx)$/i,
   /\.(?:zip|rar|7z|tar|gz|tgz|bak|swp)$/i,
   /(^|\/)(?:\.DS_Store|Thumbs\.db|\.idea|\.vscode)(?:\/|$)/i,
   /(?:^|\/)(?:npm-debug\.log|error_log|stderr\.log)$/i,
