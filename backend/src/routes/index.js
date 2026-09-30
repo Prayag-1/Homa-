@@ -1,7 +1,7 @@
 ﻿const router = require('express').Router();
 const mongoose = require('mongoose');
 const { generalLimiter } = require('../middleware/rateLimiters');
-const { version } = require('../../package.json');
+const { version } = require('../../../package.json');
 
 router.use(generalLimiter);
 

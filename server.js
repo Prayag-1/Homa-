@@ -1,4 +1,10 @@
-﻿require('dotenv').config();
+const path = require('path');
+const fs = require('fs');
+if (process.env.NODE_ENV !== 'production') {
+  const rootEnv = path.join(__dirname, '.env');
+  const localEnv = fs.existsSync(rootEnv) ? rootEnv : path.join(__dirname, 'backend/.env');
+  require('dotenv').config({ path: localEnv });
+}
 const crypto = require('crypto');
 
 // STARTUP SECURITY CHECKS
@@ -92,12 +98,12 @@ const compression = require('compression');
 const morgan = require('morgan');
 const cookieParser = require('cookie-parser');
 const mongoSanitize = require('express-mongo-sanitize');
-const connectDB = require('./src/config/db');
-const { migrateEnvSmtpSettings } = require('./src/services/smtpService');
-const routes = require('./src/routes/index');
-const contactRouter = require('./src/routes/contactRoute');
-const errorHandler = require('./src/middleware/errorHandler');
-const logger = require('./src/utils/logger');
+const connectDB = require('./backend/src/config/db');
+const { migrateEnvSmtpSettings } = require('./backend/src/services/smtpService');
+const routes = require('./backend/src/routes/index');
+const contactRouter = require('./backend/src/routes/contactRoute');
+const errorHandler = require('./backend/src/middleware/errorHandler');
+const logger = require('./backend/src/utils/logger');
 
 const app = express();
 let server;
@@ -185,23 +191,13 @@ if (process.env.NODE_ENV === 'development') {
 app.use('/api/v1', routes);
 app.use('/api/v1/contact', contactRouter);
 
-// Root confirmation
-app.get('/', (req, res) => {
-  res.json({
-    success: true,
-    message: 'HOMA API is running',
-    status: 'ok',
-  });
-});
-
-// 404
-app.use((req, res) =>
-  res
-    .status(404)
-    .json({ success: false, message: `Route ${req.originalUrl} not found` }),
+// Serve the built frontend while keeping unknown API requests as JSON 404s.
+const frontendDist = path.join(__dirname, 'frontend', 'dist');
+app.use(express.static(frontendDist));
+app.use('/api', (req, res) =>
+  res.status(404).json({ success: false, message: `Route ${req.originalUrl} not found` }),
 );
-
-// Error handler
+app.get('*', (req, res) => res.sendFile(path.join(frontendDist, 'index.html')));
 app.use(errorHandler);
 
 async function bootstrap() {
@@ -216,7 +212,7 @@ async function bootstrap() {
     console.warn(`SMTP migration skipped: ${error.message}`);
   }
 
-  const PORT = process.env.PORT || 5000;
+  const PORT = process.env.PORT;
   server = app.listen(PORT, () => {
     console.log(`HOMA Server running on port ${PORT}`);
     if (process.send) process.send('ready');
