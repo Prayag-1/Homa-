@@ -3,10 +3,6 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const ApiError = require('../utils/ApiError');
 const { buildTokenPair } = require('../utils/authTokens');
-const {
-  sanitizeString,
-  validatePagination,
-} = require('../utils/queryHelpers');
 const { sanitizeString: sanitizeContentString } = require('../utils/sanitize');
 const {
   normalizePhoneNumber,
@@ -380,55 +376,6 @@ const me = async (req, res) => {
   });
 };
 
-const adminGetUsers = async (req, res, next) => {
-  try {
-    const {
-      search = '',
-      page = 1,
-      limit = 20,
-      role = 'user',
-    } = req.query;
-
-    const { safePage: pageNumber, safeLimit: pageSize, skip } = validatePagination(page, limit, 100, 20);
-    const query = {};
-
-    if (role && role !== 'all') {
-      query.role = role;
-    }
-
-    const searchTerm = sanitizeString(search, 100);
-    if (searchTerm) {
-      const safeSearch = searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      query.$or = [
-        { name: { $regex: safeSearch, $options: 'i' } },
-        { email: { $regex: safeSearch, $options: 'i' } },
-        { phoneNumber: { $regex: safeSearch, $options: 'i' } },
-      ];
-    }
-
-    const [items, total] = await Promise.all([
-      User.find(query)
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(pageSize),
-      User.countDocuments(query),
-    ]);
-
-    res.status(200).json({
-      success: true,
-      data: {
-        items: items.map(sanitizeUser),
-        page: pageNumber,
-        limit: pageSize,
-        total,
-        totalPages: Math.max(1, Math.ceil(total / pageSize)),
-      },
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-
 const logout = async (req, res, next) => {
   try {
     res.clearCookie('refreshToken', { ...cookieOptions, maxAge: undefined });
@@ -524,5 +471,4 @@ module.exports = {
   logout,
   refreshToken,
   updateProfile,
-  adminGetUsers,
 };
