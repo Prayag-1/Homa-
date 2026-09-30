@@ -1,10 +1,8 @@
 const path = require('path');
 const fs = require('fs');
-if (process.env.NODE_ENV !== 'production') {
-  const rootEnv = path.join(__dirname, '.env');
-  const localEnv = fs.existsSync(rootEnv) ? rootEnv : path.join(__dirname, 'backend/.env');
-  require('dotenv').config({ path: localEnv });
-}
+const rootEnv = path.join(__dirname, '.env');
+const localEnv = fs.existsSync(rootEnv) ? rootEnv : path.join(__dirname, 'backend/.env');
+require('dotenv').config({ path: localEnv });
 const crypto = require('crypto');
 
 // STARTUP SECURITY CHECKS
