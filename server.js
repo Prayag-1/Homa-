@@ -140,31 +140,29 @@ app.use(helmet({
   hidePoweredBy: true,
 }));
 app.use(compression());
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      const allowed = new Set(
-        [
-          process.env.CLIENT_URL,
-          process.env.CLIENT_URLS,
-          process.env.ALLOWED_CLIENT_ORIGINS,
-        ]
-          .filter(Boolean)
-          .flatMap((value) => value.split(',').map((item) => item.trim()))
-          .filter(Boolean),
-      );
-
-      if (!origin || allowed.has(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error(`CORS: Origin ${origin} not allowed`));
-      }
-    },
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-  }),
+const allowedOrigins = new Set(
+  [process.env.CLIENT_URL, process.env.CLIENT_URLS, process.env.ALLOWED_CLIENT_ORIGINS]
+    .filter(Boolean)
+    .flatMap((value) => value.split(',').map((item) => item.trim()))
+    .filter(Boolean),
 );
+
+const corsOptions = (req) => ({
+  origin: (origin, callback) => {
+    const selfOrigin = `${req.protocol}://${req.get('host')}`;
+
+    if (!origin || origin === selfOrigin || allowedOrigins.has(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error(`CORS: Origin ${origin} not allowed`));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+});
+
+app.use('/api', cors((req, callback) => callback(null, corsOptions(req))));
 
 // Body parsing
 app.use(express.json({ limit: '10kb' }));
